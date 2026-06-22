@@ -7,17 +7,17 @@
 
         <div class="card">
             <h3>Total Users</h3>
-            <p>12</p>
+            <p>{{ totalUsers }}</p>
         </div>
 
         <div class="card">
             <h3>Total Repositories</h3>
-            <p>5</p>
+            <p>{{ totalRepositories }}</p>
         </div>
 
         <div class="card">
             <h3>Pending Scans</h3>
-            <p>2</p>
+            <p>{{ pendingScans }}</p>
         </div>
 
     </div>
@@ -50,39 +50,28 @@
             </a>
         </div>
 
-        <table>
-
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Role</th>
-                </tr>
-            </thead>
-
-            <tbody>
-
-                <tr>
-                    <td>Arka</td>
-                    <td>arka@test.com</td>
-                    <td>Admin</td>
-                </tr>
-
-                <tr>
-                    <td>John</td>
-                    <td>john@test.com</td>
-                    <td>Senior Dev</td>
-                </tr>
-
-                <tr>
-                    <td>Rahul</td>
-                    <td>rahul@test.com</td>
-                    <td>Junior Dev</td>
-                </tr>
-
-            </tbody>
-
-        </table>
+        @if (isLoading) {
+            <p>Loading recent users...</p>
+        } @else {
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for(user of recentUsers; track user.emp_id || user.id || $index) {
+                        <tr>
+                            <td>{{ user.emp_name || user.name }}</td>
+                            <td>{{ user.emp_email || user.email }}</td>
+                            <td><span class="role-badge">{{ user.emp_role || user.role }}</span></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
 
     </div>
 

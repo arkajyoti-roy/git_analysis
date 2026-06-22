@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { UserService } from '../../../core/services/user.service';
 import { Create } from '../create/create';
-import { CONFIG } from '../../../config/config';
 
 @Component({
   selector: 'app-list',
@@ -13,7 +12,7 @@ export class List implements OnInit {
   users: any[] = [];
   isLoading = true;
 
-  constructor(private http: HttpClient) {}
+  constructor(private userService: UserService) {}
 
   ngOnInit() {
     this.fetchUsers();
@@ -21,7 +20,7 @@ export class List implements OnInit {
 
   fetchUsers() {
     this.isLoading = true;
-    this.http.get(`${CONFIG.BASE_URL}/users`).subscribe({
+    this.userService.getUsers().subscribe({
       next: (response: any) => {
         this.isLoading = false;
         const data = response.data || response;
