@@ -6,13 +6,13 @@
 } @else {
 <table>
 
-  <thead >
+  <thead>
     <tr>
-      <th style="text-align: center;" >ID</th>
-      <th style="text-align: center;">Name</th>
-      <th style="text-align: center;">Email</th>
-      <th style="text-align: center;">Role</th>
-      <th style="text-align: center;">Action</th>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Email</th>
+      <th>Role</th>
+      <th>Action</th>
     </tr>
   </thead>
 
@@ -21,14 +21,16 @@
     @for(user of users; track user.emp_id || user.id || $index){
 
     <tr>
-      <td style="text-align: center;">{{user.emp_id || user.id}}</td>
-      <td style="text-align: center;">{{ user.emp_name || user.name }}</td>
-      <td style="text-align: center;">{{ user.emp_email || user.email }}</td>
-      <td style="text-align: center;">{{ user.emp_role || user.role }}</td>
+      <td>{{user.emp_id || user.id}}</td>
+      <td>{{ user.emp_name || user.name }}</td>
+      <td>{{ user.emp_email || user.email }}</td>
+      <td><span class="role-badge">{{ user.emp_role || user.role }}</span></td>
 
-      <td style="text-align: center;">
-        <button style="margin-right: 10px; align-items: center; text-align: center;">Edit</button>
-        <button style="align-items: center; text-align: center;">Delete</button>
+      <td>
+        <div style="display: flex; justify-content: center; gap: 0.5rem;">
+          <button>Edit</button>
+          <button>Delete</button>
+        </div>
       </td>
 
     </tr>
