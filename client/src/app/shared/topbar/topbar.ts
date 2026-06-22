@@ -14,6 +14,10 @@ export class Topbar implements OnInit {
   constructor(private router: Router) {}
 
   ngOnInit() {
+    this.userName = localStorage.getItem('emp_name') || 'User';
+
+    this.userInitial = this.userName.charAt(0).toUpperCase();
+
     const adminName = localStorage.getItem('admin_name');
     if (adminName) {
       this.userName = adminName;

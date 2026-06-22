@@ -11,7 +11,6 @@ import { CONFIG } from '../../../config/config';
   templateUrl: './login.html',
   styleUrl: './login.css'
 })
-
 export class Login {
 
   email = '';
@@ -24,151 +23,96 @@ export class Login {
     private http: HttpClient
   ) {}
 
-  // login() {
+  login() {
 
-  //   if (!this.email || !this.password) {
-  //     alert('Please enter email and password');
-  //     return;
-  //   }
+    if (!this.email || !this.password) {
+      alert('Please enter email and password');
+      return;
+    }
 
-  //   this.isLoading = true;
+    this.isLoading = true;
 
-  //   const payload = {
-  //     email: this.email,
-  //     password: this.password
-  //   };
+    const payload = {
+      emp_email: this.email,
+      emp_pass: this.password
+    };
 
-  //   this.http.post(
-  //     `${CONFIG.BASE_URL}/admin/login`,
-  //     payload
-  //   )
-  //   .subscribe({
+    this.http.post(
+      `${CONFIG.BASE_URL}/auth/login`,
+      payload
+    ).subscribe({
 
-  //     next: (response: any) => {
+      next: (response: any) => {
 
-  //       this.isLoading = false;
+        this.isLoading = false;
 
-  //       localStorage.setItem(
-  //         'token',
-  //         response.token
-  //       );
+        if (response.success) {
 
-  //       localStorage.setItem(
-  //         'role',
-  //         response.role
-  //       );
+          localStorage.setItem(
+            'token',
+            response.data.token
+          );
 
-  //       if (response.role === 'admin') {
+          localStorage.setItem(
+            'emp_id',
+            response.data.emp_id
+          );
 
-  //         this.router.navigate([
-  //           '/admin-dashboard'
-  //         ]);
+          localStorage.setItem(
+            'emp_name',
+            response.data.emp_name
+          );
 
-  //         return;
-  //       }
+          localStorage.setItem(
+            'emp_email',
+            response.data.emp_email
+          );
 
-  //       if (
-  //         response.role === 'senior-dev' ||
-  //         response.role === 'junior-dev'
-  //       ) {
+          localStorage.setItem(
+            'role',
+            response.data.emp_role
+          );
 
-  //         this.router.navigate([
-  //           '/developer/dashboard'
-  //         ]);
+          if (response.data.emp_role === 'admin') {
 
-  //         return;
-  //       }
+            this.router.navigate([
+              '/admin-dashboard'
+            ]);
 
-  //       alert('Role not recognized');
+          } else {
 
-  //     },
+            this.router.navigate([
+              '/developer/dashboard'
+            ]);
 
-  //     error: (error) => {
+          }
 
-  //       this.isLoading = false;
+        } else {
 
-  //       console.error(error);
+          alert(
+            response.message ||
+            'Login Failed'
+          );
 
-  //       alert(
-  //         error?.error?.message ||
-  //         'Invalid Credentials'
-  //       );
+        }
 
-  //     }
+      },
 
-  //   });
+      error: (error) => {
 
-  // }
+        this.isLoading = false;
 
+        console.error(error);
 
-login() {
-
-  const payload = {
-
-    admin_email: this.email,
-
-    admin_password: this.password
-
-  };
-
-  this.http.post(
-
-    `${CONFIG.BASE_URL}/admin/login`,
-
-    payload
-
-  ).subscribe({
-
-    next: (response: any) => {
-
-      if(response.success){
-
-        localStorage.setItem(
-          'token',
-          response.data.token
+        alert(
+          error?.error?.message ||
+          'Login Failed'
         );
-
-        localStorage.setItem(
-          'admin_id',
-          response.data.admin_id
-        );
-
-        localStorage.setItem(
-          'admin_name',
-          response.data.admin_name
-        );
-
-        localStorage.setItem(
-          'admin_email',
-          response.data.admin_email
-        );
-
-        localStorage.setItem(
-          'role',
-          'admin'
-        );
-
-        this.router.navigate([
-          '/admin-dashboard'
-        ]);
 
       }
 
-    },
+    });
 
-    error: (error) => {
-
-      console.error(error);
-
-      alert(
-        error?.error?.message ||
-        'Login Failed'
-      );
-
-    }
-
-  });
-
-}
+  }
 
 }
