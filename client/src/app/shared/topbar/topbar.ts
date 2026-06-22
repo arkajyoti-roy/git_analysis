@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { CONFIG } from '../../config/config';
+import { ThemeService } from '../../core/services/theme.service';
 // import {Config} from '../../config/config';
 
 @Component({
@@ -18,7 +19,11 @@ export class Topbar implements OnInit {
   userProfile: any = null;
   isLoadingProfile: boolean = false;
 
-  constructor(private router: Router, private http: HttpClient) {}
+  constructor(
+    private router: Router, 
+    private http: HttpClient,
+    public themeService: ThemeService
+  ) {}
 
   ngOnInit() {
     this.userName = localStorage.getItem('emp_name') || 'User';

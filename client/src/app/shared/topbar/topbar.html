@@ -1,6 +1,14 @@
 <div class="topbar">
   <h3>Admin Panel</h3>
   <div class="user-profile-container">
+    <button (click)="themeService.toggleTheme()" class="theme-toggle-btn">
+      @if (themeService.isDarkMode) {
+        <span>☀️</span>
+      } @else {
+        <span>🌙</span>
+      }
+    </button>
+    
     <div class="user-profile" (click)="toggleProfilePopup()">
       <div class="avatar">{{ userInitial }}</div>
       <span>{{ userName }}</span>

@@ -28,6 +28,9 @@
   --radius-md: 8px;
   --radius-lg: 12px;
   
+  /* Buttons */
+  --btn-text: #ffffff;
+  
   /* Transitions */
   --transition-smooth: all 0.2s ease;
 }
@@ -67,7 +70,7 @@ a:hover {
 /* Minimalist Button */
 button {
   background: var(--primary-color);
-  color: white;
+  color: var(--btn-text);
   border: 1px solid var(--primary-color);
   padding: 0.625rem 1.25rem;
   border-radius: var(--radius-sm);
@@ -168,4 +171,25 @@ tr {
 
 tr:hover td {
   background-color: var(--bg-main);
+}
+
+/* Dark Mode Variables */
+[data-theme="dark"] {
+  --primary-color: #ffffff;
+  --primary-hover: #e5e7eb;
+  --secondary-color: #9ca3af;
+  
+  --bg-main: #111827;
+  --bg-surface: #1f2937;
+  
+  --text-primary: #f9fafb;
+  --text-secondary: #d1d5db;
+  --text-muted: #6b7280;
+  
+  --border-color: #374151;
+  
+  --btn-text: #000000;
+  
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
