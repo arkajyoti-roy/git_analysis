@@ -53,20 +53,22 @@
         @if (isLoading) {
             <p>Loading recent users...</p>
         } @else {
-            <table>
+            <table style="text-align: center;">
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Role</th>
+                        <th style="text-align: center;">ID</th>
+                        <th style="text-align: center;">Name</th>
+                        <th style="text-align: center;">Email</th>
+                        <th style="text-align: center;">Role</th>
                     </tr>
                 </thead>
                 <tbody>
                     @for(user of recentUsers; track user.emp_id || user.id || $index) {
                         <tr>
-                            <td>{{ user.emp_name || user.name }}</td>
-                            <td>{{ user.emp_email || user.email }}</td>
-                            <td><span class="role-badge">{{ user.emp_role || user.role }}</span></td>
+                            <td style="text-align: center;">{{user.emp_id || user.id}}</td>
+                            <td style="text-align: center;">{{ user.emp_name || user.name }}</td>
+                            <td style="text-align: center;">{{ user.emp_email || user.email }}</td>
+                            <td style="text-align: center;"><span class="role-badge">{{ user.emp_role || user.role }}</span></td>
                         </tr>
                     }
                 </tbody>

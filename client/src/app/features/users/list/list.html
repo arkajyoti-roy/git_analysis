@@ -2,39 +2,40 @@
 <h2>Manage Users</h2>
 
 @if (isLoading) {
-  <p>Loading users...</p>
+<p>Loading users...</p>
 } @else {
-  <table>
+<table>
 
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Email</th>
-        <th>Role</th>
-        <th>Action</th>
-      </tr>
-    </thead>
+  <thead >
+    <tr>
+      <th style="text-align: center;" >ID</th>
+      <th style="text-align: center;">Name</th>
+      <th style="text-align: center;">Email</th>
+      <th style="text-align: center;">Role</th>
+      <th style="text-align: center;">Action</th>
+    </tr>
+  </thead>
 
-    <tbody>
+  <tbody>
 
-      @for(user of users; track user.emp_id || user.id || $index){
+    @for(user of users; track user.emp_id || user.id || $index){
 
-        <tr>
+    <tr>
+      <td style="text-align: center;">{{user.emp_id || user.id}}</td>
+      <td style="text-align: center;">{{ user.emp_name || user.name }}</td>
+      <td style="text-align: center;">{{ user.emp_email || user.email }}</td>
+      <td style="text-align: center;">{{ user.emp_role || user.role }}</td>
 
-          <td>{{ user.emp_name || user.name }}</td>
-          <td>{{ user.emp_email || user.email }}</td>
-          <td>{{ user.emp_role || user.role }}</td>
+      <td style="text-align: center;">
+        <button>Edit</button>
+        <button>Delete</button>
+      </td>
 
-          <td>
-            <button>Edit</button>
-            <button>Delete</button>
-          </td>
+    </tr>
 
-        </tr>
+    }
 
-      }
+  </tbody>
 
-    </tbody>
-
-  </table>
+</table>
 }
