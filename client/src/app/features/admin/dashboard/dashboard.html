@@ -99,25 +99,17 @@
             </thead>
 
             <tbody>
-
-                <tr>
-                    <td>Student Cover Page Maker</td>
-                    <td>MERN</td>
-                    <td>Analyzed</td>
-                </tr>
-
-                <tr>
-                    <td>LMS</td>
-                    <td>Angular + Laravel</td>
-                    <td>Pending</td>
-                </tr>
-
-                <tr>
-                    <td>RepoLens</td>
-                    <td>FastAPI + Angular</td>
-                    <td>Analyzed</td>
-                </tr>
-
+                @for(repo of recentRepos; track repo.id) {
+                    <tr>
+                        <td>{{ repo.repo_name }}</td>
+                        <td>{{ repo.repo_stack }}</td>
+                        <td><span class="status-badge" [class.completed]="repo.repo_status === 'completed'">{{ repo.repo_status }}</span></td>
+                    </tr>
+                } @empty {
+                    <tr>
+                        <td colspan="3" style="color: var(--text-muted);">No repositories found.</td>
+                    </tr>
+                }
             </tbody>
 
         </table>

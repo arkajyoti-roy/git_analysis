@@ -3,30 +3,40 @@
   <button routerLink="/admin/repositories/create">Add Repository</button>
 </div>
 
-<table>
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>Stack</th>
-      <th>Status</th>
-      <th>Action</th>
-    </tr>
-  </thead>
-  <tbody>
-    @for(repo of repositories; track repo.id) {
+@if (isLoading) {
+  <p>Loading repositories...</p>
+} @else {
+  <table>
+    <thead>
       <tr>
-        <td>{{ repo.name }}</td>
-        <td>{{ repo.stack }}</td>
-        <td>
-          <span class="status-badge" [class.completed]="repo.status === 'Completed'">{{ repo.status }}</span>
-        </td>
-        <td>
-          <div class="action-group">
-            <button [routerLink]="['/admin/repositories', repo.id]" class="btn-sm">View</button>
-            <button class="btn-sm btn-danger">Delete</button>
-          </div>
-        </td>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Stack</th>
+        <th>Status</th>
+        <th>Action</th>
       </tr>
-    }
-  </tbody>
-</table>
+    </thead>
+    <tbody>
+      @for(repo of repositories; track repo.id) {
+        <tr>
+          <td>{{ repo.id }}</td>
+          <td>{{ repo.repo_name }}</td>
+          <td>{{ repo.repo_stack }}</td>
+          <td>
+            <span class="status-badge" [class.completed]="repo.repo_status === 'completed'">{{ repo.repo_status }}</span>
+          </td>
+          <td>
+            <div style="display: flex; justify-content: center; gap: 0.5rem;">
+              <button [routerLink]="['/admin/repositories', repo.id]" class="btn-sm">View</button>
+              <button (click)="deleteRepo(repo.id)" class="btn-sm" style="background: #ef4444; border-color: #ef4444; color: white;">Delete</button>
+            </div>
+          </td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="5" style="text-align: center; color: var(--text-muted);">No repositories found. Create one!</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}
