@@ -1,26 +1,77 @@
-<div class="create-repo-container">
-  
-  <h2 style="margin-bottom: 2rem;">Create Repository</h2>
+<h2>Create Repository</h2>
 
-  <div class="form-card">
-    
-    <div class="form-group">
-      <label>Repository Name</label>
-      <input type="text" placeholder="e.g. My Awesome Project">
-    </div>
+<div class="form-card">
 
-    <div class="form-group">
-      <label>GitHub URL</label>
-      <input type="text" placeholder="https://github.com/...">
-    </div>
-
-    <div class="form-group">
-      <label>Description</label>
-      <textarea placeholder="Brief description of the repository..." rows="4"></textarea>
-    </div>
-
-    <button>Create Repository</button>
-    
+  <div class="form-group">
+    <label>Repository Name</label>
+    <input type="text" placeholder="e.g. Auth Service" [(ngModel)]="repo_name">
   </div>
+
+  <div class="form-group">
+    <label>Repository Branch</label>
+    <input type="text" placeholder="e.g. main" [(ngModel)]="repo_branch">
+  </div>
+
+  <div class="form-group">
+    <label>Initial Author</label>
+    <input type="text" placeholder="e.g. John Doe" [(ngModel)]="repo_init_author">
+  </div>
+  
+  <div class="form-group">
+    <label>Initial Date</label>
+    <input type="date" [(ngModel)]="repo_init_date">
+  </div>
+  
+  <div class="form-group">
+    <label>Deadline</label>
+    <input type="date" [(ngModel)]="repo_deadline">
+  </div>
+
+  <div class="form-group">
+    <label>Status</label>
+    <select [(ngModel)]="repo_status">
+      <option value="active">Active</option>
+      <option value="pending">Pending</option>
+      <option value="completed">Completed</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>Repository Stack</label>
+    <div class="stack-section">
+      <label><input type="checkbox" value="Angular" (change)="toggleStack('Angular', $event)"> Angular</label>
+      <label><input type="checkbox" value="Laravel" (change)="toggleStack('Laravel', $event)"> Laravel</label>
+      <label><input type="checkbox" value="React" (change)="toggleStack('React', $event)"> React</label>
+      <label><input type="checkbox" value="Node.js" (change)="toggleStack('Node.js', $event)"> Node.js</label>
+      <label><input type="checkbox" value="MongoDB" (change)="toggleStack('MongoDB', $event)"> MongoDB</label>
+      <label><input type="checkbox" value="Python" (change)="toggleStack('Python', $event)"> Python</label>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label>Repository Issues</label>
+    <textarea placeholder="List any known issues..." [(ngModel)]="repo_issues" rows="3"></textarea>
+  </div>
+
+  <div class="form-group">
+    <label>Review Log</label>
+    <textarea placeholder="Recent code review summaries..." [(ngModel)]="repo_review_log" rows="3"></textarea>
+  </div>
+
+  <div class="form-group">
+    <label>Major Commits</label>
+    <textarea placeholder="Important commit hashes or messages..." [(ngModel)]="repo_major_commits" rows="3"></textarea>
+  </div>
+
+  <div class="form-group" style="height: 300px;">
+    <label>Code Snippets</label>
+    <div style="height: calc(100% - 1.5rem); border: 1px solid var(--border-color); border-radius: 4px; overflow: hidden;">
+      <ngx-monaco-editor [options]="editorOptions" [(ngModel)]="repo_code_snippets" style="height: 100%;"></ngx-monaco-editor>
+    </div>
+  </div>
+
+  <button (click)="createRepo()" style="margin-top: 1rem;">
+    Create Repository
+  </button>
 
 </div>
