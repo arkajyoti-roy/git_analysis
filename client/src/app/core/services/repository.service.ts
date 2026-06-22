@@ -21,6 +21,10 @@ export class RepositoryService {
     return this.reposCache$;
   }
 
+  getRepositoryById(id: number): Observable<any> {
+    return this.http.get(`${CONFIG.BASE_URL}/repositories/${id}`);
+  }
+
   clearCache() {
     this.reposCache$ = null;
   }

@@ -10,55 +10,103 @@
   </div>
 
   <div class="details-content">
-    <h2>Repository Details</h2>
-    <hr>
+    
+    @if (isLoading) {
+      <p>Loading details...</p>
+    } @else if (!repo) {
+      <p>Repository not found.</p>
+    } @else {
 
-    <div class="tab-content">
-      @if(activeTab === 'overview') {
-        <h3>Project Overview</h3>
-        <p>Student Cover Page Maker is a browser based application.</p>
-      }
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="margin: 0;">{{ repo.repo_name }}</h2>
+        <span class="status-badge" [class.completed]="repo.repo_status === 'completed'">{{ repo.repo_status }}</span>
+      </div>
+      <hr>
 
-      @if(activeTab === 'getting-started') {
-        <h3>Getting Started</h3>
-        <p>Instructions to install and run the application.</p>
-      }
+      <div class="tab-content">
+        @if(activeTab === 'overview') {
+          <h3>Project Overview</h3>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+            <div><strong>Stack:</strong> {{ repo.repo_stack }}</div>
+            <div><strong>Branch:</strong> {{ repo.repo_branch }}</div>
+            <div><strong>Author:</strong> {{ repo.repo_init_author }}</div>
+            <div><strong>Init Date:</strong> {{ repo.repo_init_date | date }}</div>
+            <div><strong>Deadline:</strong> {{ repo.repo_deadline | date }}</div>
+            <div><strong>Architecture:</strong> {{ repo.repo_arch }}</div>
+          </div>
+          
+          <h4 style="margin-top: 2rem;">Known Issues</h4>
+          <p>{{ repo.repo_issues || 'No issues reported.' }}</p>
 
-      @if(activeTab === 'architecture') {
-        <h3>Architecture</h3>
-        <p>Information about the tech stack and system design.</p>
-      }
+          <h4>Major Commits</h4>
+          <p>{{ repo.repo_major_commits || 'No major commits logged.' }}</p>
 
-      @if(activeTab === 'apis') {
-        <h3>API Documentation</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>Endpoint</th>
-              <th>Method</th>
-              <th>Description</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>/api/v1/covers</td>
-              <td>GET</td>
-              <td>Fetch all cover pages</td>
-            </tr>
-          </tbody>
-        </table>
-      }
+          <h4>Review Log</h4>
+          <p>{{ repo.repo_review_log || 'No review logs available.' }}</p>
+        }
 
-      @if(activeTab === 'database') {
-        <h3>Database Schema</h3>
-        <p>Database structure details.</p>
-      }
+        @if(activeTab === 'getting-started') {
+          <h3>Getting Started</h3>
+          <p>Follow these steps to spin up the <strong>{{ repo.repo_stack }}</strong> environment:</p>
+          
+          <div style="background: var(--bg-main); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); font-family: monospace; line-height: 2;">
+            @for(step of installSteps; track $index) {
+              <div><span style="color: #10b981; margin-right: 8px;">❯</span> {{ step }}</div>
+            }
+          </div>
+        }
 
-      @if(activeTab === 'environment') {
-        <h3>Environment Variables</h3>
-        <p>Required environment configuration.</p>
-      }
-    </div>
+        @if(activeTab === 'architecture') {
+          <h3>Architecture</h3>
+          <p><strong>Type:</strong> {{ repo.repo_arch }}</p>
+          <p>{{ archDescription }}</p>
+        }
+
+        @if(activeTab === 'apis') {
+          <h3>API Documentation ({{ repo.repo_apis || '0' }})</h3>
+          <p>Schema: <strong>{{ repo.repo_schema }}</strong></p>
+          <table>
+            <thead>
+              <tr>
+                <th>Method</th>
+                <th>Endpoint</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for(api of apiEndpoints; track $index) {
+                <tr>
+                  <td><span class="status-badge">{{ api.method }}</span></td>
+                  <td style="font-family: monospace; text-align: left;">{{ api.path }}</td>
+                  <td style="text-align: left;">{{ api.desc }}</td>
+                </tr>
+              } @empty {
+                <tr><td colspan="3" style="text-align: center;">No APIs documented.</td></tr>
+              }
+            </tbody>
+          </table>
+        }
+
+        @if(activeTab === 'database') {
+          <h3>Database Schema</h3>
+          <p>Schema Standard: <strong>{{ repo.repo_schema }}</strong></p>
+          <p>To view the full entity relationship diagram, you must connect to the active database instance.</p>
+        }
+
+        @if(activeTab === 'environment') {
+          <h3>Environment Variables</h3>
+          <p>Required configuration for the <strong>{{ repo.repo_stack }}</strong> stack:</p>
+          
+          <div style="background: var(--bg-main); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); font-family: monospace;">
+            @for(env of envVars; track $index) {
+              <div style="margin-bottom: 0.5rem;">
+                <span style="color: #60a5fa;">{{ env.key }}</span>=<span style="color: #34d399;">{{ env.value }}</span>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
   </div>
 
 </div>

@@ -21,26 +21,37 @@
 
 .card {
   background: var(--bg-surface);
-  padding: 1.5rem;
+  padding: 2rem 1.5rem;
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
 .card h3 {
   font-size: 0.875rem;
   color: var(--text-secondary);
   font-weight: 500;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .card p {
-  font-size: 2rem;
-  font-weight: 600;
-  color: var(--text-primary);
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--primary-color);
   margin: 0;
+  line-height: 1;
 }
 
 /* Sections */
