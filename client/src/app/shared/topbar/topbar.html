@@ -1,8 +1,38 @@
 <div class="topbar">
   <h3>Admin Panel</h3>
-  <div class="user-profile">
-    <div class="avatar">{{ userInitial }}</div>
-    <span>{{ userName }}</span>
-    <button (click)="logout()" class="logout-btn">LOGOUT</button>
+  <div class="user-profile-container">
+    <div class="user-profile" (click)="toggleProfilePopup()">
+      <div class="avatar">{{ userInitial }}</div>
+      <span>{{ userName }}</span>
+    </div>
+    <button (click)="logout()" class="logout-btn-inline">LOGOUT</button>
+    
+    @if (showProfilePopup) {
+      <div class="profile-popup">
+        @if (isLoadingProfile) {
+          <div class="loading-spinner">Loading profile...</div>
+        } @else if (userProfile) {
+          <div class="profile-details">
+            <div class="profile-header">
+              <div class="avatar-lg">{{ userInitial }}</div>
+              <div>
+                <h4>{{ userProfile.emp_name || userProfile.admin_name || userName }}</h4>
+                <p class="role-badge">{{ userProfile.emp_role || userProfile.role || 'User' }}</p>
+              </div>
+            </div>
+            <div class="profile-info">
+              <p><strong>Email:</strong> {{ userProfile.emp_email || userProfile.admin_email || 'N/A' }}</p>
+              <p><strong>ID:</strong> {{ userProfile.emp_id || userProfile.admin_id || 'N/A' }}</p>
+            </div>
+          </div>
+        } @else {
+          <div class="error-msg">Failed to load profile.</div>
+        }
+        
+        <div class="popup-footer">
+          <!-- <button (click)="logout()" class="logout-btn-full">Logout</button> -->
+        </div>
+      </div>
+    }
   </div>
 </div>

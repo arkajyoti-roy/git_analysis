@@ -10,6 +10,7 @@ import { List as RepoList } from './features/repositories/list/list';
 import { DEVDashboard } from './features/developer/dashboard/dashboard'; 
 import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
+import { guestGuard } from './core/guards/guest.guard';
 
 
 
@@ -21,7 +22,8 @@ export const routes: Routes = [
   },
   {
     path: 'login',
-    component: Login
+    component: Login,
+    canActivate: [guestGuard]
   },
   {
     path: 'admin',
@@ -69,6 +71,6 @@ export const routes: Routes = [
     path: 'developer/dashboard',
     component: DEVDashboard,
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['sr-dev', 'jr-dev'] }
+    data: { roles: ['sr-dev', 'jr-dev', 'dev'] }
   }
 ];
