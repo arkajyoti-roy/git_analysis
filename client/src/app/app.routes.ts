@@ -8,6 +8,8 @@ import { Details as RepoDetails } from './features/repositories/details/details'
 import { Create as RepoCreate } from './features/repositories/create/create';
 import { List as RepoList } from './features/repositories/list/list';
 import { DEVDashboard } from './features/developer/dashboard/dashboard'; 
+import { authGuard } from './core/guards/auth.guard';
+import { roleGuard } from './core/guards/role.guard';
 
 
 
@@ -24,6 +26,8 @@ export const routes: Routes = [
   {
     path: 'admin',
     component: AdminLayout,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['admin'] },
     children: [
       {
         path: 'dashboard',
@@ -62,7 +66,9 @@ export const routes: Routes = [
     pathMatch: 'full'
   },
   {
-  path:'developer/dashboard',
-  component: DEVDashboard
-}
+    path: 'developer/dashboard',
+    component: DEVDashboard,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['senior-dev', 'junior-dev', 'developer'] }
+  }
 ];
