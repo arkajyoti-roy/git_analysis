@@ -1,36 +1,40 @@
 <app-create></app-create>
 <h2>Manage Users</h2>
 
-<table>
+@if (isLoading) {
+  <p>Loading users...</p>
+} @else {
+  <table>
 
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>Email</th>
-      <th>Role</th>
-      <th>Action</th>
-    </tr>
-  </thead>
-
-  <tbody>
-
-    @for(user of users; track user.id){
-
+    <thead>
       <tr>
-
-        <td>{{ user.name }}</td>
-        <td>{{ user.email }}</td>
-        <td>{{ user.role }}</td>
-
-        <td>
-          <button>Edit</button>
-          <button>Delete</button>
-        </td>
-
+        <th>Name</th>
+        <th>Email</th>
+        <th>Role</th>
+        <th>Action</th>
       </tr>
+    </thead>
 
-    }
+    <tbody>
 
-  </tbody>
+      @for(user of users; track user.emp_id || user.id || $index){
 
-</table>
+        <tr>
+
+          <td>{{ user.emp_name || user.name }}</td>
+          <td>{{ user.emp_email || user.email }}</td>
+          <td>{{ user.emp_role || user.role }}</td>
+
+          <td>
+            <button>Edit</button>
+            <button>Delete</button>
+          </td>
+
+        </tr>
+
+      }
+
+    </tbody>
+
+  </table>
+}
