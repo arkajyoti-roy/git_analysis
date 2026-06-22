@@ -1,0 +1,36 @@
+<app-create></app-create>
+<h2>Manage Users</h2>
+
+<table>
+
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Email</th>
+      <th>Role</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+
+  <tbody>
+
+    @for(user of users; track user.id){
+
+      <tr>
+
+        <td>{{ user.name }}</td>
+        <td>{{ user.email }}</td>
+        <td>{{ user.role }}</td>
+
+        <td>
+          <button>Edit</button>
+          <button>Delete</button>
+        </td>
+
+      </tr>
+
+    }
+
+  </tbody>
+
+</table>

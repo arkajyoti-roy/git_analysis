@@ -1,0 +1,136 @@
+<div class="dashboard-content">
+
+    <h2>Admin Dashboard</h2>
+
+    <!-- Stats -->
+    <div class="cards">
+
+        <div class="card">
+            <h3>Total Users</h3>
+            <p>12</p>
+        </div>
+
+        <div class="card">
+            <h3>Total Repositories</h3>
+            <p>5</p>
+        </div>
+
+        <div class="card">
+            <h3>Pending Scans</h3>
+            <p>2</p>
+        </div>
+
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="section">
+
+        <h3>Quick Actions</h3>
+
+        <div class="action-buttons">
+
+            <button routerLink="/admin/users" routerLinkActive="active">Users</button>
+
+            <button routerLink="/admin/repositories">
+                Create / Manage Repositories
+            </button>
+
+        </div>
+
+    </div>
+
+    <!-- Recent Users -->
+    <div class="section">
+
+        <div class="section-header">
+            <h3>Recent Users</h3>
+
+            <a routerLink="/admin/users">
+                View All
+            </a>
+        </div>
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                <tr>
+                    <td>Arka</td>
+                    <td>arka@test.com</td>
+                    <td>Admin</td>
+                </tr>
+
+                <tr>
+                    <td>John</td>
+                    <td>john@test.com</td>
+                    <td>Senior Dev</td>
+                </tr>
+
+                <tr>
+                    <td>Rahul</td>
+                    <td>rahul@test.com</td>
+                    <td>Junior Dev</td>
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+    <!-- Recent Repositories -->
+    <div class="section">
+
+        <div class="section-header">
+            <h3>Repositories</h3>
+
+            <a routerLink="/admin/repositories">
+                View All
+            </a>
+        </div>
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>Repository</th>
+                    <th>Stack</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                <tr>
+                    <td>Student Cover Page Maker</td>
+                    <td>MERN</td>
+                    <td>Analyzed</td>
+                </tr>
+
+                <tr>
+                    <td>LMS</td>
+                    <td>Angular + Laravel</td>
+                    <td>Pending</td>
+                </tr>
+
+                <tr>
+                    <td>RepoLens</td>
+                    <td>FastAPI + Angular</td>
+                    <td>Analyzed</td>
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>

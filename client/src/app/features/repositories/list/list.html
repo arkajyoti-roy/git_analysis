@@ -1,0 +1,32 @@
+<div class="section-header">
+  <h2 style="margin: 0; font-size: 1.5rem; font-weight: 600;">Manage Repositories</h2>
+  <button routerLink="/admin/repositories/create">Add Repository</button>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Stack</th>
+      <th>Status</th>
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    @for(repo of repositories; track repo.id) {
+      <tr>
+        <td>{{ repo.name }}</td>
+        <td>{{ repo.stack }}</td>
+        <td>
+          <span class="status-badge" [class.completed]="repo.status === 'Completed'">{{ repo.status }}</span>
+        </td>
+        <td>
+          <div class="action-group">
+            <button [routerLink]="['/admin/repositories', repo.id]" class="btn-sm">View</button>
+            <button class="btn-sm btn-danger">Delete</button>
+          </div>
+        </td>
+      </tr>
+    }
+  </tbody>
+</table>

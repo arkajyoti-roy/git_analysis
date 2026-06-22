@@ -1,0 +1,64 @@
+<div class="repo-details-container">
+  
+  <div class="details-sidebar">
+    <button [class.active]="activeTab === 'overview'" (click)="activeTab='overview'">Overview</button>
+    <button [class.active]="activeTab === 'getting-started'" (click)="activeTab='getting-started'">Getting Started</button>
+    <button [class.active]="activeTab === 'architecture'" (click)="activeTab='architecture'">Architecture</button>
+    <button [class.active]="activeTab === 'apis'" (click)="activeTab='apis'">APIs</button>
+    <button [class.active]="activeTab === 'database'" (click)="activeTab='database'">Database</button>
+    <button [class.active]="activeTab === 'environment'" (click)="activeTab='environment'">Environment</button>
+  </div>
+
+  <div class="details-content">
+    <h2>Repository Details</h2>
+    <hr>
+
+    <div class="tab-content">
+      @if(activeTab === 'overview') {
+        <h3>Project Overview</h3>
+        <p>Student Cover Page Maker is a browser based application.</p>
+      }
+
+      @if(activeTab === 'getting-started') {
+        <h3>Getting Started</h3>
+        <p>Instructions to install and run the application.</p>
+      }
+
+      @if(activeTab === 'architecture') {
+        <h3>Architecture</h3>
+        <p>Information about the tech stack and system design.</p>
+      }
+
+      @if(activeTab === 'apis') {
+        <h3>API Documentation</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>Endpoint</th>
+              <th>Method</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>/api/v1/covers</td>
+              <td>GET</td>
+              <td>Fetch all cover pages</td>
+            </tr>
+          </tbody>
+        </table>
+      }
+
+      @if(activeTab === 'database') {
+        <h3>Database Schema</h3>
+        <p>Database structure details.</p>
+      }
+
+      @if(activeTab === 'environment') {
+        <h3>Environment Variables</h3>
+        <p>Required environment configuration.</p>
+      }
+    </div>
+  </div>
+
+</div>
