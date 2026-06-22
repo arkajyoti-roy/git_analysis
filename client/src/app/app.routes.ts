@@ -69,6 +69,6 @@ export const routes: Routes = [
     path: 'developer/dashboard',
     component: DEVDashboard,
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['senior-dev', 'junior-dev', 'developer'] }
+    data: { roles: ['sr-dev', 'jr-dev'] }
   }
 ];
