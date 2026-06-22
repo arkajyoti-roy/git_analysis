@@ -1,1 +1,70 @@
-<p>dashboard works!</p>
+<app-topbar></app-topbar>
+
+<div class="dev-dashboard-container">
+  <div class="header-section">
+    <h2>Welcome, {{ userName }}</h2>
+    <p class="role-badge" [class.sr-badge]="isSrDev">{{ isSrDev ? 'Senior Developer' : 'Junior Developer' }}</p>
+  </div>
+
+  <div class="dashboard-grid">
+    
+    <!-- COMMON WIDGET: Assigned Issues -->
+    <div class="dashboard-card">
+      <h3>My Assigned Issues</h3>
+      <div class="list-group">
+        @for(issue of assignedIssues; track issue.id) {
+          <div class="list-item">
+            <span class="item-title">{{ issue.id }}: {{ issue.title }}</span>
+            <span class="badge" [class.high-priority]="issue.priority === 'High'">{{ issue.priority }}</span>
+          </div>
+        } @empty {
+          <p class="empty-state">No issues assigned.</p>
+        }
+      </div>
+    </div>
+
+    <!-- COMMON WIDGET: Active Repositories -->
+    <div class="dashboard-card">
+      <h3>Active Repositories</h3>
+      <div class="list-group">
+        @for(repo of activeRepos; track repo.name) {
+          <div class="list-item">
+            <span class="item-title">{{ repo.name }}</span>
+            <span class="text-muted">Branch: {{ repo.branch }}</span>
+          </div>
+        } @empty {
+          <p class="empty-state">No active repositories.</p>
+        }
+      </div>
+    </div>
+
+    <!-- SENIOR ONLY WIDGETS -->
+    @if (isSrDev) {
+      <div class="dashboard-card sr-exclusive">
+        <h3>Pending Code Reviews</h3>
+        <div class="list-group">
+          @for(review of pendingReviews; track review.pr) {
+            <div class="list-item">
+              <span class="item-title">{{ review.pr }} by {{ review.author }}</span>
+              <button class="review-btn">Review</button>
+            </div>
+          } @empty {
+            <p class="empty-state">No pending reviews.</p>
+          }
+        </div>
+      </div>
+
+      <div class="dashboard-card sr-exclusive alert-card">
+        <h3>System Alerts</h3>
+        <div class="list-group">
+          @for(alert of systemAlerts; track alert.message) {
+            <div class="list-item alert-item">
+              <strong>{{ alert.type }}:</strong> {{ alert.message }}
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+  </div>
+</div>

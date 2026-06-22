@@ -26,7 +26,21 @@ export class Create implements OnInit {
   repo_major_commits = '';
   repo_code_snippets = '';
 
-  editorOptions = { theme: 'vs', language: 'javascript', automaticLayout: true };
+  editorOptions = { 
+    theme: 'vs', 
+    language: 'javascript', 
+    automaticLayout: true,
+    fontSize: 14,
+    fontFamily: "'Fira Code', 'JetBrains Mono', 'Consolas', monospace",
+    minimap: { enabled: true },
+    formatOnType: true,
+    formatOnPaste: true,
+    scrollBeyondLastLine: false,
+    padding: { top: 16 },
+    smoothScrolling: true,
+    cursorBlinking: 'smooth',
+    cursorSmoothCaretAnimation: 'on'
+  };
 
   constructor(
     private http: HttpClient, 
