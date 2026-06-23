@@ -149,14 +149,53 @@ export class Details implements OnInit, OnDestroy {
     }
   }
 
-  copyToClipboard(text: string | undefined | null) {
+  copyToClipboard(text: any) {
     if (!text) return;
-    navigator.clipboard.writeText(text).then(() => {
-      // Optional: Add a temporary tooltip or toast here instead of alert if desired
-      alert('Copied to clipboard!');
-    }).catch(err => {
-      console.error('Failed to copy text: ', err);
-    });
+    
+    // Ensure we are copying a string
+    const stringText = typeof text === 'string' ? text : JSON.stringify(text, null, 2);
+
+    // Try modern Clipboard API first
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(stringText).then(() => {
+        alert('Copied to clipboard!');
+      }).catch(err => {
+        console.warn('Clipboard API failed, trying fallback...', err);
+        this.fallbackCopyTextToClipboard(stringText);
+      });
+    } else {
+      // Fallback for non-secure contexts (HTTP) or older browsers
+      this.fallbackCopyTextToClipboard(stringText);
+    }
+  }
+
+  private fallbackCopyTextToClipboard(text: string) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    
+    // Make it invisible and prevent scrolling
+    textArea.style.position = "fixed";
+    textArea.style.top = "0";
+    textArea.style.left = "0";
+    textArea.style.opacity = "0";
+    
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+      const successful = document.execCommand('copy');
+      if (successful) {
+        alert('Copied to clipboard!');
+      } else {
+        alert('Failed to copy. Please try manually.');
+      }
+    } catch (err) {
+      console.error('Fallback copy failed', err);
+      alert('Failed to copy. Please try manually.');
+    }
+    
+    document.body.removeChild(textArea);
   }
 
   copyApis() {
