@@ -1,12 +1,15 @@
 import { Component, OnInit, AfterViewChecked, ElementRef, ViewChild, OnDestroy } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CommonModule, DatePipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { RepositoryService } from '../../../core/services/repository.service';
+import { ThemeService } from '../../../core/services/theme.service';
+import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
 import mermaid from 'mermaid';
 
 @Component({
   selector: 'app-details',
-  imports: [DatePipe, RouterLink],
+  imports: [DatePipe, RouterLink, MonacoEditorModule, FormsModule],
   templateUrl: './details.html',
   styleUrl: './details.css',
 })
@@ -17,6 +20,18 @@ export class Details implements OnInit, OnDestroy {
   isLoading = true;
   private mermaidRendered = false;
   private pollInterval: any;
+
+  editorOptions = { 
+    theme: 'vs', 
+    language: 'javascript', 
+    automaticLayout: true,
+    fontSize: 14,
+    fontFamily: "'Fira Code', 'JetBrains Mono', 'Consolas', monospace",
+    minimap: { enabled: false },
+    readOnly: true,
+    scrollBeyondLastLine: false,
+    padding: { top: 16 }
+  };
 
   @ViewChild('mermaidContainer') mermaidContainer!: ElementRef;
 
@@ -49,7 +64,8 @@ export class Details implements OnInit, OnDestroy {
 
   constructor(
     private route: ActivatedRoute,
-    private repoService: RepositoryService
+    private repoService: RepositoryService,
+    public themeService: ThemeService
   ) {
     mermaid.initialize({ 
       startOnLoad: false, 
@@ -59,6 +75,11 @@ export class Details implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    this.editorOptions = {
+      ...this.editorOptions,
+      theme: this.themeService.isDarkMode ? 'vs-dark' : 'vs'
+    };
+
     this.route.paramMap.subscribe(params => {
       const idStr = params.get('id');
       if (idStr) {

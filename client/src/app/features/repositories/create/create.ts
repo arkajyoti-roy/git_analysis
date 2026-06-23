@@ -32,7 +32,7 @@ export class Create implements OnInit {
   repo_issues = '';
   repo_review_log = '';
   repo_major_commits = '';
-  repo_code_snippets = '';
+  repo_code_snippet = '';
   repo_getting_started = '';
   repo_env = '';
   repo_deployment = '';
@@ -97,7 +97,7 @@ export class Create implements OnInit {
         this.repo_init_author = repo.repo_init_author || '';
         this.repo_init_date = repo.repo_init_date || '';
         this.repo_deadline = repo.repo_deadline || '';
-        this.repo_code_snippets = repo.repo_code_snippets || '';
+        this.repo_code_snippet = repo.repo_code_snippet || '';
         this.repo_getting_started = repo.repo_getting_started || '';
         this.repo_env = repo.repo_env || '';
         this.repo_deployment = repo.repo_deployment || '';
@@ -161,17 +161,7 @@ export class Create implements OnInit {
   }
 
   private getEmpId(): string {
-    // Extract emp_id from JWT token or localStorage
-    const token = localStorage.getItem('token');
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        return payload.emp_id || payload.id || payload.sub || '';
-      } catch {
-        return '';
-      }
-    }
-    return '';
+    return localStorage.getItem('emp_id') || localStorage.getItem('admin_id') || '';
   }
 
   submitRepo() {
@@ -207,7 +197,7 @@ export class Create implements OnInit {
       repo_architecture_diagram: this.repo_architecture_diagram
     };
 
-    if (this.repo_code_snippets) payload.repo_code_snippets = this.repo_code_snippets;
+    if (this.repo_code_snippet) payload.repo_code_snippet = this.repo_code_snippet;
 
     this.http.post(`${CONFIG.BASE_URL}/repositories`, payload).subscribe({
       next: () => {
@@ -246,7 +236,7 @@ export class Create implements OnInit {
       repo_architecture_diagram: this.repo_architecture_diagram
     };
 
-    if (this.repo_code_snippets) payload.repo_code_snippets = this.repo_code_snippets;
+    if (this.repo_code_snippet) payload.repo_code_snippet = this.repo_code_snippet;
 
     this.http.put(`${CONFIG.BASE_URL}/repositories/${this.repoId}`, payload).subscribe({
       next: () => {
