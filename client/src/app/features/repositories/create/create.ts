@@ -23,11 +23,11 @@ export class Create implements OnInit {
   repo_stack: string[] = [];
   repo_status = 'Development Env';
   repo_branch = '';
-  repo_arch = '';
-  repo_apis = '';
+  repo_arch_array: string[] = [];
+  repo_apis: { method: string, path: string, desc: string }[] = [];
   repo_schema = '';
   repo_init_author = '';
-  repo_init_date = '';
+  repo_init_date = new Date().toISOString().split('T')[0];
   repo_deadline = '';
   repo_issues = '';
   repo_review_log = '';
@@ -44,12 +44,18 @@ export class Create implements OnInit {
   // Dynamic options tracking
   stackOptions = ['Angular', 'Laravel', 'React', 'Node.js', 'MongoDB', 'Python'];
   statusOptions = ['Development Env', 'On Review', 'Production Up', 'Issue', 'On Resolving', 'Completed'];
+  archOptions = ['Monolith', 'Microservices', 'Serverless', 'Event-Driven', 'SOA', 'MVC'];
 
   newStackInput = '';
   newStatusInput = '';
+  newArchInput = '';
 
   get availableStacks(): string[] {
     return this.stackOptions.filter(s => !this.repo_stack.includes(s));
+  }
+
+  get availableArchs(): string[] {
+    return this.archOptions.filter(a => !this.repo_arch_array.includes(a));
   }
 
   editorOptions = { 
@@ -89,6 +95,8 @@ export class Create implements OnInit {
         this.isEditMode = true;
         this.repoId = parseInt(idStr, 10);
         this.loadRepoData(this.repoId);
+      } else {
+        this.repo_init_author = localStorage.getItem('emp_name') || localStorage.getItem('admin_name') || '';
       }
     });
   }
@@ -104,10 +112,14 @@ export class Create implements OnInit {
           this.statusOptions.push(this.repo_status);
         }
         this.repo_branch = repo.repo_branch || '';
-        this.repo_arch = repo.repo_arch || '';
+        
+        if (repo.repo_arch) {
+          this.repo_arch_array = repo.repo_arch.split(',').map((s: string) => s.trim()).filter((s: string) => s !== '');
+        }
+
         this.repo_schema = repo.repo_schema || '';
         this.repo_init_author = repo.repo_init_author || '';
-        this.repo_init_date = repo.repo_init_date || '';
+        this.repo_init_date = repo.repo_init_date || new Date().toISOString().split('T')[0];
         this.repo_deadline = repo.repo_deadline || '';
         this.repo_code_snippet = repo.repo_code_snippet || '';
         this.repo_getting_started = repo.repo_getting_started || '';
@@ -116,10 +128,30 @@ export class Create implements OnInit {
         this.repo_coding_standards = repo.repo_coding_standards || '';
         this.repo_architecture_diagram = repo.repo_architecture_diagram || '';
 
-        // Handle array fields → join back to text for textarea
-        this.repo_apis = Array.isArray(repo.repo_apis) 
-          ? JSON.stringify(repo.repo_apis, null, 2) 
-          : (repo.repo_apis || '');
+        // Handle array fields
+        if (Array.isArray(repo.repo_apis)) {
+          this.repo_apis = repo.repo_apis.map((api: any) => ({
+            method: api?.method || 'GET',
+            path: api?.path || '',
+            desc: api?.desc || ''
+          }));
+        } else if (typeof repo.repo_apis === 'string' && repo.repo_apis.trim() !== '') {
+          try {
+            const parsed = JSON.parse(repo.repo_apis);
+            if (Array.isArray(parsed)) {
+              this.repo_apis = parsed;
+            } else if (typeof parsed === 'object') {
+              this.repo_apis = [parsed];
+            } else {
+              this.repo_apis = [{ method: 'INFO', path: 'Raw Text', desc: repo.repo_apis }];
+            }
+          } catch {
+            this.repo_apis = [{ method: 'INFO', path: 'Raw Text', desc: repo.repo_apis }];
+          }
+        } else {
+          this.repo_apis = [];
+        }
+
         this.repo_issues = Array.isArray(repo.repo_issues) 
           ? repo.repo_issues.join('\n') 
           : (repo.repo_issues || '');
@@ -168,6 +200,29 @@ export class Create implements OnInit {
     this.newStackInput = '';
   }
 
+  addArchFromDropdown(event: any) {
+    const val = event.target.value;
+    if (val && !this.repo_arch_array.includes(val)) {
+      this.repo_arch_array.push(val);
+    }
+    event.target.value = "";
+  }
+
+  removeArch(arch: string) {
+    this.repo_arch_array = this.repo_arch_array.filter(a => a !== arch);
+  }
+
+  addCustomArch() {
+    const a = this.newArchInput.trim();
+    if (a && !this.archOptions.includes(a)) {
+      this.archOptions.push(a);
+      this.repo_arch_array.push(a);
+    } else if (a && !this.repo_arch_array.includes(a)) {
+      this.repo_arch_array.push(a);
+    }
+    this.newArchInput = '';
+  }
+
   addCustomStatus() {
     const s = this.newStatusInput.trim();
     if (s && !this.statusOptions.includes(s)) {
@@ -184,14 +239,12 @@ export class Create implements OnInit {
     return text.split('\n').map(s => s.trim()).filter(s => s !== '');
   }
 
-  private parseApis(text: string): any[] {
-    if (!text) return [];
-    try {
-      const parsed = JSON.parse(text);
-      return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      return [];
-    }
+  addApiRow() {
+    this.repo_apis.push({ method: 'GET', path: '', desc: '' });
+  }
+
+  removeApiRow(index: number) {
+    this.repo_apis.splice(index, 1);
   }
 
   private getEmpId(): string {
@@ -215,8 +268,8 @@ export class Create implements OnInit {
       repo_stack: this.repo_stack,
       repo_status: this.repo_status,
       repo_branch: this.repo_branch,
-      repo_arch: this.repo_arch,
-      repo_apis: this.parseApis(this.repo_apis),
+      repo_arch: this.repo_arch_array.join(', ').substring(0, 40),
+      repo_apis: this.repo_apis,
       repo_schema: this.repo_schema,
       repo_init_author: this.repo_init_author,
       repo_init_date: this.repo_init_date,
@@ -254,8 +307,8 @@ export class Create implements OnInit {
       repo_stack: this.repo_stack,
       repo_status: this.repo_status,
       repo_branch: this.repo_branch,
-      repo_arch: this.repo_arch,
-      repo_apis: this.parseApis(this.repo_apis),
+      repo_arch: this.repo_arch_array.join(', ').substring(0, 40),
+      repo_apis: this.repo_apis,
       repo_schema: this.repo_schema,
       repo_init_author: this.repo_init_author,
       repo_init_date: this.repo_init_date,

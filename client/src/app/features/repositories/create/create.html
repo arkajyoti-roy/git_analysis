@@ -24,7 +24,33 @@
   <div class="form-row">
     <div class="form-group">
       <label>Architecture</label>
-      <input type="text" placeholder="e.g. Microservices" [(ngModel)]="repo_arch" maxlength="40">
+      <div style="margin-bottom: 0.5rem;">
+        <!-- Normal Dropdown -->
+        <select (change)="addArchFromDropdown($event)" style="margin-bottom: 0.5rem;">
+          <option value="" disabled selected>Select an architecture...</option>
+          @for (arch of availableArchs; track arch) {
+            <option [value]="arch">{{ arch }}</option>
+          }
+        </select>
+        
+        <!-- Selected Architectures as Chips -->
+        @if(repo_arch_array.length > 0) {
+          <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem; padding: 0.5rem; border: 1px dashed var(--border-color); border-radius: 4px;">
+            @for (arch of repo_arch_array; track arch) {
+              <span style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 0.2rem 0.5rem; border-radius: 12px; font-size: 0.85rem; display: flex; align-items: center; gap: 0.25rem;">
+                {{ arch }}
+                <span (click)="removeArch(arch)" style="cursor: pointer; color: #ef4444; font-weight: bold; padding: 0 0.2rem;">×</span>
+              </span>
+            }
+          </div>
+        }
+
+        <!-- Add Custom Architecture -->
+        <div style="display: flex; gap: 0.5rem;">
+          <input type="text" placeholder="Or type custom architecture..." [(ngModel)]="newArchInput" (keyup.enter)="addCustomArch()">
+          <button type="button" class="btn-sm" (click)="addCustomArch()">Add</button>
+        </div>
+      </div>
     </div>
     <div class="form-group">
       <label>Status</label>
@@ -108,8 +134,28 @@
 
   <div class="form-row">
     <div class="form-group">
-      <label>APIs (JSON Format)</label>
-      <textarea placeholder='[{"method":"GET", "path":"/api/users", "desc":"Fetch users"}]' [(ngModel)]="repo_apis" rows="4"></textarea>
+      <label>APIs</label>
+      <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.5rem; margin-bottom: 0.5rem;">
+        @for (api of repo_apis; track $index) {
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem; align-items: flex-start;">
+            <select [(ngModel)]="api.method" style="flex: 0 0 100px;">
+              <option value="GET">GET</option>
+              <option value="POST">POST</option>
+              <option value="PUT">PUT</option>
+              <option value="PATCH">PATCH</option>
+              <option value="DELETE">DELETE</option>
+              <option value="OPTIONS">OPTIONS</option>
+            </select>
+            <input type="text" placeholder="e.g. /api/users" [(ngModel)]="api.path" style="flex: 1;">
+            <input type="text" placeholder="Description..." [(ngModel)]="api.desc" style="flex: 2;">
+            <button type="button" class="btn-sm" (click)="removeApiRow($index)" style="background: #ef4444; border-color: #ef4444; color: white;">✕</button>
+          </div>
+        }
+        @if (repo_apis.length === 0) {
+          <p style="margin: 0 0 0.5rem 0; font-size: 0.85rem; color: var(--text-muted);">No APIs defined yet.</p>
+        }
+        <button type="button" class="btn-sm" (click)="addApiRow()">+ Add API</button>
+      </div>
     </div>
     <div class="form-group">
       <label>DB Schema</label>
