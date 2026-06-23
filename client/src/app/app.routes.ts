@@ -8,9 +8,12 @@ import { Details as RepoDetails } from './features/repositories/details/details'
 import { Create as RepoCreate } from './features/repositories/create/create';
 import { List as RepoList } from './features/repositories/list/list';
 import { DEVDashboard } from './features/developer/dashboard/dashboard'; 
+import { CompleteProfile } from './features/profile/complete-profile/complete-profile';
+import { ViewProfile } from './features/profile/view-profile/view-profile';
 import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
 import { guestGuard } from './core/guards/guest.guard';
+import { profileGuard } from './core/guards/profile.guard';
 
 
 
@@ -26,9 +29,15 @@ export const routes: Routes = [
     canActivate: [guestGuard]
   },
   {
+    path: 'complete-profile',
+    component: CompleteProfile,
+    canActivate: [authGuard]
+  },
+
+  {
     path: 'admin',
     component: AdminLayout,
-    canActivate: [authGuard, roleGuard],
+    canActivate: [authGuard, roleGuard, profileGuard],
     data: { roles: ['admin'] },
     children: [
       {
@@ -60,6 +69,10 @@ export const routes: Routes = [
         component: RepoList
       },
       {
+        path: 'profile',
+        component: ViewProfile
+      },
+      {
         path: '',
         redirectTo: 'dashboard',
         pathMatch: 'full'
@@ -74,7 +87,13 @@ export const routes: Routes = [
   {
     path: 'developer/dashboard',
     component: DEVDashboard,
-    canActivate: [authGuard, roleGuard],
+    canActivate: [authGuard, roleGuard, profileGuard],
+    data: { roles: ['sr-dev', 'jr-dev', 'dev'] }
+  },
+  {
+    path: 'developer/profile',
+    component: ViewProfile,
+    canActivate: [authGuard, roleGuard, profileGuard],
     data: { roles: ['sr-dev', 'jr-dev', 'dev'] }
   }
 ];

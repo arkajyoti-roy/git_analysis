@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { CONFIG } from '../../config/config';
 import { ThemeService } from '../../core/services/theme.service';
@@ -7,7 +7,7 @@ import { ThemeService } from '../../core/services/theme.service';
 
 @Component({
   selector: 'app-topbar',
-  imports: [],
+  imports: [RouterLink],
   templateUrl: './topbar.html',
   styleUrl: './topbar.css',
 })
@@ -18,6 +18,11 @@ export class Topbar implements OnInit {
   showProfilePopup: boolean = false;
   userProfile: any = null;
   isLoadingProfile: boolean = false;
+
+  get profileRoute(): string {
+    const role = localStorage.getItem('role') || 'dev';
+    return role === 'admin' ? '/admin/profile' : '/developer/profile';
+  }
 
   constructor(
     private router: Router, 
@@ -54,11 +59,11 @@ export class Topbar implements OnInit {
       .subscribe({
         next: (response: any) => {
           this.isLoadingProfile = false;
-          if (response.success && response.data) {
-             this.userProfile = response.data;
-          } else {
-             this.userProfile = response;
+          let data = response.success ? response.data : response;
+          if (Array.isArray(data)) {
+            data = data.length > 0 ? data[0] : null;
           }
+          this.userProfile = data;
         },
         error: (err) => {
           console.error('Error fetching profile', err);

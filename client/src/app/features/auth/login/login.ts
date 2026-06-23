@@ -73,19 +73,48 @@ export class Login {
             response.data.emp_role
           );
 
-          if (response.data.emp_role === 'admin') {
+          // Fetch the full details from /details/show to see if they've completed the profile
+          this.http.get(`${CONFIG.BASE_URL}/details/show?emp_id=${response.data.emp_id}`).subscribe({
+            next: (profileRes: any) => {
+              let profile = profileRes;
+              if (profileRes.data && profileRes.data.emp_id) profile = profileRes.data;
+              else if (profileRes.user && profileRes.user.emp_id) profile = profileRes.user;
+              else if (profileRes.employee && profileRes.employee.emp_id) profile = profileRes.employee;
+              else if (Array.isArray(profileRes) && profileRes.length > 0) profile = profileRes[0];
+              else if (profileRes.data && Array.isArray(profileRes.data) && profileRes.data.length > 0) profile = profileRes.data[0];
+              else if (profileRes.data) profile = profileRes.data;
+              
+              console.log('Backend Profile Data:', profile); // Let's log it to the browser console!
+              
+              // Check if ANY of the additional profile details exist
+              const isProfileComplete = profile && (
+                profile.emp_phone || 
+                profile.emp_address || 
+                profile.emp_position || 
+                profile.emp_blood_group ||
+                profile.emp_doj ||
+                profile.emp_tenure
+              );
 
-            this.router.navigate([
-              '/admin-dashboard'
-            ]);
-
-          } else {
-
-            this.router.navigate([
-              '/developer/dashboard'
-            ]);
-
-          }
+              if (isProfileComplete) {
+                localStorage.setItem('profile_completed', 'true');
+                if (response.data.emp_role === 'admin') {
+                  this.router.navigate(['/admin-dashboard']);
+                } else {
+                  this.router.navigate(['/developer/dashboard']);
+                }
+              } else {
+                console.log('Profile deemed incomplete because none of the extra fields (phone, address, etc.) were found in the object above.');
+                localStorage.setItem('profile_completed', 'false');
+                this.router.navigate(['/complete-profile']);
+              }
+            },
+            error: () => {
+              // If fetching profile fails or it's not found, assume incomplete
+              localStorage.setItem('profile_completed', 'false');
+              this.router.navigate(['/complete-profile']);
+            }
+          });
 
         } else {
 

@@ -1,0 +1,146 @@
+.cp-wrapper {
+  background-color: #131924; /* Very dark navy */
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  font-family: 'Inter', sans-serif;
+  color: #e2e8f0;
+}
+
+.cp-card {
+  background-color: #1c2333;
+  width: 100%;
+  max-width: 700px;
+  border-radius: 8px;
+  padding: 2.5rem;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  box-sizing: border-box;
+}
+
+.cp-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.cp-header h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 0.5rem 0;
+}
+
+.cp-header p {
+  font-size: 0.95rem;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.cp-section-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #e2e8f0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 1.25rem;
+  margin-top: 2rem;
+}
+
+.cp-section-title:first-of-type {
+  margin-top: 0;
+}
+
+.cp-divider {
+  height: 1px;
+  background: repeating-linear-gradient(to right, #334155 0, #334155 4px, transparent 4px, transparent 8px);
+  margin: 2rem 0;
+}
+
+.cp-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.cp-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.cp-form-group label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #cbd5e1;
+}
+
+.cp-form-group label span.required {
+  color: #ef4444;
+}
+
+.cp-input {
+  background-color: #131924;
+  border: 1px solid #334155;
+  color: #ffffff;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.cp-input:focus {
+  border-color: #3b82f6;
+}
+
+.cp-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+select.cp-input {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23cbd5e1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  padding-right: 2.5rem;
+}
+
+.cp-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 2rem;
+}
+
+.cp-btn-submit {
+  background-color: #334155;
+  color: #94a3b8;
+  border: none;
+  padding: 0.875rem 1.5rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: not-allowed;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.cp-btn-submit.active {
+  background-color: #3b82f6;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.cp-btn-submit.active:hover {
+  background-color: #2563eb;
+}
+
+@media (max-width: 600px) {
+  .cp-grid {
+    grid-template-columns: 1fr;
+  }
+}

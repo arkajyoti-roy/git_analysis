@@ -37,8 +37,8 @@
           <div class="error-msg">Failed to load profile.</div>
         }
         
-        <div class="popup-footer">
-          <!-- <button (click)="logout()" class="logout-btn-full">Logout</button> -->
+        <div class="popup-footer" style="padding-top: 1rem;">
+          <button [routerLink]="profileRoute" (click)="toggleProfilePopup()" style="width: 100%; justify-content: center; background-color: var(--primary-color);">View Full Profile</button>
         </div>
       </div>
     }
