@@ -56,7 +56,7 @@
       <label>Status</label>
       <select [(ngModel)]="repo_status" style="margin-bottom: 0.5rem;">
         @for (status of statusOptions; track status) {
-          <option [value]="status">{{ status }}</option>
+          <option [value]="status">{{ status | titlecase }}</option>
         }
       </select>
       <div style="display: flex; gap: 0.5rem;">
@@ -215,8 +215,55 @@
     <span class="field-hint">Use <a href='https://mermaid.js.org/syntax/flowchart.html' target='_blank'>Mermaid.js syntax</a> — rendered as a diagram in the Architecture tab</span>
   </div>
 
-  <button (click)="submitRepo()" [disabled]="isSubmitting" style="margin-top: 1rem;">
-    {{ isSubmitting ? 'Saving...' : (isEditMode ? 'Update Repository' : 'Create Repository') }}
-  </button>
+    <!-- Section: Repository Access -->
+    <div class="section-divider">
+      <span>Repository Access Control</span>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group" style="width: 100%;">
+        <label>Grant Access to Developers</label>
+        <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; padding: 1rem; margin-bottom: 0.5rem;">
+          
+          <!-- Dropdown to add user -->
+          <select (change)="addAccessUser($event)" style="margin-bottom: 1rem; width: 100%; max-width: 400px;">
+            <option value="" disabled selected>Select a user to grant access...</option>
+            @for (user of availableAccessUsers; track user.emp_id) {
+              <option [value]="user.emp_id || user.id">{{ user.emp_name || user.name || 'Unknown User' }}</option>
+            }
+          </select>
+          
+          <!-- Selected Users List -->
+          @if (repo_access.length > 0) {
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+              @for (access of repo_access; track access.emp_id; let i = $index) {
+            <div style="display: flex; align-items: center; gap: 1rem; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-card);">
+              <div style="width: 24px; height: 24px; background: #000; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.75rem;">
+                {{ (access.name || 'U').charAt(0).toUpperCase() }}
+              </div>
+              <div style="flex-grow: 1; font-weight: 500;">
+                {{ access.name }}
+              </div>
+              <select [(ngModel)]="access.can" style="padding: 0.25rem 0.5rem; width: auto;">
+                <option value="view">Viewer (Read-Only)</option>
+                <option value="edit">Editor (Can Propose Edits)</option>
+              </select>
+              <button type="button" class="btn-sm" style="background: transparent; color: #ef4444; border-color: #ef4444;" (click)="removeAccessUser(i)">Remove</button>
+            </div>
+          } 
+            </div>
+          } @else {
+            <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">No specific access granted. (Admins have default access).</p>
+          }
+        </div>
+      </div>
+    </div>
+
+  <div class="form-actions" style="margin-top: 2rem; display: flex; justify-content: flex-start; gap: 15px;">
+    <button type="button" class="btn-secondary" routerLink="/admin/repositories">Cancel</button>
+    <button type="button" class="btn-primary" (click)="submitRepo()" [disabled]="isSubmitting">
+      {{ isSubmitting ? 'Saving...' : (isEditMode ? 'Update Repository' : 'Create Repository') }}
+    </button>
+  </div>
 
 </div>

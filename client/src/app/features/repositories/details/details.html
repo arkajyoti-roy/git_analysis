@@ -41,6 +41,25 @@
             <div><strong>Deadline:</strong> {{ repo.repo_deadline | date }}</div>
             <div><strong>Architecture:</strong> {{ repo.repo_arch }}</div>
           </div>
+
+          <h4 style="margin-top: 2rem;">Access Control</h4>
+          @if (repo.repo_access && repo.repo_access.length > 0) {
+            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem;">
+              @for (access of repo.repo_access; track access.emp_id) {
+                <div style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 0.5rem 1rem; border-radius: 4px; display: flex; align-items: center; gap: 0.5rem;">
+                  <div style="width: 24px; height: 24px; background: var(--primary-color); color: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.75rem;">
+                    {{ (access.name || access.emp_name || 'U').charAt(0).toUpperCase() }}
+                  </div>
+                  <div>
+                    <span style="font-weight: 500;">{{ access.name || access.emp_name || 'Unknown' }}</span>
+                    <span class="status-badge" style="font-size: 0.7rem; margin-left: 0.5rem; padding: 0.1rem 0.4rem; background: var(--bg-card); border: 1px solid var(--border-color);">{{ access.can === 'edit' ? 'Editor' : 'Viewer' }}</span>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <p>No specific access rules defined. Admins have default access.</p>
+          }
           
           <h4 style="margin-top: 2rem;">Known Issues</h4>
           <p>{{ repo.repo_issues || 'No issues reported.' }}</p>

@@ -6,10 +6,12 @@ import { CONFIG } from '../../../config/config';
 import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
 import { ThemeService } from '../../../core/services/theme.service';
 import { RepositoryService } from '../../../core/services/repository.service';
+import { UserService } from '../../../core/services/user.service';
+import { TitleCasePipe } from '@angular/common';
 
 @Component({
   selector: 'app-create',
-  imports: [FormsModule, MonacoEditorModule, RouterLink],
+  imports: [FormsModule, MonacoEditorModule, RouterLink, TitleCasePipe],
   templateUrl: './create.html',
   styleUrl: './create.css',
 })
@@ -21,7 +23,7 @@ export class Create implements OnInit {
 
   repo_name = '';
   repo_stack: string[] = [];
-  repo_status = 'Development Env';
+  repo_status = 'development env';
   repo_branch = '';
   repo_arch_array: string[] = [];
   repo_apis: { method: string, path: string, desc: string }[] = [];
@@ -39,11 +41,14 @@ export class Create implements OnInit {
   repo_coding_standards = '';
   repo_architecture_diagram = '';
 
+  repo_access: { emp_id: string, name: string, can: string }[] = [];
+  availableUsers: any[] = [];
+
   isSubmitting = false;
 
   // Dynamic options tracking
   stackOptions = ['Angular', 'Laravel', 'React', 'Node.js', 'MongoDB', 'Python'];
-  statusOptions = ['Development Env', 'On Review', 'Production Up', 'Issue', 'On Resolving', 'Completed'];
+  statusOptions = ['development env', 'on review', 'production up', 'issue', 'on resolving', 'completed'];
   archOptions = ['Monolith', 'Microservices', 'Serverless', 'Event-Driven', 'SOA', 'MVC'];
 
   newStackInput = '';
@@ -56,6 +61,10 @@ export class Create implements OnInit {
 
   get availableArchs(): string[] {
     return this.archOptions.filter(a => !this.repo_arch_array.includes(a));
+  }
+
+  get availableAccessUsers(): any[] {
+    return this.availableUsers.filter(u => !this.repo_access.some(a => a.emp_id === (u.emp_id || u.id)?.toString()));
   }
 
   editorOptions = { 
@@ -79,7 +88,8 @@ export class Create implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     public themeService: ThemeService,
-    private repoService: RepositoryService
+    private repoService: RepositoryService,
+    private userService: UserService
   ) {}
 
   ngOnInit() {
@@ -98,6 +108,19 @@ export class Create implements OnInit {
       } else {
         this.repo_init_author = localStorage.getItem('emp_name') || localStorage.getItem('admin_name') || '';
       }
+    });
+
+    this.fetchUsers();
+  }
+
+  fetchUsers() {
+    this.userService.getUsers().subscribe({
+      next: (res: any) => {
+        const users = Array.isArray(res) ? res : (res.data || []);
+        // Filter out admins since they have default access
+        this.availableUsers = users.filter((u: any) => u.emp_role !== 'admin');
+      },
+      error: (err) => console.error('Failed to fetch users', err)
     });
   }
 
@@ -168,6 +191,25 @@ export class Create implements OnInit {
         } else if (typeof repo.repo_stack === 'string' && repo.repo_stack) {
           this.repo_stack = repo.repo_stack.split(',').map((s: string) => s.trim());
         }
+
+        // Handle repo access
+        let parsedAccess: any[] = [];
+        if (Array.isArray(repo.repo_access)) {
+          parsedAccess = repo.repo_access;
+        } else if (typeof repo.repo_access === 'string' && repo.repo_access.trim() !== '') {
+          try {
+            parsedAccess = JSON.parse(repo.repo_access);
+          } catch {
+            parsedAccess = [];
+          }
+        }
+        
+        // Flatten pivot data if the backend uses Laravel Many-to-Many relationships
+        this.repo_access = parsedAccess.map((access: any) => ({
+          ...access,
+          name: access.name || access.emp_name || 'Unknown',
+          can: access.can || access.role || access.repo_role || access.access_level || access.pivot?.can || access.pivot?.role || 'view'
+        }));
       },
       error: (err) => {
         console.error('Failed to load repository for editing', err);
@@ -247,6 +289,25 @@ export class Create implements OnInit {
     this.repo_apis.splice(index, 1);
   }
 
+  addAccessUser(event: any) {
+    const val = event.target.value;
+    if (!val) return;
+    
+    const user = this.availableUsers.find(u => (u.emp_id || u.id)?.toString() === val);
+    if (user && !this.repo_access.some(a => a.emp_id === (user.emp_id || user.id)?.toString())) {
+      this.repo_access.push({
+        emp_id: (user.emp_id || user.id).toString(),
+        name: user.emp_name || user.name || 'Unknown User',
+        can: 'view' // default
+      });
+    }
+    event.target.value = '';
+  }
+
+  removeAccessUser(index: number) {
+    this.repo_access.splice(index, 1);
+  }
+
   private getEmpId(): string {
     return localStorage.getItem('emp_id') || localStorage.getItem('admin_id') || '';
   }
@@ -281,7 +342,8 @@ export class Create implements OnInit {
       repo_env: this.repo_env,
       repo_deployment: this.repo_deployment,
       repo_coding_standards: this.repo_coding_standards,
-      repo_architecture_diagram: this.repo_architecture_diagram
+      repo_architecture_diagram: this.repo_architecture_diagram,
+      repo_access: this.repo_access
     };
 
     if (this.repo_code_snippet) payload.repo_code_snippet = this.repo_code_snippet;
@@ -320,7 +382,8 @@ export class Create implements OnInit {
       repo_env: this.repo_env,
       repo_deployment: this.repo_deployment,
       repo_coding_standards: this.repo_coding_standards,
-      repo_architecture_diagram: this.repo_architecture_diagram
+      repo_architecture_diagram: this.repo_architecture_diagram,
+      repo_access: this.repo_access
     };
 
     if (this.repo_code_snippet) payload.repo_code_snippet = this.repo_code_snippet;

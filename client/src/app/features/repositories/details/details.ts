@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { RepositoryService } from '../../../core/services/repository.service';
 import { ThemeService } from '../../../core/services/theme.service';
 import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
+import { EditorComponent } from 'ngx-monaco-editor-v2';
 import mermaid from 'mermaid';
 
 @Component({
