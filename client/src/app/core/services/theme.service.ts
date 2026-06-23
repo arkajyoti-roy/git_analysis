@@ -16,12 +16,9 @@ export class ThemeService {
     
     if (savedTheme === 'dark') {
       this.setTheme(true);
-    } else if (savedTheme === 'light') {
-      this.setTheme(false);
     } else {
-      // Check system preference
-      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-      this.setTheme(prefersDark);
+      // Default to light mode for the first time
+      this.setTheme(false);
     }
   }
 
