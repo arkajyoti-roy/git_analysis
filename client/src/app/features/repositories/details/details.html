@@ -173,7 +173,15 @@
         }
 
         @if(activeTab === 'deployment') {
-          <h3>Deployment Guide</h3>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 style="margin: 0;">Deployment Guide</h3>
+            @if (repo.repo_deployment) {
+              <button class="btn-sm" style="background: transparent; color: var(--text-main); border: 1px solid var(--border-color); padding: 0.25rem 0.5rem; display: flex; align-items: center; gap: 0.25rem; cursor: pointer;" (click)="copyToClipboard(repo.repo_deployment)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                Copy Guide
+              </button>
+            }
+          </div>
           @if (repo.repo_deployment) {
             <div style="background: var(--bg-main); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); white-space: pre-wrap; font-family: inherit; line-height: 1.8;">
               {{ repo.repo_deployment }}
