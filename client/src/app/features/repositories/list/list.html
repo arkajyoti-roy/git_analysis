@@ -3,7 +3,7 @@
   <button routerLink="/admin/repositories/create">Add Repository</button>
 </div>
 
-@if (isLoading) {
+@if (isLoading && repositories.length === 0) {
   <p>Loading repositories...</p>
 } @else {
   <table>

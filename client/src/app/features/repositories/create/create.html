@@ -1,4 +1,7 @@
-<h2>{{ isEditMode ? 'Edit Repository' : 'Create Repository' }}</h2>
+<div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+  <button routerLink="/admin/repositories" class="btn-sm" style="background: transparent; color: var(--text-main); border: 1px solid var(--border-color); padding: 0.25rem 0.75rem;">← Back</button>
+  <h2 style="margin: 0;">{{ isEditMode ? 'Edit Repository' : 'Create Repository' }}</h2>
+</div>
 
 <div class="form-card">
 

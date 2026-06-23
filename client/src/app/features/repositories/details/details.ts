@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewChecked, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, AfterViewChecked, ElementRef, ViewChild, OnDestroy } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CommonModule, DatePipe } from '@angular/common';
 import { RepositoryService } from '../../../core/services/repository.service';
@@ -10,12 +10,13 @@ import mermaid from 'mermaid';
   templateUrl: './details.html',
   styleUrl: './details.css',
 })
-export class Details implements OnInit {
+export class Details implements OnInit, OnDestroy {
   activeTab = 'overview';
   repoId: number | null = null;
   repo: any = null;
   isLoading = true;
   private mermaidRendered = false;
+  private pollInterval: any;
 
   @ViewChild('mermaidContainer') mermaidContainer!: ElementRef;
 
@@ -63,21 +64,42 @@ export class Details implements OnInit {
       if (idStr) {
         this.repoId = parseInt(idStr, 10);
         this.fetchRepoDetails(this.repoId);
+        
+        // Auto reload every 3 seconds (3000 ms)
+        if (this.pollInterval) clearInterval(this.pollInterval);
+        this.pollInterval = setInterval(() => {
+          if (this.repoId) {
+            this.fetchRepoDetails(this.repoId, true);
+          }
+        }, 3000);
       }
     });
   }
 
-  fetchRepoDetails(id: number) {
-    this.isLoading = true;
+  ngOnDestroy() {
+    if (this.pollInterval) {
+      clearInterval(this.pollInterval);
+    }
+  }
+
+  fetchRepoDetails(id: number, isPolling = false) {
+    if (!isPolling && !this.repo) this.isLoading = true;
     this.repoService.getRepositoryById(id).subscribe({
       next: (res: any) => {
+        const oldDiagram = this.repo?.repo_architecture_diagram;
         this.repo = res.data || res;
         this.isLoading = false;
-        this.mermaidRendered = false;
+        
+        if (oldDiagram !== this.repo.repo_architecture_diagram) {
+          this.mermaidRendered = false;
+          if (this.activeTab === 'architecture') {
+            setTimeout(() => this.renderMermaid(), 100);
+          }
+        }
       },
       error: (err) => {
         console.error('Failed to load repository', err);
-        this.isLoading = false;
+        if (!isPolling) this.isLoading = false;
       }
     });
   }
@@ -85,10 +107,8 @@ export class Details implements OnInit {
   onArchitectureTabActive() {
     this.activeTab = 'architecture';
     // Render mermaid after tab switch with a small delay for DOM
-    if (this.repo?.repo_architecture_diagram) {
-      this.mermaidRendered = false;
-      setTimeout(() => this.renderMermaid(), 100);
-    }
+    this.mermaidRendered = false;
+    setTimeout(() => this.renderMermaid(), 100);
   }
 
   async renderMermaid() {

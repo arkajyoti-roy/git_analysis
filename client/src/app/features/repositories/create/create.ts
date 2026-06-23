@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { CONFIG } from '../../../config/config';
 import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
 import { ThemeService } from '../../../core/services/theme.service';
@@ -9,7 +9,7 @@ import { RepositoryService } from '../../../core/services/repository.service';
 
 @Component({
   selector: 'app-create',
-  imports: [FormsModule, MonacoEditorModule],
+  imports: [FormsModule, MonacoEditorModule, RouterLink],
   templateUrl: './create.html',
   styleUrl: './create.css',
 })

@@ -3,7 +3,7 @@
   <div class="details-sidebar">
     <button [class.active]="activeTab === 'overview'" (click)="activeTab='overview'">Overview</button>
     <button [class.active]="activeTab === 'getting-started'" (click)="activeTab='getting-started'">Getting Started</button>
-    <button [class.active]="activeTab === 'architecture'" (click)="activeTab='architecture'">Architecture</button>
+    <button [class.active]="activeTab === 'architecture'" (click)="onArchitectureTabActive()">Architecture</button>
     <button [class.active]="activeTab === 'apis'" (click)="activeTab='apis'">APIs</button>
     <button [class.active]="activeTab === 'database'" (click)="activeTab='database'">Database</button>
     <button [class.active]="activeTab === 'environment'" (click)="activeTab='environment'">Environment</button>
@@ -13,14 +13,18 @@
 
   <div class="details-content">
     
-    @if (isLoading) {
+    @if (isLoading && !repo) {
       <p>Loading details...</p>
-    } @else if (!repo) {
+    } @else if (!repo && !isLoading) {
       <p>Repository not found.</p>
     } @else {
 
       <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h2 style="margin: 0;">{{ repo.repo_name }}</h2>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <button routerLink="/admin/repositories" class="btn-sm" style="background: transparent; color: var(--text-main); border: 1px solid var(--border-color); padding: 0.25rem 0.75rem;">← Back</button>
+          <h2 style="margin: 0;">{{ repo.repo_name }}</h2>
+          <button [routerLink]="['/admin/repositories', repo.id, 'edit']" class="btn-sm" style="background: #f59e0b; border-color: #f59e0b; color: #000; padding: 0.25rem 0.75rem;">Edit</button>
+        </div>
         <span class="status-badge" [class.completed]="repo.repo_status === 'completed'">{{ repo.repo_status }}</span>
       </div>
       <hr>
@@ -65,9 +69,16 @@
           <p><strong>Type:</strong> {{ repo.repo_arch || 'Not specified' }}</p>
           @if (repo.repo_architecture_diagram) {
             <h4 style="margin-top: 1.5rem;">System Diagram</h4>
-            <div style="background: var(--bg-main); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); white-space: pre-wrap; font-family: monospace; line-height: 1.6;">
-              {{ repo.repo_architecture_diagram }}
+            <div id="mermaid-diagram" style="background: var(--bg-main); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); display: flex; justify-content: center; min-height: 200px;">
+              <!-- Mermaid renders here -->
             </div>
+            
+            <details style="margin-top: 1rem;">
+              <summary style="cursor: pointer; color: var(--text-muted); font-size: 0.9rem;">View Raw Syntax</summary>
+              <div style="background: var(--bg-main); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); white-space: pre-wrap; font-family: monospace; line-height: 1.6; margin-top: 0.5rem; font-size: 0.85rem;">
+                {{ repo.repo_architecture_diagram }}
+              </div>
+            </details>
           }
         }
 

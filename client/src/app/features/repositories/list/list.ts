@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { CONFIG } from '../../../config/config';
@@ -10,25 +10,37 @@ import { RepositoryService } from '../../../core/services/repository.service';
   templateUrl: './list.html',
   styleUrl: './list.css',
 })
-export class List implements OnInit {
+export class List implements OnInit, OnDestroy {
   repositories: any[] = [];
   isLoading: boolean = true;
+  private pollInterval: any;
 
   constructor(private http: HttpClient, private repoService: RepositoryService) {}
 
   ngOnInit() {
     this.fetchRepositories();
+    // Auto reload every 3 seconds (3000 ms)
+    this.pollInterval = setInterval(() => {
+      this.fetchRepositories(true);
+    }, 3000);
   }
 
-  fetchRepositories() {
-    this.isLoading = true;
+  ngOnDestroy() {
+    if (this.pollInterval) {
+      clearInterval(this.pollInterval);
+    }
+  }
+
+  fetchRepositories(isPolling = false) {
+    if (!isPolling && this.repositories.length === 0) this.isLoading = true;
+    
     this.repoService.getRepositories().subscribe({
       next: (res: any) => {
         this.isLoading = false;
         this.repositories = res.data || res;
       },
       error: (err) => {
-        this.isLoading = false;
+        if (!isPolling) this.isLoading = false;
         console.error('Error fetching repositories:', err);
       }
     });
