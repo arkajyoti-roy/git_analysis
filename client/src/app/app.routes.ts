@@ -48,6 +48,10 @@ export const routes: Routes = [
         component: RepoCreate
       },
       {
+        path: 'repositories/:id/edit',
+        component: RepoCreate
+      },
+      {
         path: 'repositories/:id',
         component: RepoDetails
       },

@@ -28,6 +28,7 @@
           <td>
             <div style="display: flex; justify-content: center; gap: 0.5rem;">
               <button [routerLink]="['/admin/repositories', repo.id]" class="btn-sm">View</button>
+              <button [routerLink]="['/admin/repositories', repo.id, 'edit']" class="btn-sm" style="background: #f59e0b; border-color: #f59e0b; color: #000;">Edit</button>
               <button (click)="deleteRepo(repo.id)" class="btn-sm" style="background: #ef4444; border-color: #ef4444; color: white;">Delete</button>
             </div>
           </td>

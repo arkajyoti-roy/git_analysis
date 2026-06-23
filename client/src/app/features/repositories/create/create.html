@@ -1,4 +1,4 @@
-<h2>Create Repository</h2>
+<h2>{{ isEditMode ? 'Edit Repository' : 'Create Repository' }}</h2>
 
 <div class="form-card">
 
@@ -21,7 +21,7 @@
   <div class="form-row">
     <div class="form-group">
       <label>Architecture</label>
-      <input type="text" placeholder="e.g. Microservices" [(ngModel)]="repo_arch">
+      <input type="text" placeholder="e.g. Microservices" [(ngModel)]="repo_arch" maxlength="40">
     </div>
     <div class="form-group">
       <label>Status</label>
@@ -44,17 +44,17 @@
     <div class="form-group">
       <label>Repository Stack</label>
       <div class="stack-section">
-        <label><input type="checkbox" value="Angular" (change)="toggleStack('Angular', $event)"> Angular</label>
-        <label><input type="checkbox" value="Laravel" (change)="toggleStack('Laravel', $event)"> Laravel</label>
-        <label><input type="checkbox" value="React" (change)="toggleStack('React', $event)"> React</label>
-        <label><input type="checkbox" value="Node.js" (change)="toggleStack('Node.js', $event)"> Node.js</label>
-        <label><input type="checkbox" value="MongoDB" (change)="toggleStack('MongoDB', $event)"> MongoDB</label>
-        <label><input type="checkbox" value="Python" (change)="toggleStack('Python', $event)"> Python</label>
+        @for (stack of stackOptions; track stack) {
+          <label>
+            <input type="checkbox" [value]="stack" [checked]="isStackChecked(stack)" (change)="toggleStack(stack, $event)">
+            {{ stack }}
+          </label>
+        }
       </div>
     </div>
   </div>
 
-  <div class="form-row form-row-3">
+  <div class="form-row">
     <div class="form-group">
       <label>Initial Date</label>
       <input type="date" [(ngModel)]="repo_init_date">
@@ -146,8 +146,8 @@
     <span class="field-hint">Use <a href='https://mermaid.js.org/syntax/flowchart.html' target='_blank'>Mermaid.js syntax</a> — rendered as a diagram in the Architecture tab</span>
   </div>
 
-  <button (click)="createRepo()" style="margin-top: 1rem;">
-    Create Repository
+  <button (click)="submitRepo()" [disabled]="isSubmitting" style="margin-top: 1rem;">
+    {{ isSubmitting ? 'Saving...' : (isEditMode ? 'Update Repository' : 'Create Repository') }}
   </button>
 
 </div>
