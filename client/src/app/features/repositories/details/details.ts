@@ -148,4 +148,20 @@ export class Details implements OnInit, OnDestroy {
       container.innerHTML = `<pre style="color: #ef4444; padding: 1rem;">Failed to render diagram. Check Mermaid syntax.\n\nRaw:\n${this.repo.repo_architecture_diagram}</pre>`;
     }
   }
+
+  copyToClipboard(text: string | undefined | null) {
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => {
+      // Optional: Add a temporary tooltip or toast here instead of alert if desired
+      alert('Copied to clipboard!');
+    }).catch(err => {
+      console.error('Failed to copy text: ', err);
+    });
+  }
+
+  copyApis() {
+    if (!this.parsedApis || this.parsedApis.length === 0) return;
+    const text = this.parsedApis.map(api => `[${api.method || 'GET'}] ${api.path || 'N/A'}\nDescription: ${api.desc || 'No description'}`).join('\n\n');
+    this.copyToClipboard(text);
+  }
 }

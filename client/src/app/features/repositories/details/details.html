@@ -53,7 +53,15 @@
         }
 
         @if(activeTab === 'getting-started') {
-          <h3>Getting Started</h3>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 style="margin: 0;">Getting Started</h3>
+            @if (repo.repo_getting_started) {
+              <button class="btn-sm" style="background: transparent; color: var(--text-main); border: 1px solid var(--border-color); padding: 0.25rem 0.5rem; display: flex; align-items: center; gap: 0.25rem; cursor: pointer;" (click)="copyToClipboard(repo.repo_getting_started)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                Copy Steps
+              </button>
+            }
+          </div>
           @if (parsedInstallSteps.length) {
             <div style="background: var(--bg-main); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); font-family: monospace; line-height: 2;">
               @for(step of parsedInstallSteps; track $index) {
@@ -84,7 +92,15 @@
         }
 
         @if(activeTab === 'apis') {
-          <h3>API Documentation</h3>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 style="margin: 0;">API Documentation</h3>
+            @if (parsedApis.length > 0) {
+              <button class="btn-sm" style="background: transparent; color: var(--text-main); border: 1px solid var(--border-color); padding: 0.25rem 0.5rem; display: flex; align-items: center; gap: 0.25rem; cursor: pointer;" (click)="copyApis()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                Copy APIs
+              </button>
+            }
+          </div>
           <table>
             <thead>
               <tr>
@@ -108,7 +124,15 @@
         }
 
         @if(activeTab === 'code-snippet') {
-          <h3>Code Snippet</h3>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 style="margin: 0;">Code Snippet</h3>
+            @if (repo.repo_code_snippet) {
+              <button class="btn-sm" style="background: transparent; color: var(--text-main); border: 1px solid var(--border-color); padding: 0.25rem 0.5rem; display: flex; align-items: center; gap: 0.25rem; cursor: pointer;" (click)="copyToClipboard(repo.repo_code_snippet)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                Copy Code
+              </button>
+            }
+          </div>
           @if (repo.repo_code_snippet) {
             <div style="height: 400px; border: 1px solid var(--border-color); border-radius: var(--radius-md); overflow: hidden;">
               <ngx-monaco-editor [options]="editorOptions" [ngModel]="repo.repo_code_snippet" style="height: 100%;"></ngx-monaco-editor>
@@ -126,7 +150,15 @@
         }
 
         @if(activeTab === 'environment') {
-          <h3>Environment Variables</h3>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 style="margin: 0;">Environment Variables</h3>
+            @if (repo.repo_env) {
+              <button class="btn-sm" style="background: transparent; color: var(--text-main); border: 1px solid var(--border-color); padding: 0.25rem 0.5rem; display: flex; align-items: center; gap: 0.25rem; cursor: pointer;" (click)="copyToClipboard(repo.repo_env)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                Copy .env
+              </button>
+            }
+          </div>
           @if (parsedEnvVars.length) {
             <div style="background: var(--bg-main); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); font-family: monospace;">
               @for(env of parsedEnvVars; track $index) {
