@@ -2,80 +2,112 @@
 
 <div class="form-card">
 
-  <div class="form-group">
-    <label>Repository Name</label>
-    <input type="text" placeholder="e.g. Auth Service" [(ngModel)]="repo_name">
+  <!-- Section: Basic Info -->
+  <div class="section-divider">
+    <span>Basic Information</span>
   </div>
 
-  <div class="form-group">
-    <label>Repository Branch</label>
-    <input type="text" placeholder="e.g. main" [(ngModel)]="repo_branch">
-  </div>
-
-  <div class="form-group">
-    <label>Architecture</label>
-    <input type="text" placeholder="e.g. Microservices" [(ngModel)]="repo_arch">
-  </div>
-
-  <div class="form-group">
-    <label>APIs</label>
-    <input type="text" placeholder="e.g. 15 endpoints" [(ngModel)]="repo_apis">
-  </div>
-
-  <div class="form-group">
-    <label>DB Schema</label>
-    <!-- <input type="text" > -->
-    <textarea  placeholder="e.g. REST API" [(ngModel)]="repo_schema" rows="3"></textarea>
-
-  </div>
-
-  <div class="form-group">
-    <label>Initial Author</label>
-    <input type="text" placeholder="e.g. John Doe" [(ngModel)]="repo_init_author">
-  </div>
-  
-  <div class="form-group">
-    <label>Initial Date</label>
-    <input type="date" [(ngModel)]="repo_init_date">
-  </div>
-  
-  <div class="form-group">
-    <label>Deadline</label>
-    <input type="date" [(ngModel)]="repo_deadline">
-  </div>
-
-  <div class="form-group">
-    <label>Status</label>
-    <select [(ngModel)]="repo_status">
-      <option value="development env">Development Env</option>
-      <option value="on review">On Review</option>
-      <option value="production up">Production Up</option>
-      <option value="issue">Issue</option>
-      <option value="on resolving">On Resolving</option>
-      <option value="completed">Completed</option>
-    </select>
-  </div>
-
-  <div class="form-group">
-    <label>Repository Stack</label>
-    <div class="stack-section">
-      <label><input type="checkbox" value="Angular" (change)="toggleStack('Angular', $event)"> Angular</label>
-      <label><input type="checkbox" value="Laravel" (change)="toggleStack('Laravel', $event)"> Laravel</label>
-      <label><input type="checkbox" value="React" (change)="toggleStack('React', $event)"> React</label>
-      <label><input type="checkbox" value="Node.js" (change)="toggleStack('Node.js', $event)"> Node.js</label>
-      <label><input type="checkbox" value="MongoDB" (change)="toggleStack('MongoDB', $event)"> MongoDB</label>
-      <label><input type="checkbox" value="Python" (change)="toggleStack('Python', $event)"> Python</label>
+  <div class="form-row">
+    <div class="form-group">
+      <label>Repository Name</label>
+      <input type="text" placeholder="e.g. Auth Service" [(ngModel)]="repo_name">
+    </div>
+    <div class="form-group">
+      <label>Repository Branch</label>
+      <input type="text" placeholder="e.g. main" [(ngModel)]="repo_branch">
     </div>
   </div>
 
-  <div class="form-group">
-    <label>Repository Issues</label>
-    <textarea placeholder="List any known issues..." [(ngModel)]="repo_issues" rows="3"></textarea>
+  <div class="form-row">
+    <div class="form-group">
+      <label>Architecture</label>
+      <input type="text" placeholder="e.g. Microservices" [(ngModel)]="repo_arch">
+    </div>
+    <div class="form-group">
+      <label>Status</label>
+      <select [(ngModel)]="repo_status">
+        <option value="development env">Development Env</option>
+        <option value="on review">On Review</option>
+        <option value="production up">Production Up</option>
+        <option value="issue">Issue</option>
+        <option value="on resolving">On Resolving</option>
+        <option value="completed">Completed</option>
+      </select>
+    </div>
   </div>
 
-  <div class="form-group">
-    <label>Review Log</label>
-    <textarea placeholder="Recent code review summaries..." [(ngModel)]="repo_review_log" rows="3"></textarea>
+  <div class="form-row">
+    <div class="form-group">
+      <label>Initial Author</label>
+      <input type="text" placeholder="e.g. John Doe" [(ngModel)]="repo_init_author">
+    </div>
+    <div class="form-group">
+      <label>Repository Stack</label>
+      <div class="stack-section">
+        <label><input type="checkbox" value="Angular" (change)="toggleStack('Angular', $event)"> Angular</label>
+        <label><input type="checkbox" value="Laravel" (change)="toggleStack('Laravel', $event)"> Laravel</label>
+        <label><input type="checkbox" value="React" (change)="toggleStack('React', $event)"> React</label>
+        <label><input type="checkbox" value="Node.js" (change)="toggleStack('Node.js', $event)"> Node.js</label>
+        <label><input type="checkbox" value="MongoDB" (change)="toggleStack('MongoDB', $event)"> MongoDB</label>
+        <label><input type="checkbox" value="Python" (change)="toggleStack('Python', $event)"> Python</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-row form-row-3">
+    <div class="form-group">
+      <label>Initial Date</label>
+      <input type="date" [(ngModel)]="repo_init_date">
+    </div>
+    <div class="form-group">
+      <label>Deadline</label>
+      <input type="date" [(ngModel)]="repo_deadline">
+    </div>
+  </div>
+
+  <!-- Section: Setup & Configuration -->
+  <div class="section-divider">
+    <span>Setup &amp; Configuration</span>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label>Getting Started / Install Steps</label>
+      <textarea placeholder="npm install&#10;npm run dev&#10;open http://localhost:3000" [(ngModel)]="repo_getting_started" rows="4"></textarea>
+      <span class="field-hint">One command per line — displayed as terminal steps</span>
+    </div>
+    <div class="form-group">
+      <label>Environment Variables</label>
+      <textarea placeholder="DB_HOST=localhost&#10;DB_PORT=5432&#10;API_KEY=your-key-here" [(ngModel)]="repo_env" rows="4"></textarea>
+      <span class="field-hint">KEY=VALUE format, one per line</span>
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label>APIs (JSON Format)</label>
+      <textarea placeholder='[{"method":"GET", "path":"/api/users", "desc":"Fetch users"}]' [(ngModel)]="repo_apis" rows="4"></textarea>
+    </div>
+    <div class="form-group">
+      <label>DB Schema</label>
+      <textarea placeholder="e.g. users(id, name, email), orders(id, user_id, total)" [(ngModel)]="repo_schema" rows="4"></textarea>
+    </div>
+  </div>
+
+  <!-- Section: Project Tracking -->
+  <div class="section-divider">
+    <span>Project Tracking</span>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label>Repository Issues</label>
+      <textarea placeholder="List any known issues..." [(ngModel)]="repo_issues" rows="3"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Review Log</label>
+      <textarea placeholder="Recent code review summaries..." [(ngModel)]="repo_review_log" rows="3"></textarea>
+    </div>
   </div>
 
   <div class="form-group">
@@ -88,6 +120,30 @@
     <div style="height: calc(100% - 1.5rem); border: 1px solid var(--border-color); border-radius: 4px; overflow: hidden;">
       <ngx-monaco-editor [options]="editorOptions" [(ngModel)]="repo_code_snippets" style="height: 100%;"></ngx-monaco-editor>
     </div>
+  </div>
+
+  <!-- Section: IDP Documentation -->
+  <div class="section-divider">
+    <span>IDP Documentation</span>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label>Deployment Guide</label>
+      <textarea placeholder="## Development&#10;npm run dev&#10;&#10;## Staging&#10;docker-compose up -d&#10;&#10;## Production&#10;kubectl apply -f k8s/" [(ngModel)]="repo_deployment" rows="5"></textarea>
+      <span class="field-hint">Deployment steps for Dev / Staging / Production environments</span>
+    </div>
+    <div class="form-group">
+      <label>Coding Standards</label>
+      <textarea placeholder="## Naming Conventions&#10;- camelCase for variables&#10;- PascalCase for classes&#10;&#10;## Folder Structure&#10;- src/features/ — feature modules&#10;- src/core/ — shared services" [(ngModel)]="repo_coding_standards" rows="5"></textarea>
+      <span class="field-hint">Naming conventions, folder structure, error handling patterns</span>
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label>Architecture Diagram (Mermaid Syntax)</label>
+    <textarea placeholder="graph TD&#10;  A[Client] --> B[API Gateway]&#10;  B --> C[Auth Service]&#10;  B --> D[User Service]&#10;  C --> E[(Database)]&#10;  D --> E" [(ngModel)]="repo_architecture_diagram" rows="6"></textarea>
+    <span class="field-hint">Use <a href='https://mermaid.js.org/syntax/flowchart.html' target='_blank'>Mermaid.js syntax</a> — rendered as a diagram in the Architecture tab</span>
   </div>
 
   <button (click)="createRepo()" style="margin-top: 1rem;">

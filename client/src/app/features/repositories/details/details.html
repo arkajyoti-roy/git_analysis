@@ -7,6 +7,8 @@
     <button [class.active]="activeTab === 'apis'" (click)="activeTab='apis'">APIs</button>
     <button [class.active]="activeTab === 'database'" (click)="activeTab='database'">Database</button>
     <button [class.active]="activeTab === 'environment'" (click)="activeTab='environment'">Environment</button>
+    <button [class.active]="activeTab === 'deployment'" (click)="activeTab='deployment'">Deployment</button>
+    <button [class.active]="activeTab === 'coding-standards'" (click)="activeTab='coding-standards'">Coding Standards</button>
   </div>
 
   <div class="details-content">
@@ -47,24 +49,30 @@
 
         @if(activeTab === 'getting-started') {
           <h3>Getting Started</h3>
-          <p>Follow these steps to spin up the <strong>{{ repo.repo_stack }}</strong> environment:</p>
-          
-          <div style="background: var(--bg-main); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); font-family: monospace; line-height: 2;">
-            @for(step of installSteps; track $index) {
-              <div><span style="color: #10b981; margin-right: 8px;">❯</span> {{ step }}</div>
-            }
-          </div>
+          @if (parsedInstallSteps.length) {
+            <div style="background: var(--bg-main); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); font-family: monospace; line-height: 2;">
+              @for(step of parsedInstallSteps; track $index) {
+                <div><span style="color: #10b981; margin-right: 8px;">❯</span> {{ step }}</div>
+              }
+            </div>
+          } @else {
+            <p>No getting started instructions provided.</p>
+          }
         }
 
         @if(activeTab === 'architecture') {
           <h3>Architecture</h3>
-          <p><strong>Type:</strong> {{ repo.repo_arch }}</p>
-          <p>{{ archDescription }}</p>
+          <p><strong>Type:</strong> {{ repo.repo_arch || 'Not specified' }}</p>
+          @if (repo.repo_architecture_diagram) {
+            <h4 style="margin-top: 1.5rem;">System Diagram</h4>
+            <div style="background: var(--bg-main); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); white-space: pre-wrap; font-family: monospace; line-height: 1.6;">
+              {{ repo.repo_architecture_diagram }}
+            </div>
+          }
         }
 
         @if(activeTab === 'apis') {
-          <h3>API Documentation ({{ repo.repo_apis || '0' }})</h3>
-          <p>Schema: <strong>{{ repo.repo_schema }}</strong></p>
+          <h3>API Documentation</h3>
           <table>
             <thead>
               <tr>
@@ -74,11 +82,11 @@
               </tr>
             </thead>
             <tbody>
-              @for(api of apiEndpoints; track $index) {
+              @for(api of parsedApis; track $index) {
                 <tr>
-                  <td><span class="status-badge">{{ api.method }}</span></td>
-                  <td style="font-family: monospace; text-align: left;">{{ api.path }}</td>
-                  <td style="text-align: left;">{{ api.desc }}</td>
+                  <td><span class="status-badge">{{ api.method || 'GET' }}</span></td>
+                  <td style="font-family: monospace; text-align: left;">{{ api.path || 'N/A' }}</td>
+                  <td style="text-align: left;">{{ api.desc || 'No description' }}</td>
                 </tr>
               } @empty {
                 <tr><td colspan="3" style="text-align: center;">No APIs documented.</td></tr>
@@ -89,21 +97,46 @@
 
         @if(activeTab === 'database') {
           <h3>Database Schema</h3>
-          <p>Schema Standard: <strong>{{ repo.repo_schema }}</strong></p>
-          <p>To view the full entity relationship diagram, you must connect to the active database instance.</p>
+          <div style="background: var(--bg-main); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); white-space: pre-wrap; font-family: inherit;">
+            {{ repo.repo_schema || 'No database schema provided.' }}
+          </div>
         }
 
         @if(activeTab === 'environment') {
           <h3>Environment Variables</h3>
-          <p>Required configuration for the <strong>{{ repo.repo_stack }}</strong> stack:</p>
-          
-          <div style="background: var(--bg-main); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); font-family: monospace;">
-            @for(env of envVars; track $index) {
-              <div style="margin-bottom: 0.5rem;">
-                <span style="color: #60a5fa;">{{ env.key }}</span>=<span style="color: #34d399;">{{ env.value }}</span>
-              </div>
-            }
-          </div>
+          @if (parsedEnvVars.length) {
+            <div style="background: var(--bg-main); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); font-family: monospace;">
+              @for(env of parsedEnvVars; track $index) {
+                <div style="margin-bottom: 0.5rem;">
+                  <span style="color: #60a5fa;">{{ env.key }}</span>=<span style="color: #34d399;">{{ env.value }}</span>
+                </div>
+              }
+            </div>
+          } @else {
+            <p>No environment variables configured.</p>
+          }
+        }
+
+        @if(activeTab === 'deployment') {
+          <h3>Deployment Guide</h3>
+          @if (repo.repo_deployment) {
+            <div style="background: var(--bg-main); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); white-space: pre-wrap; font-family: inherit; line-height: 1.8;">
+              {{ repo.repo_deployment }}
+            </div>
+          } @else {
+            <p>No deployment guide provided.</p>
+          }
+        }
+
+        @if(activeTab === 'coding-standards') {
+          <h3>Coding Standards</h3>
+          @if (repo.repo_coding_standards) {
+            <div style="background: var(--bg-main); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); white-space: pre-wrap; font-family: inherit; line-height: 1.8;">
+              {{ repo.repo_coding_standards }}
+            </div>
+          } @else {
+            <p>No coding standards documented.</p>
+          }
         }
       </div>
     }

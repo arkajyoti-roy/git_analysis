@@ -29,6 +29,11 @@ export class Create implements OnInit {
   repo_review_log = '';
   repo_major_commits = '';
   repo_code_snippets = '';
+  repo_getting_started = '';
+  repo_env = '';
+  repo_deployment = '';
+  repo_coding_standards = '';
+  repo_architecture_diagram = '';
 
   editorOptions = { 
     theme: 'vs', 
@@ -83,7 +88,12 @@ export class Create implements OnInit {
       repo_deadline: this.repo_deadline,
       repo_issues: this.repo_issues,
       repo_review_log: this.repo_review_log,
-      repo_major_commits: this.repo_major_commits
+      repo_major_commits: this.repo_major_commits,
+      repo_getting_started: this.repo_getting_started,
+      repo_env: this.repo_env,
+      repo_deployment: this.repo_deployment,
+      repo_coding_standards: this.repo_coding_standards,
+      repo_architecture_diagram: this.repo_architecture_diagram
     };
 
     // Only add code snippets if it has content, to prevent strict backend validation errors

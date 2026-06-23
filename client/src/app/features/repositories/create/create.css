@@ -1,12 +1,23 @@
 .form-card {
-  max-width: 800px;
+  max-width: 100%;
+  padding: 0.5rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.form-row-3 {
+  grid-template-columns: 1fr 1fr 1fr;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  margin-bottom: 1.25rem;
+  margin-bottom: 0.75rem;
 }
 
 .form-group label {
@@ -37,4 +48,51 @@
 .stack-section input[type="checkbox"] {
   width: auto;
   margin: 0;
+}
+
+.section-divider {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 2.5rem 0 1.75rem;
+}
+
+.section-divider::before,
+.section-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-color);
+}
+
+.section-divider span {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.field-hint {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  opacity: 0.8;
+  margin-top: -0.25rem;
+}
+
+.field-hint a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+.field-hint a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 700px) {
+  .form-row,
+  .form-row-3 {
+    grid-template-columns: 1fr;
+  }
 }
