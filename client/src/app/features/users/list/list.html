@@ -1,43 +1,41 @@
 <app-create></app-create>
-<h2>Manage Users</h2>
+
+<div class="users-header">
+  <h2>Manage Users</h2>
+</div>
 
 @if (isLoading) {
-<p>Loading users...</p>
+  <div class="loading-state">Loading users...</div>
 } @else {
-<table>
-
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Name</th>
-      <th>Email</th>
-      <th>Role</th>
-      <th>Action</th>
-    </tr>
-  </thead>
-
-  <tbody>
-
-    @for(user of users; track user.emp_id || user.id || $index){
-
-    <tr>
-      <td>{{user.emp_id || user.id}}</td>
-      <td>{{ user.emp_name || user.name }}</td>
-      <td>{{ user.emp_email || user.email }}</td>
-      <td><span class="role-badge">{{ user.emp_role || user.role }}</span></td>
-
-      <td>
-        <div style="display: flex; justify-content: center; gap: 0.5rem;">
-          <button>Edit</button>
-          <button>Delete</button>
-        </div>
-      </td>
-
-    </tr>
-
-    }
-
-  </tbody>
-
-</table>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Role</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for(user of users; track user.emp_id || user.id || $index) {
+        <tr>
+          <td>{{ user.emp_id || user.id }}</td>
+          <td>{{ user.emp_name || user.name }}</td>
+          <td>{{ user.emp_email || user.email }}</td>
+          <td><span class="role-badge">{{ user.emp_role || user.role }}</span></td>
+          <td>
+            <div class="action-buttons">
+              <button class="btn-edit">Edit</button>
+              <button class="btn-delete">Delete</button>
+            </div>
+          </td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="5" class="loading-state">No users found.</td>
+        </tr>
+      }
+    </tbody>
+  </table>
 }

@@ -1,47 +1,111 @@
-/* Classy & Minimalist Global Styles */
-@import 'tailwindcss';
+/* =========================================
+   RepoLens — Apple HIG–Inspired Design System
+   ========================================= */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-  /* Classy Monochromatic & Subtle Colors */
-  --primary-color: #000000;
-  --primary-hover: #333333;
-  --secondary-color: #6b7280;
-  
-  /* Minimal Light Backgrounds */
-  --bg-main: #f9fafb;
+  /* Primary Accent */
+  --primary-color: #007aff;
+  --primary-hover: #0066d6;
+
+  /* Neutral Palette (Light) */
+  --bg-main: #f5f5f7;
   --bg-surface: #ffffff;
-  
-  /* High Contrast Text */
-  --text-primary: #111827;
-  --text-secondary: #4b5563;
-  --text-muted: #9ca3af;
-  
-  /* Ultra Thin Borders */
-  --border-color: #e5e7eb;
-  
-  /* Very Subtle Shadows */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.05);
-  
-  /* Small Radii */
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  
+  --bg-surface-hover: #f0f0f2;
+
+  /* Text */
+  --text-primary: #1d1d1f;
+  --text-secondary: #6e6e73;
+  --text-muted: #aeaeb2;
+
+  /* Borders */
+  --border-color: #d2d2d7;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.06), 0 2px 6px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.08), 0 4px 10px rgba(0, 0, 0, 0.04);
+
+  /* Radii — soft and rounded */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+
   /* Buttons */
   --btn-text: #ffffff;
-  
+
   /* Transitions */
-  --transition-smooth: all 0.2s ease;
+  --transition-smooth: all 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+  --transition-spring: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Danger */
+  --danger-color: #ff3b30;
+  --danger-bg: #fff2f1;
+  --danger-hover: #e0342b;
+
+  /* Success */
+  --success-color: #34c759;
+  --success-bg: #eafbef;
+
+  /* Warning */
+  --warning-color: #ff9500;
+  --warning-bg: #fff8ed;
+}
+
+/* Dark Mode — Apple-style true dark */
+[data-theme="dark"] {
+  --primary-color: #0a84ff;
+  --primary-hover: #409cff;
+
+  --bg-main: #000000;
+  --bg-surface: #1c1c1e;
+  --bg-surface-hover: #2c2c2e;
+
+  --text-primary: #f5f5f7;
+  --text-secondary: #a1a1a6;
+  --text-muted: #636366;
+
+  --border-color: #38383a;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.5);
+
+  --btn-text: #ffffff;
+
+  --danger-color: #ff453a;
+  --danger-bg: rgba(255, 69, 58, 0.15);
+  --danger-hover: #ff6961;
+
+  --success-color: #30d158;
+  --success-bg: rgba(48, 209, 88, 0.15);
+
+  --warning-color: #ff9f0a;
+  --warning-bg: rgba(255, 159, 10, 0.15);
+}
+
+/* =========================================
+   Base Reset & Typography
+   ========================================= */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   margin: 0;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background-color: var(--bg-main);
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
+  line-height: 1.5;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -49,10 +113,15 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 600;
   letter-spacing: -0.02em;
   color: var(--text-primary);
+  line-height: 1.3;
 }
 
+h1 { font-size: 1.75rem; }
+h2 { font-size: 1.375rem; }
+h3 { font-size: 1.125rem; }
+
 p {
-  margin: 0 0 1rem 0;
+  margin: 0 0 0.75rem 0;
   color: var(--text-secondary);
   line-height: 1.6;
 }
@@ -64,14 +133,16 @@ a {
 }
 
 a:hover {
-  text-decoration: underline;
+  opacity: 0.85;
 }
 
-/* Minimalist Button */
+/* =========================================
+   Buttons
+   ========================================= */
 button {
   background: var(--primary-color);
   color: var(--btn-text);
-  border: 1px solid var(--primary-color);
+  border: none;
   padding: 0.625rem 1.25rem;
   border-radius: var(--radius-sm);
   font-size: 0.875rem;
@@ -82,21 +153,31 @@ button {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  font-family: inherit;
+  line-height: 1.4;
 }
 
 button:hover {
   background: var(--primary-hover);
-  border-color: var(--primary-hover);
+  transform: translateY(-1px);
 }
 
 button:active {
-  transform: translateY(1px);
+  transform: translateY(0);
 }
 
-/* Minimalist Inputs */
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* =========================================
+   Inputs & Forms
+   ========================================= */
 input, select, textarea {
   width: 100%;
-  padding: 0.625rem 1rem;
+  padding: 0.625rem 0.875rem;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
   font-size: 0.875rem;
@@ -104,34 +185,52 @@ input, select, textarea {
   background-color: var(--bg-surface);
   transition: var(--transition-smooth);
   box-sizing: border-box;
+  font-family: inherit;
+  line-height: 1.5;
 }
 
 input:hover, select:hover, textarea:hover {
-  border-color: #d1d5db;
+  border-color: var(--text-muted);
 }
 
 input:focus, select:focus, textarea:focus {
   outline: none;
   border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.15);
 }
 
-/* Clean Form Card */
+input:disabled, select:disabled, textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: var(--bg-surface-hover);
+}
+
+input::placeholder, textarea::placeholder {
+  color: var(--text-muted);
+}
+
+/* =========================================
+   Cards
+   ========================================= */
 .form-card {
   background: var(--bg-surface);
-  padding: 2rem;
-  border-radius: var(--radius-md);
+  padding: 1.75rem;
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
-/* Minimalist Data Tables */
+/* =========================================
+   Tables
+   ========================================= */
 table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   background: var(--bg-surface);
   border-radius: var(--radius-md);
   overflow: hidden;
@@ -140,15 +239,15 @@ table {
 }
 
 th, td {
-  padding: 1rem 1.5rem;
-  text-align: center;
+  padding: 0.875rem 1.25rem;
+  text-align: left;
 }
 
 th {
-  background-color: var(--bg-surface);
+  background-color: var(--bg-surface-hover);
   color: var(--text-secondary);
-  font-weight: 500;
-  font-size: 0.8125rem;
+  font-weight: 600;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   border-bottom: 1px solid var(--border-color);
@@ -169,27 +268,74 @@ tr {
   transition: var(--transition-smooth);
 }
 
-tr:hover td {
-  background-color: var(--bg-main);
+tbody tr:hover td {
+  background-color: var(--bg-surface-hover);
 }
 
-/* Dark Mode Variables */
-[data-theme="dark"] {
-  --primary-color: #ffffff;
-  --primary-hover: #e5e7eb;
-  --secondary-color: #9ca3af;
-  
-  --bg-main: #111827;
-  --bg-surface: #1f2937;
-  
-  --text-primary: #f9fafb;
-  --text-secondary: #d1d5db;
-  --text-muted: #6b7280;
-  
-  --border-color: #374151;
-  
-  --btn-text: #000000;
-  
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+/* =========================================
+   Common Badges
+   ========================================= */
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.625rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  background: var(--bg-surface-hover);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.625rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: var(--warning-bg);
+  color: var(--warning-color);
+}
+
+.status-badge.completed {
+  background: var(--success-bg);
+  color: var(--success-color);
+}
+
+/* =========================================
+   Scrollbar Styling
+   ========================================= */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* =========================================
+   Responsive Typography
+   ========================================= */
+@media (max-width: 768px) {
+  html { font-size: 15px; }
+  h1 { font-size: 1.5rem; }
+  h2 { font-size: 1.25rem; }
+  h3 { font-size: 1rem; }
+}
+
+@media (max-width: 480px) {
+  html { font-size: 14px; }
 }

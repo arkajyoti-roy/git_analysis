@@ -19,10 +19,10 @@ export class List implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.fetchRepositories();
-    // Auto reload every 3 seconds (3000 ms)
+    // Auto reload every 30 seconds (30000 ms)
     this.pollInterval = setInterval(() => {
       this.fetchRepositories(true);
-    }, 3000);
+    }, 30000);
   }
 
   ngOnDestroy() {

@@ -95,5 +95,9 @@ export const routes: Routes = [
     component: ViewProfile,
     canActivate: [authGuard, roleGuard, profileGuard],
     data: { roles: ['sr-dev', 'jr-dev', 'dev'] }
+  },
+  {
+    path: '**',
+    redirectTo: 'login'
   }
 ];

@@ -10,11 +10,24 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-width: 0;
 }
 
 .content-area {
   flex: 1;
-  padding: 3rem;
+  padding: 2rem;
   overflow-y: auto;
   background-color: var(--bg-main);
+}
+
+@media (max-width: 1024px) {
+  .content-area {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .content-area {
+    padding: 1rem;
+  }
 }

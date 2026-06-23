@@ -34,7 +34,7 @@ export class DEVDashboard implements OnInit {
   ];
 
   ngOnInit() {
-    const role = localStorage.getItem('emp_role');
+    const role = localStorage.getItem('role');
     this.userName = localStorage.getItem('emp_name') || 'Developer';
     
     if (role === 'sr-dev') {
