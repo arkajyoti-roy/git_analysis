@@ -21,7 +21,7 @@ export class Create implements OnInit {
 
   repo_name = '';
   repo_stack: string[] = [];
-  repo_status = 'development env';
+  repo_status = 'Development Env';
   repo_branch = '';
   repo_arch = '';
   repo_apis = '';
@@ -41,8 +41,16 @@ export class Create implements OnInit {
 
   isSubmitting = false;
 
-  // Stack options for checkbox tracking
+  // Dynamic options tracking
   stackOptions = ['Angular', 'Laravel', 'React', 'Node.js', 'MongoDB', 'Python'];
+  statusOptions = ['Development Env', 'On Review', 'Production Up', 'Issue', 'On Resolving', 'Completed'];
+
+  newStackInput = '';
+  newStatusInput = '';
+
+  get availableStacks(): string[] {
+    return this.stackOptions.filter(s => !this.repo_stack.includes(s));
+  }
 
   editorOptions = { 
     theme: 'vs', 
@@ -90,7 +98,11 @@ export class Create implements OnInit {
       next: (res: any) => {
         const repo = res.data || res;
         this.repo_name = repo.repo_name || '';
-        this.repo_status = repo.repo_status || 'development env';
+        this.repo_status = repo.repo_status || 'Development Env';
+        // Add status to list if it's custom
+        if (this.repo_status && !this.statusOptions.includes(this.repo_status)) {
+          this.statusOptions.push(this.repo_status);
+        }
         this.repo_branch = repo.repo_branch || '';
         this.repo_arch = repo.repo_arch || '';
         this.repo_schema = repo.repo_schema || '';
@@ -132,17 +144,39 @@ export class Create implements OnInit {
     });
   }
 
-  isStackChecked(stack: string): boolean {
-    return this.repo_stack.includes(stack);
+  addStackFromDropdown(event: any) {
+    const val = event.target.value;
+    if (val && !this.repo_stack.includes(val)) {
+      this.repo_stack.push(val);
+    }
+    // Reset the select back to default
+    event.target.value = "";
   }
 
-  toggleStack(stack: string, event: Event) {
-    const isChecked = (event.target as HTMLInputElement).checked;
-    if (isChecked) {
-      this.repo_stack.push(stack);
-    } else {
-      this.repo_stack = this.repo_stack.filter(s => s !== stack);
+  removeStack(stack: string) {
+    this.repo_stack = this.repo_stack.filter(s => s !== stack);
+  }
+
+  addCustomStack() {
+    const s = this.newStackInput.trim();
+    if (s && !this.stackOptions.includes(s)) {
+      this.stackOptions.push(s);
+      this.repo_stack.push(s);
+    } else if (s && !this.repo_stack.includes(s)) {
+      this.repo_stack.push(s);
     }
+    this.newStackInput = '';
+  }
+
+  addCustomStatus() {
+    const s = this.newStatusInput.trim();
+    if (s && !this.statusOptions.includes(s)) {
+      this.statusOptions.push(s);
+    }
+    if (s) {
+      this.repo_status = s;
+    }
+    this.newStatusInput = '';
   }
 
   private textToArray(text: string): string[] {

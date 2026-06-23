@@ -28,14 +28,15 @@
     </div>
     <div class="form-group">
       <label>Status</label>
-      <select [(ngModel)]="repo_status">
-        <option value="development env">Development Env</option>
-        <option value="on review">On Review</option>
-        <option value="production up">Production Up</option>
-        <option value="issue">Issue</option>
-        <option value="on resolving">On Resolving</option>
-        <option value="completed">Completed</option>
+      <select [(ngModel)]="repo_status" style="margin-bottom: 0.5rem;">
+        @for (status of statusOptions; track status) {
+          <option [value]="status">{{ status }}</option>
+        }
       </select>
+      <div style="display: flex; gap: 0.5rem;">
+        <input type="text" placeholder="Custom status..." [(ngModel)]="newStatusInput" (keyup.enter)="addCustomStatus()">
+        <button type="button" class="btn-sm" (click)="addCustomStatus()">Add</button>
+      </div>
     </div>
   </div>
 
@@ -46,13 +47,32 @@
     </div>
     <div class="form-group">
       <label>Repository Stack</label>
-      <div class="stack-section">
-        @for (stack of stackOptions; track stack) {
-          <label>
-            <input type="checkbox" [value]="stack" [checked]="isStackChecked(stack)" (change)="toggleStack(stack, $event)">
-            {{ stack }}
-          </label>
+      <div style="margin-bottom: 0.5rem;">
+        <!-- Normal Dropdown -->
+        <select (change)="addStackFromDropdown($event)" style="margin-bottom: 0.5rem;">
+          <option value="" disabled selected>Select a stack to add...</option>
+          @for (stack of availableStacks; track stack) {
+            <option [value]="stack">{{ stack }}</option>
+          }
+        </select>
+        
+        <!-- Selected Stacks as Chips -->
+        @if(repo_stack.length > 0) {
+          <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem; padding: 0.5rem; border: 1px dashed var(--border-color); border-radius: 4px;">
+            @for (stack of repo_stack; track stack) {
+              <span style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 0.2rem 0.5rem; border-radius: 12px; font-size: 0.85rem; display: flex; align-items: center; gap: 0.25rem;">
+                {{ stack }}
+                <span (click)="removeStack(stack)" style="cursor: pointer; color: #ef4444; font-weight: bold; padding: 0 0.2rem;">×</span>
+              </span>
+            }
+          </div>
         }
+
+        <!-- Add Custom Stack -->
+        <div style="display: flex; gap: 0.5rem;">
+          <input type="text" placeholder="Or type a custom stack..." [(ngModel)]="newStackInput" (keyup.enter)="addCustomStack()">
+          <button type="button" class="btn-sm" (click)="addCustomStack()">Add</button>
+        </div>
       </div>
     </div>
   </div>
