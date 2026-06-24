@@ -1,8 +1,10 @@
 import { inject } from '@angular/core';
 import { Router, CanActivateFn } from '@angular/router';
+import { ToastService } from '../services/toast.service';
 
 export const roleGuard: CanActivateFn = (route, state) => {
   const router = inject(Router);
+  const toast = inject(ToastService);
   const token = localStorage.getItem('token');
   
   if (!token) {
@@ -31,7 +33,7 @@ export const roleGuard: CanActivateFn = (route, state) => {
       return true;
     }
 
-    alert('Unauthorized to access this route');
+    toast.error('Unauthorized to access this route');
     router.navigate(['/login']);
     return false;
   } catch (error) {

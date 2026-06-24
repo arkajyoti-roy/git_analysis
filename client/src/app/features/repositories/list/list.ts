@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { CONFIG } from '../../../config/config';
 import { RepositoryService } from '../../../core/services/repository.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-list',
@@ -15,7 +16,7 @@ export class List implements OnInit, OnDestroy {
   isLoading: boolean = true;
   private pollInterval: any;
 
-  constructor(private http: HttpClient, private repoService: RepositoryService) {}
+  constructor(private http: HttpClient, private repoService: RepositoryService, private toast: ToastService) {}
 
   ngOnInit() {
     this.fetchRepositories();
@@ -54,7 +55,7 @@ export class List implements OnInit, OnDestroy {
           this.repoService.clearCache();
         },
         error: (err) => {
-          alert('Error deleting repository');
+          this.toast.error('Error deleting repository');
           console.error(err);
         }
       });

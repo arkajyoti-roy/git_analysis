@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { CONFIG } from '../../../config/config';
 import { Topbar } from '../../../shared/topbar/topbar';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-view-profile',
@@ -28,7 +29,7 @@ export class ViewProfile implements OnInit {
     return localStorage.getItem('role') === 'admin';
   }
 
-  constructor(private http: HttpClient, private location: Location) {}
+  constructor(private http: HttpClient, private location: Location, private toast: ToastService) {}
 
   ngOnInit() {
     this.fetchProfile();
@@ -102,7 +103,7 @@ export class ViewProfile implements OnInit {
 
   saveProfile() {
     if (!this.editData.emp_phone || !this.editData.emp_address) {
-      alert('Please fill out all required fields.');
+      this.toast.warning('Please fill out all required fields.');
       return;
     }
 
@@ -112,12 +113,13 @@ export class ViewProfile implements OnInit {
       next: (res: any) => {
         this.isSaving = false;
         this.showEditModal = false;
+        this.toast.success('Profile updated successfully!');
         this.fetchProfile(); // Refresh data
       },
       error: (err) => {
         this.isSaving = false;
         console.error('Failed to update profile', err);
-        alert(err.error?.message || 'Failed to update profile details.');
+        this.toast.error(err.error?.message || 'Failed to update profile details.');
       }
     });
   }

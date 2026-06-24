@@ -4,6 +4,7 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RepositoryService } from '../../../core/services/repository.service';
 import { ThemeService } from '../../../core/services/theme.service';
+import { ToastService } from '../../../core/services/toast.service';
 import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
 import { EditorComponent } from 'ngx-monaco-editor-v2';
 import mermaid from 'mermaid';
@@ -66,7 +67,8 @@ export class Details implements OnInit, OnDestroy {
   constructor(
     private route: ActivatedRoute,
     private repoService: RepositoryService,
-    public themeService: ThemeService
+    public themeService: ThemeService,
+    private toast: ToastService
   ) {
     mermaid.initialize({ 
       startOnLoad: false, 
@@ -159,7 +161,7 @@ export class Details implements OnInit, OnDestroy {
     // Try modern Clipboard API first
     if (navigator.clipboard && window.isSecureContext) {
       navigator.clipboard.writeText(stringText).then(() => {
-        alert('Copied to clipboard!');
+        this.toast.success('Copied to clipboard!');
       }).catch(err => {
         console.warn('Clipboard API failed, trying fallback...', err);
         this.fallbackCopyTextToClipboard(stringText);
@@ -187,13 +189,13 @@ export class Details implements OnInit, OnDestroy {
     try {
       const successful = document.execCommand('copy');
       if (successful) {
-        alert('Copied to clipboard!');
+        this.toast.success('Copied to clipboard!');
       } else {
-        alert('Failed to copy. Please try manually.');
+        this.toast.error('Failed to copy. Please try manually.');
       }
     } catch (err) {
       console.error('Fallback copy failed', err);
-      alert('Failed to copy. Please try manually.');
+      this.toast.error('Failed to copy. Please try manually.');
     }
     
     document.body.removeChild(textArea);

@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-
 import { CONFIG } from '../../../config/config';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-create',
@@ -20,7 +20,8 @@ export class Create {
   isLoading = false;
 
   constructor(
-    private http: HttpClient
+    private http: HttpClient,
+    private toast: ToastService
   ) {}
 
   createUser() {
@@ -32,7 +33,7 @@ export class Create {
       !this.emp_role
     ) {
 
-      alert('Please fill all fields');
+      this.toast.warning('Please fill all fields');
       return;
 
     }
@@ -65,7 +66,7 @@ export class Create {
 
         if(response.success){
 
-          alert('User Created Successfully');
+          this.toast.success('User Created Successfully');
 
           this.emp_name = '';
           this.emp_email = '';
@@ -82,10 +83,7 @@ export class Create {
 
         console.error(error);
 
-        alert(
-          error?.error?.message ||
-          'Failed To Create User'
-        );
+        this.toast.error(error?.error?.message || 'Failed To Create User');
 
       }
 

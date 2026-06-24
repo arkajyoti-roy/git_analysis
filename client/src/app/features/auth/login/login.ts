@@ -2,8 +2,8 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
-
 import { CONFIG } from '../../../config/config';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-login',
@@ -20,13 +20,14 @@ export class Login {
 
   constructor(
     private router: Router,
-    private http: HttpClient
-  ) {}
+    private http: HttpClient,
+    private toast: ToastService
+  ) { }
 
   login() {
 
     if (!this.email || !this.password) {
-      alert('Please enter email and password');
+      this.toast.warning('Please enter email and password');
       return;
     }
 
@@ -83,14 +84,14 @@ export class Login {
               else if (Array.isArray(profileRes) && profileRes.length > 0) profile = profileRes[0];
               else if (profileRes.data && Array.isArray(profileRes.data) && profileRes.data.length > 0) profile = profileRes.data[0];
               else if (profileRes.data) profile = profileRes.data;
-              
+
               console.log('Backend Profile Data:', profile); // Let's log it to the browser console!
-              
+
               // Check if ANY of the additional profile details exist
               const isProfileComplete = profile && (
-                profile.emp_phone || 
-                profile.emp_address || 
-                profile.emp_position || 
+                profile.emp_phone ||
+                profile.emp_address ||
+                profile.emp_position ||
                 profile.emp_blood_group ||
                 profile.emp_doj ||
                 profile.emp_tenure
@@ -118,10 +119,7 @@ export class Login {
 
         } else {
 
-          alert(
-            response.message ||
-            'Login Failed'
-          );
+          this.toast.error(response.message || 'Login Failed');
 
         }
 
@@ -133,10 +131,7 @@ export class Login {
 
         console.error(error);
 
-        alert(
-          error?.error?.message ||
-          'Login Failed'
-        );
+        this.toast.error(error?.error?.message || 'Login Failed');
 
       }
 

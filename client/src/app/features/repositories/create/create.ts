@@ -7,6 +7,7 @@ import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
 import { ThemeService } from '../../../core/services/theme.service';
 import { RepositoryService } from '../../../core/services/repository.service';
 import { UserService } from '../../../core/services/user.service';
+import { ToastService } from '../../../core/services/toast.service';
 import { TitleCasePipe } from '@angular/common';
 
 @Component({
@@ -89,7 +90,8 @@ export class Create implements OnInit {
     private route: ActivatedRoute,
     public themeService: ThemeService,
     private repoService: RepositoryService,
-    private userService: UserService
+    private userService: UserService,
+    private toast: ToastService
   ) {}
 
   ngOnInit() {
@@ -213,7 +215,7 @@ export class Create implements OnInit {
       },
       error: (err) => {
         console.error('Failed to load repository for editing', err);
-        alert('Failed to load repository data.');
+        this.toast.error('Failed to load repository data.');
       }
     });
   }
@@ -351,7 +353,7 @@ export class Create implements OnInit {
     this.http.post(`${CONFIG.BASE_URL}/repositories`, payload).subscribe({
       next: () => {
         this.isSubmitting = false;
-        alert('Repository created successfully!');
+        this.toast.success('Repository created successfully!');
         this.repoService.clearCache();
         this.router.navigate(['/admin/repositories']);
       },
@@ -391,7 +393,7 @@ export class Create implements OnInit {
     this.http.put(`${CONFIG.BASE_URL}/repositories/${this.repoId}`, payload).subscribe({
       next: () => {
         this.isSubmitting = false;
-        alert('Repository updated successfully!');
+        this.toast.success('Repository updated successfully!');
         this.repoService.clearCache();
         this.router.navigate(['/admin/repositories', this.repoId]);
       },
@@ -413,6 +415,6 @@ export class Create implements OnInit {
     } else if (err.error?.message) {
       errorMsg += '\n\n' + err.error.message;
     }
-    alert(errorMsg);
+    this.toast.error(errorMsg);
   }
 }

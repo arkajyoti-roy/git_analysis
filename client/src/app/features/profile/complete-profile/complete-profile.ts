@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { CONFIG } from '../../../config/config';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-complete-profile',
@@ -37,7 +38,7 @@ export class CompleteProfile implements OnInit {
   bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
   maritalStatuses = ['Single', 'Married', 'Divorced', 'Widowed'];
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(private http: HttpClient, private router: Router, private toast: ToastService) {}
 
   ngOnInit() {
     this.emp_id = localStorage.getItem('emp_id') || localStorage.getItem('admin_id') || '';
@@ -55,7 +56,7 @@ export class CompleteProfile implements OnInit {
 
   saveProfile() {
     if (!this.emp_phone || !this.emp_address) {
-      alert('Please fill out all required fields.');
+      this.toast.warning('Please fill out all required fields.');
       return;
     }
 
@@ -91,7 +92,7 @@ export class CompleteProfile implements OnInit {
       error: (err) => {
         this.isLoading = false;
         console.error('Failed to save profile', err);
-        alert(err.error?.message || 'Failed to save profile details. Please try again.');
+        this.toast.error(err.error?.message || 'Failed to save profile details. Please try again.');
       }
     });
   }
