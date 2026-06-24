@@ -53,10 +53,7 @@ export class Create implements OnInit {
     { id: 4, name: 'Node.js' }, { id: 5, name: 'MongoDB' }, { id: 6, name: 'Python' }
   ];
   statusOptions: { id: number | string, name: string }[] = [];
-  archOptions: { id: number | string, name: string }[] = [
-    { id: 1, name: 'Monolith' }, { id: 2, name: 'Microservices' }, { id: 3, name: 'Serverless' }, 
-    { id: 4, name: 'Event-Driven' }, { id: 5, name: 'SOA' }, { id: 6, name: 'MVC' }
-  ];
+  archOptions: { id: number | string, name: string }[] = [];
   // Manage Modal State
   showManageModal = false;
   managingType: 'stack' | 'status' | 'arch' | null = null;
@@ -134,6 +131,7 @@ export class Create implements OnInit {
 
     this.fetchUsers();
     this.fetchStatuses();
+    this.fetchArchitectures();
   }
 
   fetchStatuses() {
@@ -146,6 +144,19 @@ export class Create implements OnInit {
         }));
       },
       error: (err) => console.error('Failed to fetch statuses', err)
+    });
+  }
+
+  fetchArchitectures() {
+    this.http.get(`${CONFIG.BASE_URL}/repo-architectures`).subscribe({
+      next: (res: any) => {
+        const data = Array.isArray(res) ? res : (res.data || []);
+        this.archOptions = data.map((item: any) => ({
+          id: item.id || Date.now(),
+          name: item.repo_arch_name || item.repo_architecture_name || item.architecture_name || item.name || 'Unknown'
+        }));
+      },
+      error: (err) => console.error('Failed to fetch architectures', err)
     });
   }
 
@@ -279,8 +290,13 @@ export class Create implements OnInit {
       this.stackOptions = this.stackOptions.filter(i => i.id !== id);
       this.toast.success('Stack deleted successfully (Mock)');
     } else if (this.managingType === 'arch') {
-      this.archOptions = this.archOptions.filter(i => i.id !== id);
-      this.toast.success('Architecture deleted successfully (Mock)');
+      this.http.delete(`${CONFIG.BASE_URL}/repo-architectures/${id}`).subscribe({
+        next: () => {
+          this.toast.success('Architecture deleted successfully');
+          this.fetchArchitectures();
+        },
+        error: (err) => this.showError(err)
+      });
     }
   }
 
@@ -306,9 +322,18 @@ export class Create implements OnInit {
       this.toast.success('Stack added successfully (Mock)');
       this.newManageItemName = '';
     } else if (this.managingType === 'arch') {
-      this.archOptions.push({ id: Date.now(), name });
-      this.toast.success('Architecture added successfully (Mock)');
-      this.newManageItemName = '';
+      const payload: any = {
+        repo_arch_name: name
+      };
+      
+      this.http.post(`${CONFIG.BASE_URL}/repo-architectures`, payload).subscribe({
+        next: () => {
+          this.toast.success('Architecture added successfully');
+          this.newManageItemName = '';
+          this.fetchArchitectures(); // Refresh from DB
+        },
+        error: (err) => this.showError(err)
+      });
     }
   }
 
