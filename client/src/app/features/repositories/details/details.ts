@@ -94,13 +94,13 @@ export class Details implements OnInit, OnDestroy {
         this.repoId = parseInt(idStr, 10);
         this.fetchRepoDetails(this.repoId);
         
-        // Auto reload every 3 seconds (3000 ms)
+        // Auto reload every 1.5 seconds (1500 ms) as requested
         if (this.pollInterval) clearInterval(this.pollInterval);
         this.pollInterval = setInterval(() => {
           if (this.repoId) {
             this.fetchRepoDetails(this.repoId, true);
           }
-        }, 3000);
+        }, 1500);
       }
     });
   }
@@ -127,7 +127,6 @@ export class Details implements OnInit, OnDestroy {
         }
       },
       error: (err) => {
-        console.error('Failed to load repository', err);
         if (!isPolling) this.isLoading = false;
       }
     });

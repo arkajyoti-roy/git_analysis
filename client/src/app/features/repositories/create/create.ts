@@ -25,7 +25,7 @@ export class Create implements OnInit {
   repo_name = '';
   repo_stack: string[] = [];
   repo_status = '';
-  repo_branch = '';
+  repo_branch = 'main';
   repo_arch = '';
   repo_apis: { method: string, path: string, desc: string }[] = [];
   repo_schema = '';
@@ -143,7 +143,7 @@ export class Create implements OnInit {
           name: item.repo_status_name || item.name || item.status_name || 'Unknown'
         }));
       },
-      error: (err) => console.error('Failed to fetch statuses', err)
+      error: () => {}
     });
   }
 
@@ -156,7 +156,7 @@ export class Create implements OnInit {
           name: item.repo_arch_name || item.repo_architecture_name || item.architecture_name || item.name || 'Unknown'
         }));
       },
-      error: (err) => console.error('Failed to fetch architectures', err)
+      error: () => {}
     });
   }
 
@@ -169,20 +169,34 @@ export class Create implements OnInit {
           name: item.repo_stack_name || item.stack_name || item.name || 'Unknown'
         }));
       },
-      error: (err) => console.error('Failed to fetch stacks', err)
+      error: () => {}
     });
   }
 
   fetchBranches() {
-    this.http.get(`${CONFIG.BASE_URL}/repo-branches`).subscribe({
+    this.http.get(`${CONFIG.BASE_URL}/branches`).subscribe({
       next: (res: any) => {
         const data = Array.isArray(res) ? res : (res.data || []);
-        this.branchOptions = data.map((item: any) => ({
+        let repoBranches = data;
+        
+        if (this.repoId) {
+          // Filter to only show branches for THIS specific repository
+          repoBranches = data.filter((item: any) => item.repository_id == this.repoId);
+        } else {
+          repoBranches = [];
+        }
+
+        this.branchOptions = repoBranches.map((item: any) => ({
           id: item.id || Date.now(),
           name: item.repo_branch_name || item.branch_name || item.name || 'Unknown'
         }));
+        
+        // Ensure the currently selected branch is still an option if it's not in the list
+        if (this.repo_branch && !this.branchOptions.some(b => b.name === this.repo_branch)) {
+          this.branchOptions.push({ id: Date.now(), name: this.repo_branch });
+        }
       },
-      error: (err) => console.error('Failed to fetch branches', err)
+      error: () => {}
     });
   }
 
@@ -193,7 +207,7 @@ export class Create implements OnInit {
         // Filter out admins since they have default access
         this.availableUsers = users.filter((u: any) => u.emp_role !== 'admin');
       },
-      error: (err) => console.error('Failed to fetch users', err)
+      error: () => {}
     });
   }
 
@@ -285,8 +299,7 @@ export class Create implements OnInit {
           can: access.can || access.role || access.repo_role || access.access_level || access.pivot?.can || access.pivot?.role || 'view'
         }));
       },
-      error: (err) => {
-        console.error('Failed to load repository for editing', err);
+      error: () => {
         this.toast.error('Failed to load repository data.');
       }
     });
@@ -330,7 +343,7 @@ export class Create implements OnInit {
         error: (err) => this.showError(err)
       });
     } else if (this.managingType === 'branch') {
-      this.http.delete(`${CONFIG.BASE_URL}/repo-branches/${id}`).subscribe({
+      this.http.delete(`${CONFIG.BASE_URL}/branches/${id}`).subscribe({
         next: () => {
           this.toast.success('Branch deleted successfully');
           this.fetchBranches();
@@ -385,10 +398,14 @@ export class Create implements OnInit {
       });
     } else if (this.managingType === 'branch') {
       const payload: any = {
-        repo_branch_name: name
+        repository_id: this.repoId || 1, // Fallback to 1 if creating new
+        repo_branch_name: name,
+        repo_branch_initer: localStorage.getItem('emp_id') || 260623102611,
+        repo_branch_desc: 'Added from UI',
+        repo_branch_commit: 0
       };
       
-      this.http.post(`${CONFIG.BASE_URL}/repo-branches`, payload).subscribe({
+      this.http.post(`${CONFIG.BASE_URL}/branches`, payload).subscribe({
         next: () => {
           this.toast.success('Branch added successfully');
           this.newManageItemName = '';

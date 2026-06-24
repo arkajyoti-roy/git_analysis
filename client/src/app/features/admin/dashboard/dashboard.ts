@@ -34,9 +34,8 @@ export class Dashboard implements OnInit {
           this.recentUsers = [...data].reverse().slice(0, 5);
         }
       },
-      error: (error) => {
+      error: () => {
         this.isLoading = false;
-        console.error('Error fetching dashboard users:', error);
       }
     });
 
@@ -48,9 +47,7 @@ export class Dashboard implements OnInit {
           this.recentRepos = [...data].reverse().slice(0, 5);
         }
       },
-      error: (error) => {
-        console.error('Error fetching dashboard repos:', error);
-      }
+      error: () => {}
     });
   }
 }

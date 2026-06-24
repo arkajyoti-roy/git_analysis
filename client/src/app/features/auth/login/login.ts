@@ -85,7 +85,7 @@ export class Login {
               else if (profileRes.data && Array.isArray(profileRes.data) && profileRes.data.length > 0) profile = profileRes.data[0];
               else if (profileRes.data) profile = profileRes.data;
 
-              console.log('Backend Profile Data:', profile); // Let's log it to the browser console!
+              // Check if profile details are populated
 
               // Check if ANY of the additional profile details exist
               const isProfileComplete = profile && (
@@ -105,7 +105,7 @@ export class Login {
                   this.router.navigate(['/developer/dashboard']);
                 }
               } else {
-                console.log('Profile deemed incomplete because none of the extra fields (phone, address, etc.) were found in the object above.');
+                // Profile incomplete
                 localStorage.setItem('profile_completed', 'false');
                 this.router.navigate(['/complete-profile']);
               }

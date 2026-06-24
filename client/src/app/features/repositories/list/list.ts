@@ -40,9 +40,8 @@ export class List implements OnInit, OnDestroy {
         this.isLoading = false;
         this.repositories = res.data || res;
       },
-      error: (err) => {
+      error: () => {
         if (!isPolling) this.isLoading = false;
-        console.error('Error fetching repositories:', err);
       }
     });
   }
@@ -54,9 +53,8 @@ export class List implements OnInit, OnDestroy {
           this.repositories = this.repositories.filter(r => r.id !== id);
           this.repoService.clearCache();
         },
-        error: (err) => {
+        error: () => {
           this.toast.error('Error deleting repository');
-          console.error(err);
         }
       });
     }

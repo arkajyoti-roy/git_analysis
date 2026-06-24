@@ -18,13 +18,17 @@
     <div class="form-group">
       <label>Repository Branch</label>
       <div style="display: flex; gap: 0.5rem;">
-        <select [(ngModel)]="repo_branch" style="flex: 1;">
-          <option value="" disabled selected>Select a branch...</option>
-          @for (branch of branchOptions; track branch.id) {
-            <option [value]="branch.name">{{ branch.name }}</option>
-          }
-        </select>
-        <button type="button" class="btn-sm btn-secondary" (click)="openManageModal('branch')">Add</button>
+        @if (isEditMode) {
+          <select [(ngModel)]="repo_branch" style="flex: 1;">
+            <option value="" disabled selected>Select a branch...</option>
+            @for (branch of branchOptions; track branch.id) {
+              <option [value]="branch.name">{{ branch.name }}</option>
+            }
+          </select>
+          <button type="button" class="btn-sm btn-secondary" (click)="openManageModal('branch')">Add</button>
+        } @else {
+          <input type="text" placeholder="e.g. main" [(ngModel)]="repo_branch" style="flex: 1;">
+        }
       </div>
     </div>
   </div>
@@ -156,22 +160,22 @@
   <div class="section-divider">
     <span>Project Tracking</span>
   </div>
-
-  <!-- <div class="form-row">
+<!-- 
+  <div class="form-row">
     <div class="form-group">
       <label>Repository Issues</label>
       <textarea placeholder="List any known issues..." [(ngModel)]="repo_issues" rows="3"></textarea>
     </div>
     <div class="form-group">
       <label>Review Log</label>
-      <textarea placeholder="Recent code review summaries..." [(ngModel)]="repo_review_log" rows="3"></textarea>
+      <textarea readonly placeholder="Recent code review summaries..." [(ngModel)]="repo_review_log" rows="3"></textarea>
     </div>
   </div> -->
 
-  <div class="form-group">
+  <!-- <div class="form-group">
     <label>Major Commits</label>
     <textarea placeholder="Important commit hashes or messages..." [(ngModel)]="repo_major_commits" rows="3"></textarea>
-  </div>
+  </div> -->
 
   <div class="form-group" style="height: 300px;">
     <label>Code Snippets</label>
