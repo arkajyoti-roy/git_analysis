@@ -25,28 +25,15 @@
     <div class="form-group">
       <label>Architecture</label>
       <div style="margin-bottom: 0.5rem;">
-        <!-- Normal Dropdown -->
         <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
-          <select (change)="addArchFromDropdown($event)" style="flex: 1;">
+          <select [(ngModel)]="repo_arch" style="flex: 1;">
             <option value="" disabled selected>Select an architecture...</option>
-            @for (arch of availableArchs; track arch.id) {
+            @for (arch of archOptions; track arch.id) {
               <option [value]="arch.name">{{ arch.name }}</option>
             }
           </select>
           <button type="button" class="btn-sm btn-secondary" (click)="openManageModal('arch')">Add</button>
         </div>
-        
-        <!-- Selected Architectures as Chips -->
-        @if(repo_arch_array.length > 0) {
-          <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem; padding: 0.5rem; border: 1px dashed var(--border-color); border-radius: 4px;">
-            @for (arch of repo_arch_array; track arch) {
-              <span style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 0.2rem 0.5rem; border-radius: 12px; font-size: 0.85rem; display: flex; align-items: center; gap: 0.25rem;">
-                {{ arch }}
-                <span (click)="removeArch(arch)" style="cursor: pointer; color: #ef4444; font-weight: bold; padding: 0 0.2rem;">×</span>
-              </span>
-            }
-          </div>
-        }
       </div>
     </div>
     <div class="form-group">
@@ -66,7 +53,7 @@
   <div class="form-row">
     <div class="form-group">
       <label>Initial Author</label>
-      <input type="text" placeholder="e.g. John Doe" [(ngModel)]="repo_init_author">
+      <input type="text" placeholder="e.g. John Doe" [(ngModel)]="repo_init_author" readonly>
     </div>
     <div class="form-group">
       <label>Repository Stack</label>

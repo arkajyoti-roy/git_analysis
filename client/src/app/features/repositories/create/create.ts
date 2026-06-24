@@ -26,7 +26,7 @@ export class Create implements OnInit {
   repo_stack: string[] = [];
   repo_status = '';
   repo_branch = '';
-  repo_arch_array: string[] = [];
+  repo_arch = '';
   repo_apis: { method: string, path: string, desc: string }[] = [];
   repo_schema = '';
   repo_init_author = '';
@@ -48,10 +48,7 @@ export class Create implements OnInit {
   isSubmitting = false;
 
   // Dynamic options tracking (will come from DB)
-  stackOptions: { id: number | string, name: string }[] = [
-    { id: 1, name: 'Angular' }, { id: 2, name: 'Laravel' }, { id: 3, name: 'React' }, 
-    { id: 4, name: 'Node.js' }, { id: 5, name: 'MongoDB' }, { id: 6, name: 'Python' }
-  ];
+  stackOptions: { id: number | string, name: string }[] = [];
   statusOptions: { id: number | string, name: string }[] = [];
   archOptions: { id: number | string, name: string }[] = [];
   // Manage Modal State
@@ -77,9 +74,7 @@ export class Create implements OnInit {
     return this.stackOptions.filter(s => !this.repo_stack.includes(s.name));
   }
 
-  get availableArchs(): { id: number | string, name: string }[] {
-    return this.archOptions.filter(a => !this.repo_arch_array.includes(a.name));
-  }
+
 
   get availableAccessUsers(): any[] {
     return this.availableUsers.filter(u => !this.repo_access.some(a => a.emp_id === (u.emp_id || u.id)?.toString()));
@@ -132,6 +127,7 @@ export class Create implements OnInit {
     this.fetchUsers();
     this.fetchStatuses();
     this.fetchArchitectures();
+    this.fetchStacks();
   }
 
   fetchStatuses() {
@@ -160,6 +156,19 @@ export class Create implements OnInit {
     });
   }
 
+  fetchStacks() {
+    this.http.get(`${CONFIG.BASE_URL}/repo-stacks`).subscribe({
+      next: (res: any) => {
+        const data = Array.isArray(res) ? res : (res.data || []);
+        this.stackOptions = data.map((item: any) => ({
+          id: item.id || Date.now(),
+          name: item.repo_stack_name || item.stack_name || item.name || 'Unknown'
+        }));
+      },
+      error: (err) => console.error('Failed to fetch stacks', err)
+    });
+  }
+
   fetchUsers() {
     this.userService.getUsers().subscribe({
       next: (res: any) => {
@@ -183,9 +192,7 @@ export class Create implements OnInit {
         }
         this.repo_branch = repo.repo_branch || '';
         
-        if (repo.repo_arch) {
-          this.repo_arch_array = repo.repo_arch.split(',').map((s: string) => s.trim()).filter((s: string) => s !== '');
-        }
+        this.repo_arch = repo.repo_arch || '';
 
         this.repo_schema = repo.repo_schema || '';
         this.repo_init_author = repo.repo_init_author || '';
@@ -287,8 +294,13 @@ export class Create implements OnInit {
         error: (err) => this.showError(err)
       });
     } else if (this.managingType === 'stack') {
-      this.stackOptions = this.stackOptions.filter(i => i.id !== id);
-      this.toast.success('Stack deleted successfully (Mock)');
+      this.http.delete(`${CONFIG.BASE_URL}/repo-stacks/${id}`).subscribe({
+        next: () => {
+          this.toast.success('Stack deleted successfully');
+          this.fetchStacks();
+        },
+        error: (err) => this.showError(err)
+      });
     } else if (this.managingType === 'arch') {
       this.http.delete(`${CONFIG.BASE_URL}/repo-architectures/${id}`).subscribe({
         next: () => {
@@ -318,9 +330,18 @@ export class Create implements OnInit {
         error: (err) => this.showError(err)
       });
     } else if (this.managingType === 'stack') {
-      this.stackOptions.push({ id: Date.now(), name });
-      this.toast.success('Stack added successfully (Mock)');
-      this.newManageItemName = '';
+      const payload: any = {
+        repo_stack_name: name
+      };
+      
+      this.http.post(`${CONFIG.BASE_URL}/repo-stacks`, payload).subscribe({
+        next: () => {
+          this.toast.success('Stack added successfully');
+          this.newManageItemName = '';
+          this.fetchStacks();
+        },
+        error: (err) => this.showError(err)
+      });
     } else if (this.managingType === 'arch') {
       const payload: any = {
         repo_arch_name: name
@@ -348,18 +369,6 @@ export class Create implements OnInit {
 
   removeStack(stack: string) {
     this.repo_stack = this.repo_stack.filter(s => s !== stack);
-  }
-
-  addArchFromDropdown(event: any) {
-    const val = event.target.value;
-    if (val && !this.repo_arch_array.includes(val)) {
-      this.repo_arch_array.push(val);
-    }
-    event.target.value = "";
-  }
-
-  removeArch(arch: string) {
-    this.repo_arch_array = this.repo_arch_array.filter(a => a !== arch);
   }
 
   private textToArray(text: string): string[] {
@@ -415,7 +424,7 @@ export class Create implements OnInit {
       repo_stack: this.repo_stack,
       repo_status: this.repo_status,
       repo_branch: this.repo_branch,
-      repo_arch: this.repo_arch_array.join(', ').substring(0, 40),
+      repo_arch: this.repo_arch,
       repo_apis: this.repo_apis,
       repo_schema: this.repo_schema,
       repo_init_author: this.repo_init_author,
@@ -455,7 +464,7 @@ export class Create implements OnInit {
       repo_stack: this.repo_stack,
       repo_status: this.repo_status,
       repo_branch: this.repo_branch,
-      repo_arch: this.repo_arch_array.join(', ').substring(0, 40),
+      repo_arch: this.repo_arch,
       repo_apis: this.repo_apis,
       repo_schema: this.repo_schema,
       repo_init_author: this.repo_init_author,
