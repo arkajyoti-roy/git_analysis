@@ -51,15 +51,17 @@ export class Create implements OnInit {
   stackOptions: { id: number | string, name: string }[] = [];
   statusOptions: { id: number | string, name: string }[] = [];
   archOptions: { id: number | string, name: string }[] = [];
+  branchOptions: { id: number | string, name: string }[] = [];
   // Manage Modal State
   showManageModal = false;
-  managingType: 'stack' | 'status' | 'arch' | null = null;
+  managingType: 'stack' | 'status' | 'arch' | 'branch' | null = null;
   newManageItemName = '';
 
   get modalTitle(): string {
     if (this.managingType === 'stack') return 'Manage Stack';
     if (this.managingType === 'status') return 'Manage Status';
     if (this.managingType === 'arch') return 'Manage Architecture';
+    if (this.managingType === 'branch') return 'Manage Branch';
     return 'Manage Category';
   }
 
@@ -67,6 +69,7 @@ export class Create implements OnInit {
     if (this.managingType === 'stack') return this.stackOptions;
     if (this.managingType === 'status') return this.statusOptions;
     if (this.managingType === 'arch') return this.archOptions;
+    if (this.managingType === 'branch') return this.branchOptions;
     return [];
   }
 
@@ -128,6 +131,7 @@ export class Create implements OnInit {
     this.fetchStatuses();
     this.fetchArchitectures();
     this.fetchStacks();
+    this.fetchBranches();
   }
 
   fetchStatuses() {
@@ -169,6 +173,19 @@ export class Create implements OnInit {
     });
   }
 
+  fetchBranches() {
+    this.http.get(`${CONFIG.BASE_URL}/repo-branches`).subscribe({
+      next: (res: any) => {
+        const data = Array.isArray(res) ? res : (res.data || []);
+        this.branchOptions = data.map((item: any) => ({
+          id: item.id || Date.now(),
+          name: item.repo_branch_name || item.branch_name || item.name || 'Unknown'
+        }));
+      },
+      error: (err) => console.error('Failed to fetch branches', err)
+    });
+  }
+
   fetchUsers() {
     this.userService.getUsers().subscribe({
       next: (res: any) => {
@@ -191,6 +208,9 @@ export class Create implements OnInit {
           this.statusOptions.push({ id: Date.now(), name: this.repo_status });
         }
         this.repo_branch = repo.repo_branch || '';
+        if (this.repo_branch && !this.branchOptions.some(b => b.name === this.repo_branch)) {
+          this.branchOptions.push({ id: Date.now(), name: this.repo_branch });
+        }
         
         this.repo_arch = repo.repo_arch || '';
 
@@ -272,7 +292,7 @@ export class Create implements OnInit {
     });
   }
 
-  openManageModal(type: 'stack' | 'status' | 'arch') {
+  openManageModal(type: 'stack' | 'status' | 'arch' | 'branch') {
     this.managingType = type;
     this.showManageModal = true;
     this.newManageItemName = '';
@@ -306,6 +326,14 @@ export class Create implements OnInit {
         next: () => {
           this.toast.success('Architecture deleted successfully');
           this.fetchArchitectures();
+        },
+        error: (err) => this.showError(err)
+      });
+    } else if (this.managingType === 'branch') {
+      this.http.delete(`${CONFIG.BASE_URL}/repo-branches/${id}`).subscribe({
+        next: () => {
+          this.toast.success('Branch deleted successfully');
+          this.fetchBranches();
         },
         error: (err) => this.showError(err)
       });
@@ -352,6 +380,19 @@ export class Create implements OnInit {
           this.toast.success('Architecture added successfully');
           this.newManageItemName = '';
           this.fetchArchitectures(); // Refresh from DB
+        },
+        error: (err) => this.showError(err)
+      });
+    } else if (this.managingType === 'branch') {
+      const payload: any = {
+        repo_branch_name: name
+      };
+      
+      this.http.post(`${CONFIG.BASE_URL}/repo-branches`, payload).subscribe({
+        next: () => {
+          this.toast.success('Branch added successfully');
+          this.newManageItemName = '';
+          this.fetchBranches();
         },
         error: (err) => this.showError(err)
       });

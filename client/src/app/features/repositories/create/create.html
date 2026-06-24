@@ -17,7 +17,15 @@
     </div>
     <div class="form-group">
       <label>Repository Branch</label>
-      <input type="text" placeholder="e.g. main" [(ngModel)]="repo_branch">
+      <div style="display: flex; gap: 0.5rem;">
+        <select [(ngModel)]="repo_branch" style="flex: 1;">
+          <option value="" disabled selected>Select a branch...</option>
+          @for (branch of branchOptions; track branch.id) {
+            <option [value]="branch.name">{{ branch.name }}</option>
+          }
+        </select>
+        <button type="button" class="btn-sm btn-secondary" (click)="openManageModal('branch')">Add</button>
+      </div>
     </div>
   </div>
 
