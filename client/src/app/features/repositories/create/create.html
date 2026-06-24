@@ -55,6 +55,7 @@
     <div class="form-group">
       <label>Status</label>
       <select [(ngModel)]="repo_status" style="margin-bottom: 0.5rem;">
+        <option value="" disabled selected>Select status...</option>
         @for (status of statusOptions; track status) {
           <option [value]="status">{{ status | titlecase }}</option>
         }
@@ -232,7 +233,7 @@
               <option [value]="user.emp_id || user.id">{{ user.emp_name || user.name || 'Unknown User' }}</option>
             }
           </select>
-          
+           
           <!-- Selected Users List -->
           @if (repo_access.length > 0) {
             <div style="display: flex; flex-direction: column; gap: 0.5rem;">

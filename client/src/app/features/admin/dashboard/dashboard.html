@@ -56,19 +56,19 @@
             <table>
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Role</th>
+                        <th style="text-align: center; justify-content: center;">ID</th>
+                        <th style="text-align: center; justify-content: center;">Name</th>
+                        <th style="text-align: center; justify-content: center;">Email</th>
+                        <th style="text-align: center; justify-content: center;">Role</th>
                     </tr>
                 </thead>
                 <tbody>
                     @for(user of recentUsers; track user.emp_id || user.id || $index) {
                         <tr>
-                            <td>{{user.emp_id || user.id}}</td>
-                            <td>{{ user.emp_name || user.name }}</td>
-                            <td>{{ user.emp_email || user.email }}</td>
-                            <td><span class="role-badge">{{ user.emp_role || user.role }}</span></td>
+                            <td style="text-align: center; justify-content: center;">{{user.emp_id || user.id}}</td>
+                            <td style="text-align: center; justify-content: center;">{{ user.emp_name || user.name }}</td>
+                            <td style="text-align: center; justify-content: center;">{{ user.emp_email || user.email }}</td>
+                            <td style="text-align: center; justify-content: center;"><span class="role-badge">{{ user.emp_role || user.role }}</span></td>
                         </tr>
                     }
                 </tbody>
@@ -92,18 +92,18 @@
 
             <thead>
                 <tr>
-                    <th>Repository</th>
-                    <th>Stack</th>
-                    <th>Status</th>
+                    <th style="text-align: center; justify-content: center;">Repository</th>
+                    <th style="text-align: center; justify-content: center;">Stack</th>
+                    <th style="text-align: center; justify-content: center;">Status</th>
                 </tr>
             </thead>
 
             <tbody>
                 @for(repo of recentRepos; track repo.id) {
                     <tr>
-                        <td>{{ repo.repo_name }}</td>
-                        <td>{{ repo.repo_stack }}</td>
-                        <td><span class="status-badge" [class.completed]="repo.repo_status === 'completed'">{{ repo.repo_status }}</span></td>
+                        <td style="text-align: center; justify-content: center;">{{ repo.repo_name }}</td>
+                        <td style="text-align: center; justify-content: center;">{{ repo.repo_stack }}</td>
+                        <td style="text-align: center; justify-content: center;"><span class="status-badge" [class.completed]="repo.repo_status === 'completed'">{{ repo.repo_status }}</span></td>
                     </tr>
                 } @empty {
                     <tr>

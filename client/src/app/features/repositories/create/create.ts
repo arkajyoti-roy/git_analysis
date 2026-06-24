@@ -24,7 +24,7 @@ export class Create implements OnInit {
 
   repo_name = '';
   repo_stack: string[] = [];
-  repo_status = 'development env';
+  repo_status = '';
   repo_branch = '';
   repo_arch_array: string[] = [];
   repo_apis: { method: string, path: string, desc: string }[] = [];

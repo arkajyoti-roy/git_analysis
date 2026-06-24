@@ -9,20 +9,20 @@
   <table>
     <thead>
       <tr>
-        <th>ID</th>
-        <th>Name</th>
-        <th>Stack</th>
-        <th>Status</th>
-        <th>Action</th>
+        <th style="text-align: center; justify-content: center;">ID</th>
+        <th style="text-align: center; justify-content: center;">Name</th>
+        <th style="text-align: center; justify-content: center;">Stack</th>
+        <th style="text-align: center; justify-content: center;">Status</th>
+        <th style="text-align: center; justify-content: center;">Action</th>
       </tr>
     </thead>
     <tbody>
       @for(repo of repositories; track repo.id) {
         <tr>
-          <td>{{ repo.id }}</td>
-          <td>{{ repo.repo_name }}</td>
-          <td>{{ repo.repo_stack }}</td>
-          <td>
+          <td style="text-align: center; justify-content: center;">{{ repo.id }}</td>
+          <td style="text-align: center; justify-content: center;">{{ repo.repo_name }}</td>
+          <td style="text-align: center; justify-content: center;">{{ repo.repo_stack }}</td>
+          <td style="text-align: center; justify-content: center;">
             <span class="status-badge" [class.completed]="repo.repo_status === 'completed'">{{ repo.repo_status }}</span>
           </td>
           <td>
