@@ -91,6 +91,12 @@ export const routes: Routes = [
     data: { roles: ['sr-dev', 'jr-dev', 'dev'] }
   },
   {
+    path: 'developer/repositories/:id',
+    component: RepoDetails,
+    canActivate: [authGuard, roleGuard, profileGuard],
+    data: { roles: ['sr-dev', 'jr-dev', 'dev'] }
+  },
+  {
     path: 'developer/profile',
     component: ViewProfile,
     canActivate: [authGuard, roleGuard, profileGuard],

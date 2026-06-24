@@ -7,11 +7,12 @@ import { ThemeService } from '../../../core/services/theme.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
 import { EditorComponent } from 'ngx-monaco-editor-v2';
+import { Topbar } from '../../../shared/topbar/topbar';
 import mermaid from 'mermaid';
 
 @Component({
   selector: 'app-details',
-  imports: [DatePipe, RouterLink, MonacoEditorModule, FormsModule],
+  imports: [CommonModule, DatePipe, RouterLink, MonacoEditorModule, FormsModule, Topbar],
   templateUrl: './details.html',
   styleUrl: './details.css',
 })
@@ -20,6 +21,7 @@ export class Details implements OnInit, OnDestroy {
   repoId: number | null = null;
   repo: any = null;
   isLoading = true;
+  isDev = false;
   private mermaidRendered = false;
   private pollInterval: any;
 
@@ -78,6 +80,9 @@ export class Details implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    const role = localStorage.getItem('role') || '';
+    this.isDev = ['sr-dev', 'jr-dev', 'dev'].includes(role);
+
     this.editorOptions = {
       ...this.editorOptions,
       theme: this.themeService.isDarkMode ? 'vs-dark' : 'vs'

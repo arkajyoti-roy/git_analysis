@@ -142,6 +142,20 @@
   padding: 1rem 0;
 }
 
+/* Clickable List Items */
+.clickable {
+  text-decoration: none;
+  color: inherit;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  cursor: pointer;
+  display: flex;
+}
+
+.clickable:hover {
+  background: var(--bg-surface-hover, rgba(0, 0, 0, 0.02));
+  transform: translateY(-1px);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .dev-dashboard-container {
