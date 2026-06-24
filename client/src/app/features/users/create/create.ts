@@ -15,7 +15,7 @@ export class Create {
   emp_name = '';
   emp_email = '';
   emp_pass = '';
-  emp_role = 'junior-dev';
+  emp_role = '';
 
   isLoading = false;
 

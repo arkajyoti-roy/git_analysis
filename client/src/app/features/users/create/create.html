@@ -3,16 +3,16 @@
   <h2>Create User</h2>
 
   <div class="form-card">
-
-    <input type="text" placeholder="Full Name" [(ngModel)]="emp_name" required>
-
-    <input type="email" placeholder="Email" [(ngModel)]="emp_email" required>
-
-    <input type="password" placeholder="Password" [(ngModel)]="emp_pass"  required>
-
-    <select [(ngModel)]="emp_role" required>
-      <option disabled>Select</option>
-      <option value="admin">
+    <label>Name</label>
+    <input style="margin-top: -15px;" type="text" placeholder="Full Name" [(ngModel)]="emp_name" required>
+    <label>Email</label>
+    <input style="margin-top: -15px;" type="email" placeholder="Email" [(ngModel)]="emp_email" required>
+    <label>Password</label>
+    <input style="margin-top: -15px;" type="password" placeholder="Password" [(ngModel)]="emp_pass" required>
+    <label>Select Role</label>
+    <select style="margin-top: -15px;" [(ngModel)]="emp_role" required>
+      <option value="" disabled selected>Select</option>
+      <option value="admin" selected>
         Admin
       </option>
 
