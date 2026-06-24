@@ -26,12 +26,15 @@
       <label>Architecture</label>
       <div style="margin-bottom: 0.5rem;">
         <!-- Normal Dropdown -->
-        <select (change)="addArchFromDropdown($event)" style="margin-bottom: 0.5rem;">
-          <option value="" disabled selected>Select an architecture...</option>
-          @for (arch of availableArchs; track arch) {
-            <option [value]="arch">{{ arch }}</option>
-          }
-        </select>
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+          <select (change)="addArchFromDropdown($event)" style="flex: 1;">
+            <option value="" disabled selected>Select an architecture...</option>
+            @for (arch of availableArchs; track arch.id) {
+              <option [value]="arch.name">{{ arch.name }}</option>
+            }
+          </select>
+          <button type="button" class="btn-sm btn-secondary" (click)="openManageModal('arch')">Add</button>
+        </div>
         
         <!-- Selected Architectures as Chips -->
         @if(repo_arch_array.length > 0) {
@@ -44,25 +47,18 @@
             }
           </div>
         }
-
-        <!-- Add Custom Architecture -->
-        <div style="display: flex; gap: 0.5rem;">
-          <input type="text" placeholder="Or type custom architecture..." [(ngModel)]="newArchInput" (keyup.enter)="addCustomArch()">
-          <button type="button" class="btn-sm" (click)="addCustomArch()">Add</button>
-        </div>
       </div>
     </div>
     <div class="form-group">
       <label>Status</label>
-      <select [(ngModel)]="repo_status" style="margin-bottom: 0.5rem;">
-        <option value="" disabled selected>Select status...</option>
-        @for (status of statusOptions; track status) {
-          <option [value]="status">{{ status | titlecase }}</option>
-        }
-      </select>
-      <div style="display: flex; gap: 0.5rem;">
-        <input type="text" placeholder="Custom status..." [(ngModel)]="newStatusInput" (keyup.enter)="addCustomStatus()">
-        <button type="button" class="btn-sm" (click)="addCustomStatus()">Add</button>
+      <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+        <select [(ngModel)]="repo_status" style="flex: 1;">
+          <option value="" disabled selected>Select status...</option>
+          @for (status of statusOptions; track status.id) {
+            <option [value]="status.name">{{ status.name | titlecase }}</option>
+          }
+        </select>
+        <button type="button" class="btn-sm btn-secondary" (click)="openManageModal('status')">Add</button>
       </div>
     </div>
   </div>
@@ -76,12 +72,15 @@
       <label>Repository Stack</label>
       <div style="margin-bottom: 0.5rem;">
         <!-- Normal Dropdown -->
-        <select (change)="addStackFromDropdown($event)" style="margin-bottom: 0.5rem;">
-          <option value="" disabled selected>Select a stack to add...</option>
-          @for (stack of availableStacks; track stack) {
-            <option [value]="stack">{{ stack }}</option>
-          }
-        </select>
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+          <select (change)="addStackFromDropdown($event)" style="flex: 1;">
+            <option value="" disabled selected>Select a stack to add...</option>
+            @for (stack of availableStacks; track stack.id) {
+              <option [value]="stack.name">{{ stack.name }}</option>
+            }
+          </select>
+          <button type="button" class="btn-sm btn-secondary" (click)="openManageModal('stack')">Add</button>
+        </div>
         
         <!-- Selected Stacks as Chips -->
         @if(repo_stack.length > 0) {
@@ -94,12 +93,6 @@
             }
           </div>
         }
-
-        <!-- Add Custom Stack -->
-        <div style="display: flex; gap: 0.5rem;">
-          <input type="text" placeholder="Or type a custom stack..." [(ngModel)]="newStackInput" (keyup.enter)="addCustomStack()">
-          <button type="button" class="btn-sm" (click)="addCustomStack()">Add</button>
-        </div>
       </div>
     </div>
   </div>
@@ -268,3 +261,60 @@
   </div>
 
 </div>
+<!-- Management Modal -->
+@if (showManageModal) {
+  <div class="modal-backdrop" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+    <div class="modal-card" style="background: var(--bg-surface); width: 100%; max-width: 600px; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); display: flex; flex-direction: column; max-height: 90vh;">
+      
+      <!-- Header -->
+      <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="margin: 0; font-size: 1.125rem;">{{ modalTitle }}</h3>
+        <button style="background: transparent; border: none; font-size: 1.25rem; cursor: pointer; color: var(--text-muted);" (click)="closeManageModal()">✕</button>
+      </div>
+
+      <!-- Body: Table of Items -->
+      <div style="padding: 0; overflow-y: auto; flex: 1;">
+        <table style="margin: 0; width: 100%; border-collapse: collapse;">
+          <thead style="background: var(--bg-main); position: sticky; top: 0; z-index: 1;">
+            <tr>
+              <th style="padding: 0.75rem 1.5rem; text-align: left; font-size: 0.8125rem; color: var(--text-muted);">#</th>
+              <th style="padding: 0.75rem 1.5rem; text-align: left; font-size: 0.8125rem; color: var(--text-muted);">Category Name</th>
+              <th style="padding: 0.75rem 1.5rem; text-align: right; font-size: 0.8125rem; color: var(--text-muted);">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of currentManageItems; track item.id; let i = $index) {
+              <tr style="border-bottom: 1px solid var(--border-color);">
+                <td style="padding: 0.75rem 1.5rem; font-size: 0.875rem;">{{ i + 1 }}</td>
+                <td style="padding: 0.75rem 1.5rem; font-size: 0.875rem; font-weight: 500;">{{ item.name }}</td>
+                <td style="padding: 0.75rem 1.5rem; text-align: right;">
+                  <button class="btn-sm" style="background: transparent; border: 1px solid var(--border-color); color: var(--text-primary); padding: 0.25rem 0.5rem; display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.75rem;" (click)="deleteManageItem(item.id)">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            }
+            @if (currentManageItems.length === 0) {
+              <tr>
+                <td colspan="3" style="padding: 1.5rem; text-align: center; color: var(--text-muted);">No items found.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Footer: Add New Item -->
+      <div style="padding: 1.25rem 1.5rem; border-top: 1px solid var(--border-color); background: var(--bg-main); border-bottom-left-radius: var(--radius-lg); border-bottom-right-radius: var(--radius-lg);">
+        <label style="display: block; font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.5rem;">Category Name <span style="color: var(--danger-color);">*</span></label>
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+          <input type="text" placeholder="Enter a category name" [(ngModel)]="newManageItemName" (keyup.enter)="saveManageItem()" style="flex: 1; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: var(--radius-sm);">
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+          <button type="button" class="btn-sm" style="background: transparent; color: var(--text-primary); padding: 0.5rem 1rem; border: 1px solid var(--border-color);" (click)="closeManageModal()">Close</button>
+          <button type="button" class="btn-sm btn-primary" style="padding: 0.5rem 1rem;" (click)="saveManageItem()">✔ Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

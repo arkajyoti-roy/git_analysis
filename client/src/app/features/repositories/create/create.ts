@@ -47,21 +47,41 @@ export class Create implements OnInit {
 
   isSubmitting = false;
 
-  // Dynamic options tracking
-  stackOptions = ['Angular', 'Laravel', 'React', 'Node.js', 'MongoDB', 'Python'];
-  statusOptions = ['development env', 'on review', 'production up', 'issue', 'on resolving', 'completed'];
-  archOptions = ['Monolith', 'Microservices', 'Serverless', 'Event-Driven', 'SOA', 'MVC'];
+  // Dynamic options tracking (will come from DB)
+  stackOptions: { id: number | string, name: string }[] = [
+    { id: 1, name: 'Angular' }, { id: 2, name: 'Laravel' }, { id: 3, name: 'React' }, 
+    { id: 4, name: 'Node.js' }, { id: 5, name: 'MongoDB' }, { id: 6, name: 'Python' }
+  ];
+  statusOptions: { id: number | string, name: string }[] = [];
+  archOptions: { id: number | string, name: string }[] = [
+    { id: 1, name: 'Monolith' }, { id: 2, name: 'Microservices' }, { id: 3, name: 'Serverless' }, 
+    { id: 4, name: 'Event-Driven' }, { id: 5, name: 'SOA' }, { id: 6, name: 'MVC' }
+  ];
+  // Manage Modal State
+  showManageModal = false;
+  managingType: 'stack' | 'status' | 'arch' | null = null;
+  newManageItemName = '';
 
-  newStackInput = '';
-  newStatusInput = '';
-  newArchInput = '';
-
-  get availableStacks(): string[] {
-    return this.stackOptions.filter(s => !this.repo_stack.includes(s));
+  get modalTitle(): string {
+    if (this.managingType === 'stack') return 'Manage Stack';
+    if (this.managingType === 'status') return 'Manage Status';
+    if (this.managingType === 'arch') return 'Manage Architecture';
+    return 'Manage Category';
   }
 
-  get availableArchs(): string[] {
-    return this.archOptions.filter(a => !this.repo_arch_array.includes(a));
+  get currentManageItems(): { id: number | string, name: string }[] {
+    if (this.managingType === 'stack') return this.stackOptions;
+    if (this.managingType === 'status') return this.statusOptions;
+    if (this.managingType === 'arch') return this.archOptions;
+    return [];
+  }
+
+  get availableStacks(): { id: number | string, name: string }[] {
+    return this.stackOptions.filter(s => !this.repo_stack.includes(s.name));
+  }
+
+  get availableArchs(): { id: number | string, name: string }[] {
+    return this.archOptions.filter(a => !this.repo_arch_array.includes(a.name));
   }
 
   get availableAccessUsers(): any[] {
@@ -113,6 +133,20 @@ export class Create implements OnInit {
     });
 
     this.fetchUsers();
+    this.fetchStatuses();
+  }
+
+  fetchStatuses() {
+    this.http.get(`${CONFIG.BASE_URL}/repo-statuses`).subscribe({
+      next: (res: any) => {
+        const data = Array.isArray(res) ? res : (res.data || []);
+        this.statusOptions = data.map((item: any) => ({
+          id: item.id || item.repo_id || Date.now(),
+          name: item.repo_status_name || item.name || item.status_name || 'Unknown'
+        }));
+      },
+      error: (err) => console.error('Failed to fetch statuses', err)
+    });
   }
 
   fetchUsers() {
@@ -133,8 +167,8 @@ export class Create implements OnInit {
         this.repo_name = repo.repo_name || '';
         this.repo_status = repo.repo_status || 'Development Env';
         // Add status to list if it's custom
-        if (this.repo_status && !this.statusOptions.includes(this.repo_status)) {
-          this.statusOptions.push(this.repo_status);
+        if (this.repo_status && !this.statusOptions.some(s => s.name === this.repo_status)) {
+          this.statusOptions.push({ id: Date.now(), name: this.repo_status });
         }
         this.repo_branch = repo.repo_branch || '';
         
@@ -220,6 +254,64 @@ export class Create implements OnInit {
     });
   }
 
+  openManageModal(type: 'stack' | 'status' | 'arch') {
+    this.managingType = type;
+    this.showManageModal = true;
+    this.newManageItemName = '';
+  }
+
+  closeManageModal() {
+    this.showManageModal = false;
+    this.managingType = null;
+    this.newManageItemName = '';
+  }
+
+  deleteManageItem(id: number | string) {
+    if (this.managingType === 'status') {
+      this.http.delete(`${CONFIG.BASE_URL}/repo-statuses/${id}`).subscribe({
+        next: () => {
+          this.toast.success('Status deleted successfully');
+          this.fetchStatuses();
+        },
+        error: (err) => this.showError(err)
+      });
+    } else if (this.managingType === 'stack') {
+      this.stackOptions = this.stackOptions.filter(i => i.id !== id);
+      this.toast.success('Stack deleted successfully (Mock)');
+    } else if (this.managingType === 'arch') {
+      this.archOptions = this.archOptions.filter(i => i.id !== id);
+      this.toast.success('Architecture deleted successfully (Mock)');
+    }
+  }
+
+  saveManageItem() {
+    if (!this.newManageItemName.trim()) return;
+    const name = this.newManageItemName.trim();
+    
+    if (this.managingType === 'status') {
+      const payload: any = {
+        repo_status_name: name
+      };
+      
+      this.http.post(`${CONFIG.BASE_URL}/repo-statuses`, payload).subscribe({
+        next: () => {
+          this.toast.success('Status added successfully');
+          this.newManageItemName = '';
+          this.fetchStatuses(); // Refresh from DB
+        },
+        error: (err) => this.showError(err)
+      });
+    } else if (this.managingType === 'stack') {
+      this.stackOptions.push({ id: Date.now(), name });
+      this.toast.success('Stack added successfully (Mock)');
+      this.newManageItemName = '';
+    } else if (this.managingType === 'arch') {
+      this.archOptions.push({ id: Date.now(), name });
+      this.toast.success('Architecture added successfully (Mock)');
+      this.newManageItemName = '';
+    }
+  }
+
   addStackFromDropdown(event: any) {
     const val = event.target.value;
     if (val && !this.repo_stack.includes(val)) {
@@ -233,17 +325,6 @@ export class Create implements OnInit {
     this.repo_stack = this.repo_stack.filter(s => s !== stack);
   }
 
-  addCustomStack() {
-    const s = this.newStackInput.trim();
-    if (s && !this.stackOptions.includes(s)) {
-      this.stackOptions.push(s);
-      this.repo_stack.push(s);
-    } else if (s && !this.repo_stack.includes(s)) {
-      this.repo_stack.push(s);
-    }
-    this.newStackInput = '';
-  }
-
   addArchFromDropdown(event: any) {
     const val = event.target.value;
     if (val && !this.repo_arch_array.includes(val)) {
@@ -254,28 +335,6 @@ export class Create implements OnInit {
 
   removeArch(arch: string) {
     this.repo_arch_array = this.repo_arch_array.filter(a => a !== arch);
-  }
-
-  addCustomArch() {
-    const a = this.newArchInput.trim();
-    if (a && !this.archOptions.includes(a)) {
-      this.archOptions.push(a);
-      this.repo_arch_array.push(a);
-    } else if (a && !this.repo_arch_array.includes(a)) {
-      this.repo_arch_array.push(a);
-    }
-    this.newArchInput = '';
-  }
-
-  addCustomStatus() {
-    const s = this.newStatusInput.trim();
-    if (s && !this.statusOptions.includes(s)) {
-      this.statusOptions.push(s);
-    }
-    if (s) {
-      this.repo_status = s;
-    }
-    this.newStatusInput = '';
   }
 
   private textToArray(text: string): string[] {
