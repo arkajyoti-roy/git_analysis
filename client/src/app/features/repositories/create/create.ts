@@ -256,6 +256,36 @@ getMethodColor(method: string): string {
     if (target) target.value = '';
   }
 
+  onSqlFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (!file.name.endsWith('.sql')) {
+      this.toast.error('Only .sql files are allowed');
+      event.target.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      const content = e.target.result;
+      if (this.repo_schema) {
+        this.repo_schema = this.repo_schema + '\n\n' + content;
+      } else {
+        this.repo_schema = content;
+      }
+      this.toast.success('.sql file imported successfully');
+    };
+    reader.onerror = () => {
+      this.toast.error('Failed to read the .sql file');
+    };
+    reader.readAsText(file);
+    
+    // Clear the input so the same file can be selected again if needed
+    const target = event.target as HTMLInputElement;
+    if (target) target.value = '';
+  }
+
   loadRepoData(id: number) {
     this.repoService.getRepositoryById(id).subscribe({
       next: (res: any) => {
