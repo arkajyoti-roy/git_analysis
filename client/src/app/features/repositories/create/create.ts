@@ -226,6 +226,36 @@ getMethodColor(method: string): string {
     });
   }
 
+  onEnvFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (!file.name.includes('.env')) {
+      this.toast.error('Only .env files are allowed');
+      event.target.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      const content = e.target.result;
+      if (this.repo_env) {
+        this.repo_env = this.repo_env + '\n' + content;
+      } else {
+        this.repo_env = content;
+      }
+      this.toast.success('.env file imported successfully');
+    };
+    reader.onerror = () => {
+      this.toast.error('Failed to read the .env file');
+    };
+    reader.readAsText(file);
+    
+    // Clear the input so the same file can be selected again if needed
+    const target = event.target as HTMLInputElement;
+    if (target) target.value = '';
+  }
+
   loadRepoData(id: number) {
     this.repoService.getRepositoryById(id).subscribe({
       next: (res: any) => {

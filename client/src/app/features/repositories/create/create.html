@@ -125,7 +125,16 @@
       <span class="field-hint">One command per line — displayed as terminal steps</span>
     </div>
     <div class="form-group">
-      <label>Environment Variables</label>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+        <label style="margin: 0;">Environment Variables</label>
+        <button type="button" class="btn-sm" style="padding: 0.2rem 0.6rem; font-size: 0.75rem; background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); border-radius: 4px; cursor: pointer;" (click)="envFileInput.click()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 4px; vertical-align: text-bottom;">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path>
+          </svg>
+          Import .env
+        </button>
+        <input type="file" #envFileInput style="display: none;" accept=".env" (change)="onEnvFileSelected($event)">
+      </div>
       <textarea placeholder="DB_HOST=localhost&#10;DB_PORT=5432&#10;API_KEY=your-key-here" [(ngModel)]="repo_env"
         rows="4"></textarea>
       <span class="field-hint">KEY=VALUE format, one per line</span>
