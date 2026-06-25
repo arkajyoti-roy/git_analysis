@@ -7,29 +7,30 @@
 
 <div class="form-card">
 
-  <div style="display: flex; gap: 1rem; border-bottom: 1px solid var(--border-color); margin-bottom: 0px; padding-bottom: 0.5rem; overflow-x: auto;">
-    <button type="button" 
+  <div
+    style="display: flex; gap: 1rem; border-bottom: 1px solid var(--border-color); margin-bottom: 0px; padding-bottom: 0.5rem; overflow-x: auto;">
+    <button type="button"
       [style.border-bottom]="activeTab === 'basic' ? '2px solid var(--primary-color)' : '2px solid transparent'"
       [style.color]="activeTab === 'basic' ? 'var(--text-main)' : 'var(--text-muted)'"
       style="background: transparent; border: none; font-weight: 500; font-size: 1rem; cursor: pointer; padding: 0.5rem 0.5rem; white-space: nowrap; transition: 0.2s;"
       (click)="activeTab = 'basic'">
       Basic Info
     </button>
-    <button type="button" 
+    <button type="button"
       [style.border-bottom]="activeTab === 'env' ? '2px solid var(--primary-color)' : '2px solid transparent'"
       [style.color]="activeTab === 'env' ? 'var(--text-main)' : 'var(--text-muted)'"
       style="background: transparent; border: none; font-weight: 500; font-size: 1rem; cursor: pointer; padding: 0.5rem 0.5rem; white-space: nowrap; transition: 0.2s;"
       (click)="activeTab = 'env'">
       Env & Docs
     </button>
-    <button type="button" 
+    <button type="button"
       [style.border-bottom]="activeTab === 'api' ? '2px solid var(--primary-color)' : '2px solid transparent'"
       [style.color]="activeTab === 'api' ? 'var(--text-main)' : 'var(--text-muted)'"
       style="background: transparent; border: none; font-weight: 500; font-size: 1rem; cursor: pointer; padding: 0.5rem 0.5rem; white-space: nowrap; transition: 0.2s;"
       (click)="activeTab = 'api'">
       DB & APIs
     </button>
-    <button type="button" 
+    <button type="button"
       [style.border-bottom]="activeTab === 'access' ? '2px solid var(--primary-color)' : '2px solid transparent'"
       [style.color]="activeTab === 'access' ? 'var(--text-main)' : 'var(--text-muted)'"
       style="background: transparent; border: none; font-weight: 500; font-size: 1rem; cursor: pointer; padding: 0.5rem 0.5rem; white-space: nowrap; transition: 0.2s;"
@@ -133,6 +134,8 @@
     </div>
   </div>
 
+
+
   <div class="form-row">
     <div class="form-group">
       <label>Initial Date</label>
@@ -145,7 +148,7 @@
   </div>
 
   }
-  
+
   @if (activeTab === 'env') {
   <!-- Section: Setup & Configuration -->
   <!-- <div class="section-divider">
@@ -187,54 +190,54 @@
       <div
         style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.5rem; margin-bottom: 0.5rem;">
         @for (api of repo_apis; track $index) {
-       <div
-  style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-surface);">
+        <div
+          style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-surface);">
 
-  <!-- Top Row: Method, Path, Desc, Remove -->
-  <div style="display: flex; gap: 0.5rem; align-items: flex-start;">
-    
-    <div style="display:flex; flex-direction:column; flex:0 0 100px;">
-      <label>Method</label>
-      <select [(ngModel)]="api.method" [style.color]="getMethodColor(api.method)">
-        <option style="color: #0CBB52;" value="GET">GET</option>
-        <option style="color: #FFB400;" value="POST">POST</option>
-        <option style="color: #097BED;" value="PUT">PUT</option>
-        <option style="color: #A359DF;" value="PATCH">PATCH</option>
-        <option style="color: #E05353;" value="DELETE">DELETE</option>
-        <option style="color: #009688;" value="HEAD">HEAD</option>
-        <option style="color: #E15599;" value="OPTIONS">OPTIONS</option>
-      </select>
-    </div>
+          <!-- Top Row: Method, Path, Desc, Remove -->
+          <div style="display: flex; gap: 0.5rem; align-items: flex-start;">
 
-    <div style="display:flex; flex-direction:column; flex:1;">
-      <label>Endpoints</label>
-      <input type="text" placeholder="e.g. /api/users" [(ngModel)]="api.path">
-    </div>
+            <div style="display:flex; flex-direction:column; flex:0 0 100px;">
+              <label>Method</label>
+              <select [(ngModel)]="api.method" [style.color]="getMethodColor(api.method)">
+                <option style="color: #0CBB52;" value="GET">GET</option>
+                <option style="color: #FFB400;" value="POST">POST</option>
+                <option style="color: #097BED;" value="PUT">PUT</option>
+                <option style="color: #A359DF;" value="PATCH">PATCH</option>
+                <option style="color: #E05353;" value="DELETE">DELETE</option>
+                <option style="color: #009688;" value="HEAD">HEAD</option>
+                <option style="color: #E15599;" value="OPTIONS">OPTIONS</option>
+              </select>
+            </div>
 
-    <div style="display:flex; flex-direction:column; flex:2;">
-      <label>Description</label>
-      <input type="text" placeholder="Description..." [(ngModel)]="api.desc">
-    </div>
+            <div style="display:flex; flex-direction:column; flex:1;">
+              <label>Endpoints</label>
+              <input type="text" placeholder="e.g. /api/users" [(ngModel)]="api.path">
+            </div>
 
-    <button type="button" class="btn-sm" (click)="removeApiRow($index)"
-      style="background: transparent; border: 1px solid var(--border-color); color: var(--danger-color); padding: 0.25rem 0.5rem; font-size: 1rem; cursor: pointer;"
-      title="Remove API">✕</button>
-  </div>
+            <div style="display:flex; flex-direction:column; flex:2;">
+              <label>Description</label>
+              <input type="text" placeholder="Description..." [(ngModel)]="api.desc">
+            </div>
 
-  <!-- Bottom Row: Payload and Response -->
-  <div style="display: flex; gap: 0.5rem;">
-    <div style="display:flex; flex-direction:column; flex:1;">
-      <label>Payload</label>
-      <textarea placeholder="Payload (JSON)" [(ngModel)]="api.payload" rows="3"
-        style="font-family: monospace; resize: vertical;"></textarea>
-    </div>
-    <div style="display:flex; flex-direction:column; flex:1;">
-      <label>Response</label>
-      <textarea placeholder="Expected Response (JSON)" [(ngModel)]="api.response" rows="3"
-        style="font-family: monospace; resize: vertical;"></textarea>
-    </div>
-  </div>
-</div>
+            <button type="button" class="btn-sm" (click)="removeApiRow($index)"
+              style="background: transparent; border: 1px solid var(--border-color); color: var(--danger-color); padding: 0.25rem 0.5rem; font-size: 1rem; cursor: pointer;"
+              title="Remove API">✕</button>
+          </div>
+
+          <!-- Bottom Row: Payload and Response -->
+          <div style="display: flex; gap: 0.5rem;">
+            <div style="display:flex; flex-direction:column; flex:1;">
+              <label>Payload</label>
+              <textarea placeholder="Payload (JSON)" [(ngModel)]="api.payload" rows="3"
+                style="font-family: monospace; resize: vertical;"></textarea>
+            </div>
+            <div style="display:flex; flex-direction:column; flex:1;">
+              <label>Response</label>
+              <textarea placeholder="Expected Response (JSON)" [(ngModel)]="api.response" rows="3"
+                style="font-family: monospace; resize: vertical;"></textarea>
+            </div>
+          </div>
+        </div>
 
         }
         @if (repo_apis.length === 0) {
@@ -335,51 +338,68 @@
   <div class="section-divider">
     <span>Repository Access Control</span>
   </div>
+  <div>
+    <div class="form-row">
+      <div class="form-group" style="width: 100%;">
+        <label>Maintainer</label>
+        <div
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; padding: 1rem;">
+          <select [(ngModel)]="repo_maintainer" style="width: 100%; max-width: 400px;">
+            <option value="" disabled selected>Select a maintainer...</option>
+            @for (user of allUsers; track user.emp_id) {
+            <option [value]="user.emp_id || user.id">{{ user.emp_name || user.name || 'Unknown User' }}</option>
+            }
+          </select>
+        </div>
+      </div>
+    </div>
 
-  <div class="form-row">
-    <div class="form-group" style="width: 100%;">
-      <label>Grant Access to Developers</label>
-      <div
-        style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; padding: 1rem; margin-bottom: 0.5rem;">
 
-        <!-- Dropdown to add user -->
-        <select (change)="addAccessUser($event)" style="margin-bottom: 1rem; width: 100%; max-width: 400px;">
-          <option value="" disabled selected>Select a user to grant access...</option>
-          @for (user of availableAccessUsers; track user.emp_id) {
-          <option [value]="user.emp_id || user.id">{{ user.emp_name || user.name || 'Unknown User' }}</option>
-          }
-        </select>
+    <div class="form-row">
+      <div class="form-group" style="width: 100%;">
+        <label>Grant Access to Developers</label>
+        <div
+          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; padding: 1rem; margin-bottom: 0.5rem;">
 
-        <!-- Selected Users List -->
-        @if (repo_access.length > 0) {
-        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-          @for (access of repo_access; track access.emp_id; let i = $index) {
-          <div
-            style="display: flex; align-items: center; gap: 1rem; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-card);">
+          <!-- Dropdown to add user -->
+          <select (change)="addAccessUser($event)" style="margin-bottom: 1rem; width: 100%; max-width: 400px;">
+            <option value="" disabled selected>Select a user to grant access...</option>
+            @for (user of availableAccessUsers; track user.emp_id) {
+            <option [value]="user.emp_id || user.id">{{ user.emp_name || user.name || 'Unknown User' }}</option>
+            }
+          </select>
+
+          <!-- Selected Users List -->
+          @if (repo_access.length > 0) {
+          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            @for (access of repo_access; track access.emp_id; let i = $index) {
             <div
-              style="width: 24px; height: 24px; background: #000; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.75rem;">
-              {{ (access.name || 'U').charAt(0).toUpperCase() }}
+              style="display: flex; align-items: center; gap: 1rem; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-card);">
+              <div
+                style="width: 24px; height: 24px; background: #000; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.75rem;">
+                {{ (access.name || 'U').charAt(0).toUpperCase() }}
+              </div>
+              <div style="flex-grow: 1; font-weight: 500;">
+                {{ access.name }}
+              </div>
+              <select [(ngModel)]="access.can" style="padding: 0.25rem 0.5rem; width: auto;">
+                <option value="view">Viewer (Read-Only)</option>
+                <option value="edit">Editor (Can Propose Edits)</option>
+              </select>
+              <button type="button" class="btn-sm"
+                style="background: transparent; color: #ef4444; border-color: #ef4444;"
+                (click)="removeAccessUser(i)">Remove</button>
             </div>
-            <div style="flex-grow: 1; font-weight: 500;">
-              {{ access.name }}
-            </div>
-            <select [(ngModel)]="access.can" style="padding: 0.25rem 0.5rem; width: auto;">
-              <option value="view">Viewer (Read-Only)</option>
-              <option value="edit">Editor (Can Propose Edits)</option>
-            </select>
-            <button type="button" class="btn-sm" style="background: transparent; color: #ef4444; border-color: #ef4444;"
-              (click)="removeAccessUser(i)">Remove</button>
+            }
           </div>
+          } @else {
+          <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">No specific access granted. (Admins have
+            default access).</p>
           }
         </div>
-        } @else {
-        <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">No specific access granted. (Admins have
-          default access).</p>
-        }
       </div>
     </div>
   </div>
-
   }
   <div class="form-actions" style="margin-top: 2rem; display: flex; justify-content: flex-start; gap: 15px;">
     <button type="button" class="btn-secondary" routerLink="/admin/repositories">Cancel</button>

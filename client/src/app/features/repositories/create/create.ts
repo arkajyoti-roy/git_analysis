@@ -57,7 +57,9 @@ getMethodColor(method: string): string {
   repo_architecture_diagram = '';
 
   repo_access: { emp_id: string, name: string, can: string }[] = [];
+  repo_maintainer: string = '';
   availableUsers: any[] = [];
+  allUsers: any[] = [];
 
   activeTab: string = 'basic';
   isSubmitting = false;
@@ -95,8 +97,10 @@ getMethodColor(method: string): string {
 
 
 
-  get availableAccessUsers(): any[] {
-    return this.availableUsers.filter(u => !this.repo_access.some(a => a.emp_id === (u.emp_id || u.id)?.toString()));
+  get availableAccessUsers() {
+    return this.availableUsers.filter(u => 
+      !this.repo_access.some(a => a.emp_id === (u.emp_id || u.id))
+    );
   }
 
   editorOptions = { 
@@ -220,6 +224,7 @@ getMethodColor(method: string): string {
     this.userService.getUsers().subscribe({
       next: (res: any) => {
         const users = Array.isArray(res) ? res : (res.data || []);
+        this.allUsers = users;
         // Filter out admins since they have default access
         this.availableUsers = users.filter((u: any) => u.emp_role !== 'admin');
       },
@@ -376,6 +381,9 @@ getMethodColor(method: string): string {
           name: access.name || access.emp_name || 'Unknown',
           can: access.can || access.role || access.repo_role || access.access_level || access.pivot?.can || access.pivot?.role || 'view'
         }));
+
+        // Handle repo maintainer
+        this.repo_maintainer = repo.repo_maintainer ? repo.repo_maintainer.toString() : '';
       },
       error: () => {
         this.toast.error('Failed to load repository data.');
@@ -589,7 +597,12 @@ getMethodColor(method: string): string {
       repo_deployment: this.repo_deployment,
       repo_coding_standards: this.repo_coding_standards,
       repo_architecture_diagram: this.repo_architecture_diagram,
-      repo_access: this.repo_access
+      repo_access: this.repo_access.map((a: any) => ({
+        ...a,
+        emp_id: parseInt(a.emp_id, 10),
+        operation: a.can ? a.can.toUpperCase() : 'VIEW'
+      })),
+      repo_maintainer: this.repo_maintainer ? parseInt(this.repo_maintainer, 10) : null
     };
 
     if (this.repo_code_snippet) payload.repo_code_snippet = this.repo_code_snippet;
@@ -629,7 +642,12 @@ getMethodColor(method: string): string {
       repo_deployment: this.repo_deployment,
       repo_coding_standards: this.repo_coding_standards,
       repo_architecture_diagram: this.repo_architecture_diagram,
-      repo_access: this.repo_access
+      repo_access: this.repo_access.map((a: any) => ({
+        ...a,
+        emp_id: parseInt(a.emp_id, 10),
+        operation: a.can ? a.can.toUpperCase() : 'VIEW'
+      })),
+      repo_maintainer: this.repo_maintainer ? parseInt(this.repo_maintainer, 10) : null
     };
 
     if (this.repo_code_snippet) payload.repo_code_snippet = this.repo_code_snippet;

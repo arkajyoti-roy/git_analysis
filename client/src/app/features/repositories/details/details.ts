@@ -43,6 +43,9 @@ export class Details implements OnInit, OnDestroy {
   commit_message = '';
   selectedBranchId = '';
   repoBranches: any[] = [];
+  
+  allUsers: any[] = [];
+  maintainerName: string = 'None';
 
   editorOptions = { 
     theme: 'vs', 
@@ -90,6 +93,8 @@ export class Details implements OnInit, OnDestroy {
     }
   }
 
+
+
   constructor(
     private route: ActivatedRoute,
     private repoService: RepositoryService,
@@ -105,6 +110,7 @@ export class Details implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    this.fetchUsers();
     const role = localStorage.getItem('role') || '';
     this.isDev = ['sr-dev', 'jr-dev', 'dev'].includes(role);
 
@@ -145,6 +151,8 @@ export class Details implements OnInit, OnDestroy {
         this.repo = res.data || res;
         this.isLoading = false;
         
+        this.updateMaintainerName();
+        
         if (oldDiagram !== this.repo.repo_architecture_diagram) {
           this.mermaidRendered = false;
           if (this.activeTab === 'architecture') {
@@ -166,6 +174,28 @@ export class Details implements OnInit, OnDestroy {
       },
       error: () => {}
     });
+  }
+
+  fetchUsers() {
+    this.http.get(`${CONFIG.BASE_URL}/users`).subscribe({
+      next: (res: any) => {
+        this.allUsers = Array.isArray(res) ? res : (res.data || []);
+        this.updateMaintainerName();
+      },
+      error: () => {}
+    });
+  }
+
+  updateMaintainerName() {
+    if (!this.repo?.repo_maintainer || this.allUsers.length === 0) return;
+    const mId = this.repo.repo_maintainer.toString();
+    const user = this.allUsers.find(u => (u.emp_id || u.id)?.toString() === mId);
+    if (user) {
+      const designation = user.emp_role || user.designation || user.role || 'No Designation';
+      this.maintainerName = `${user.emp_name || user.name || 'Unknown User'} (${designation})`;
+    } else {
+      this.maintainerName = `Unknown (ID: ${mId})`;
+    }
   }
 
   addCommit() {
