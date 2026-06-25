@@ -59,6 +59,7 @@ getMethodColor(method: string): string {
   repo_access: { emp_id: string, name: string, can: string }[] = [];
   availableUsers: any[] = [];
 
+  activeTab: string = 'basic';
   isSubmitting = false;
 
   // Dynamic options tracking (will come from DB)

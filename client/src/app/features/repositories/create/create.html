@@ -7,10 +7,42 @@
 
 <div class="form-card">
 
-  <!-- Section: Basic Info -->
-  <div class="section-divider">
-    <span>Basic Information</span>
+  <div style="display: flex; gap: 1rem; border-bottom: 1px solid var(--border-color); margin-bottom: 0px; padding-bottom: 0.5rem; overflow-x: auto;">
+    <button type="button" 
+      [style.border-bottom]="activeTab === 'basic' ? '2px solid var(--primary-color)' : '2px solid transparent'"
+      [style.color]="activeTab === 'basic' ? 'var(--text-main)' : 'var(--text-muted)'"
+      style="background: transparent; border: none; font-weight: 500; font-size: 1rem; cursor: pointer; padding: 0.5rem 0.5rem; white-space: nowrap; transition: 0.2s;"
+      (click)="activeTab = 'basic'">
+      Basic Info
+    </button>
+    <button type="button" 
+      [style.border-bottom]="activeTab === 'env' ? '2px solid var(--primary-color)' : '2px solid transparent'"
+      [style.color]="activeTab === 'env' ? 'var(--text-main)' : 'var(--text-muted)'"
+      style="background: transparent; border: none; font-weight: 500; font-size: 1rem; cursor: pointer; padding: 0.5rem 0.5rem; white-space: nowrap; transition: 0.2s;"
+      (click)="activeTab = 'env'">
+      Env & Docs
+    </button>
+    <button type="button" 
+      [style.border-bottom]="activeTab === 'api' ? '2px solid var(--primary-color)' : '2px solid transparent'"
+      [style.color]="activeTab === 'api' ? 'var(--text-main)' : 'var(--text-muted)'"
+      style="background: transparent; border: none; font-weight: 500; font-size: 1rem; cursor: pointer; padding: 0.5rem 0.5rem; white-space: nowrap; transition: 0.2s;"
+      (click)="activeTab = 'api'">
+      DB & APIs
+    </button>
+    <button type="button" 
+      [style.border-bottom]="activeTab === 'access' ? '2px solid var(--primary-color)' : '2px solid transparent'"
+      [style.color]="activeTab === 'access' ? 'var(--text-main)' : 'var(--text-muted)'"
+      style="background: transparent; border: none; font-weight: 500; font-size: 1rem; cursor: pointer; padding: 0.5rem 0.5rem; white-space: nowrap; transition: 0.2s;"
+      (click)="activeTab = 'access'">
+      Access Control
+    </button>
   </div>
+
+  @if (activeTab === 'basic') {
+  <!-- Section: Basic Info -->
+  <!-- <div class="section-divider">
+    <span>Basic Information</span>
+  </div> -->
 
   <div class="form-row">
     <div class="form-group">
@@ -112,10 +144,13 @@
     </div>
   </div>
 
+  }
+  
+  @if (activeTab === 'env') {
   <!-- Section: Setup & Configuration -->
-  <div class="section-divider">
+  <!-- <div class="section-divider">
     <span>Setup &amp; Configuration</span>
-  </div>
+  </div> -->
 
   <div class="form-row">
     <div class="form-group">
@@ -144,6 +179,8 @@
     </div>
   </div>
 
+  }
+  @if (activeTab === 'api') {
   <div class="form-row">
     <div class="form-group">
       <label>APIs</label>
@@ -225,10 +262,12 @@
     </div>
   </div>
 
+  }
+  @if (activeTab === 'access') {
   <!-- Section: Project Tracking -->
-  <div class="section-divider">
+  <!-- <div class="section-divider">
     <span>Project Tracking</span>
-  </div>
+  </div> -->
   <!-- 
   <div class="form-row">
     <div class="form-group">
@@ -255,6 +294,8 @@
     </div>
   </div>
 
+  }
+  @if (activeTab === 'env') {
   <!-- Section: IDP Documentation -->
   <div class="section-divider">
     <span>IDP Documentation</span>
@@ -288,6 +329,8 @@
         syntax</a> — rendered as a diagram in the Architecture tab</span>
   </div>
 
+  }
+  @if (activeTab === 'access') {
   <!-- Section: Repository Access -->
   <div class="section-divider">
     <span>Repository Access Control</span>
@@ -337,6 +380,7 @@
     </div>
   </div>
 
+  }
   <div class="form-actions" style="margin-top: 2rem; display: flex; justify-content: flex-start; gap: 15px;">
     <button type="button" class="btn-secondary" routerLink="/admin/repositories">Cancel</button>
     <button type="button" class="btn-primary" (click)="submitRepo()" [disabled]="isSubmitting">
