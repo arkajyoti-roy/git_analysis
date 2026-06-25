@@ -41,7 +41,7 @@ getMethodColor(method: string): string {
   repo_status = '';
   repo_branch = 'main';
   repo_arch = '';
-  repo_apis: { method: string, path: string, desc: string, payload?: string, response?: string }[] = [];
+  repo_apis: { method: string, path: string, desc: string, headers?: string, payload?: string, response?: string }[] = [];
   repo_schema = '';
   repo_init_author = '';
   repo_init_date = new Date().toISOString().split('T')[0];
@@ -326,6 +326,7 @@ getMethodColor(method: string): string {
             method: api?.method || 'GET',
             path: api?.path || '',
             desc: api?.desc || '',
+            headers: api?.headers || '',
             payload: api?.payload || '',
             response: api?.response || ''
           }));

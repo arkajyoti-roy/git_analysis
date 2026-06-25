@@ -223,55 +223,60 @@
               style="background: transparent; border: 1px solid var(--border-color); color: var(--danger-color); padding: 0.25rem 0.5rem; font-size: 1rem; cursor: pointer;"
               title="Remove API">✕</button>
           </div>
-
-          <!-- Bottom Row: Payload and Response -->
-          <div style="display: flex; gap: 0.5rem;">
+          <!-- <div style="display: flex; gap: 0.5rem;"> -->
             <div style="display:flex; flex-direction:column; flex:1;">
-              <label>Payload</label>
-              <textarea placeholder="Payload (JSON)" [(ngModel)]="api.payload" rows="3"
+              <label>Headers</label>
+              <textarea placeholder="Headers (JSON)" [(ngModel)]="api.headers" rows="3"
                 style="font-family: monospace; resize: vertical;"></textarea>
             </div>
-            <div style="display:flex; flex-direction:column; flex:1;">
-              <label>Response</label>
-              <textarea placeholder="Expected Response (JSON)" [(ngModel)]="api.response" rows="3"
-                style="font-family: monospace; resize: vertical;"></textarea>
+            <!-- Bottom Row: Payload and Response -->
+            <div style="display: flex; gap: 0.5rem;">
+              <div style="display:flex; flex-direction:column; flex:1;">
+                <label>Payload</label>
+                <textarea placeholder="Payload (JSON)" [(ngModel)]="api.payload" rows="3"
+                  style="font-family: monospace; resize: vertical;"></textarea>
+              </div>
+              <div style="display:flex; flex-direction:column; flex:1;">
+                <label>Response</label>
+                <textarea placeholder="Expected Response (JSON)" [(ngModel)]="api.response" rows="3"
+                  style="font-family: monospace; resize: vertical;"></textarea>
+              </div>
             </div>
           </div>
+
+          }
+          @if (repo_apis.length === 0) {
+          <p style="margin: 0 0 0.5rem 0; font-size: 0.85rem; color: var(--text-muted);">No APIs defined yet.</p>
+          }
+          <button type="button" class="btn-sm" (click)="addApiRow()">+ Add API</button>
         </div>
-
-        }
-        @if (repo_apis.length === 0) {
-        <p style="margin: 0 0 0.5rem 0; font-size: 0.85rem; color: var(--text-muted);">No APIs defined yet.</p>
-        }
-        <button type="button" class="btn-sm" (click)="addApiRow()">+ Add API</button>
+      </div>
+      <div class="form-group">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+          <label style="margin: 0;">Database Schema</label>
+          <button type="button" class="btn-sm"
+            style="padding: 0.35rem 0.75rem; font-size: 0.8rem; background: var(--primary-color); border: 1px solid var(--primary-color); color: var(--bg-surface); border-radius: 6px; cursor: pointer; font-weight: 500; display: inline-flex; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.1); transition: opacity 0.2s;"
+            onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'" (click)="sqlFileInput.click()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              style="margin-right: 6px;">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path>
+            </svg>
+            Import .sql
+          </button>
+          <input type="file" #sqlFileInput style="display: none;" accept=".sql" (change)="onSqlFileSelected($event)">
+        </div>
+        <textarea placeholder="e.g. users(id, name, email), orders(id, user_id, total)" [(ngModel)]="repo_schema"
+          rows="4"></textarea>
       </div>
     </div>
-    <div class="form-group">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-        <label style="margin: 0;">Database Schema</label>
-        <button type="button" class="btn-sm"
-          style="padding: 0.35rem 0.75rem; font-size: 0.8rem; background: var(--primary-color); border: 1px solid var(--primary-color); color: var(--bg-surface); border-radius: 6px; cursor: pointer; font-weight: 500; display: inline-flex; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.1); transition: opacity 0.2s;"
-          onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'" (click)="sqlFileInput.click()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            style="margin-right: 6px;">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path>
-          </svg>
-          Import .sql
-        </button>
-        <input type="file" #sqlFileInput style="display: none;" accept=".sql" (change)="onSqlFileSelected($event)">
-      </div>
-      <textarea placeholder="e.g. users(id, name, email), orders(id, user_id, total)" [(ngModel)]="repo_schema"
-        rows="4"></textarea>
-    </div>
-  </div>
 
-  }
-  @if (activeTab === 'access') {
-  <!-- Section: Project Tracking -->
-  <!-- <div class="section-divider">
+    }
+    @if (activeTab === 'access') {
+    <!-- Section: Project Tracking -->
+    <!-- <div class="section-divider">
     <span>Project Tracking</span>
   </div> -->
-  <!-- 
+    <!-- 
   <div class="form-row">
     <div class="form-group">
       <label>Repository Issues</label>
@@ -283,245 +288,247 @@
     </div>
   </div> -->
 
-  <!-- <div class="form-group">
+    <!-- <div class="form-group">
     <label>Major Commits</label>
     <textarea placeholder="Important commit hashes or messages..." [(ngModel)]="repo_major_commits" rows="3"></textarea>
   </div> -->
 
-  <div class="form-group" style="height: 300px;">
-    <label>Code Snippets</label>
-    <div
-      style="height: calc(100% - 1.5rem); border: 1px solid var(--border-color); border-radius: 4px; overflow: hidden;">
-      <ngx-monaco-editor [options]="editorOptions" [(ngModel)]="repo_code_snippet"
-        style="height: 100%;"></ngx-monaco-editor>
-    </div>
-  </div>
-
-  }
-  @if (activeTab === 'env') {
-  <!-- Section: IDP Documentation -->
-  <div class="section-divider">
-    <span>IDP Documentation</span>
-  </div>
-
-  <div class="form-group">
-    <label>Deployment Guide</label>
-    <textarea
-      placeholder="## Development&#10;npm run dev&#10;&#10;## Staging&#10;docker-compose up -d&#10;&#10;## Production&#10;kubectl apply -f k8s/"
-      [(ngModel)]="repo_deployment" rows="5"></textarea>
-    <span class="field-hint">Deployment steps for Dev / Staging / Production environments</span>
-  </div>
-
-  <div class="form-group" style="width: 100%;">
-    <label>Documentation</label>
-    <div
-      style="background: var(--bg-surface); border-radius: var(--radius-sm); border: 1px solid var(--border-color); width: 100%;">
-      <quill-editor [(ngModel)]="repo_coding_standards" [styles]="{height: '640px', width: '100%', display: 'block'}"
-        style="width: 100%; display: block;"
-        placeholder="Enter comprehensive documentation, guidelines, standards, and notes here..."></quill-editor>
-    </div>
-    <span class="field-hint">General documentation, coding standards, and other important references</span>
-  </div>
-
-  <div class="form-group">
-    <label>Architecture Diagram (Mermaid Syntax)</label>
-    <textarea style="min-height: 350px;"
-      placeholder="graph TD&#10;  A[Client] --> B[API Gateway]&#10;  B --> C[Auth Service]&#10;  B --> D[User Service]&#10;  C --> E[(Database)]&#10;  D --> E"
-      [(ngModel)]="repo_architecture_diagram" rows="6"></textarea>
-    <span class="field-hint">Use <a href='https://mermaid.js.org/syntax/flowchart.html' target='_blank'>Mermaid.js
-        syntax</a> — rendered as a diagram in the Architecture tab</span>
-  </div>
-
-  }
-  @if (activeTab === 'access') {
-  <!-- Section: Repository Access -->
-  <div class="section-divider">
-    <span>Repository Access Control</span>
-  </div>
-  <div>
-    <div class="form-row">
-      <div class="form-group" style="width: 100%;">
-        <label>Maintainer</label>
-        <div
-          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; padding: 1rem;">
-          <select [(ngModel)]="repo_maintainer" style="width: 100%; max-width: 400px;">
-            <option value="" disabled selected>Select a maintainer...</option>
-            @for (user of allUsers; track user.emp_id) {
-            <option [value]="user.emp_id || user.id">{{ user.emp_name || user.name || 'Unknown User' }}</option>
-            }
-          </select>
-        </div>
+    <div class="form-group" style="height: 300px;">
+      <label>Code Snippets</label>
+      <div
+        style="height: calc(100% - 1.5rem); border: 1px solid var(--border-color); border-radius: 4px; overflow: hidden;">
+        <ngx-monaco-editor [options]="editorOptions" [(ngModel)]="repo_code_snippet"
+          style="height: 100%;"></ngx-monaco-editor>
       </div>
     </div>
 
+    }
+    @if (activeTab === 'env') {
+    <!-- Section: IDP Documentation -->
+    <div class="section-divider">
+      <span>IDP Documentation</span>
+    </div>
 
-    <div class="form-row">
-      <div class="form-group" style="width: 100%;">
-        <label>Grant Access to Developers</label>
-        <div
-          style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; padding: 1rem; margin-bottom: 0.5rem;">
+    <div class="form-group">
+      <label>Deployment Guide</label>
+      <textarea
+        placeholder="## Development&#10;npm run dev&#10;&#10;## Staging&#10;docker-compose up -d&#10;&#10;## Production&#10;kubectl apply -f k8s/"
+        [(ngModel)]="repo_deployment" rows="5"></textarea>
+      <span class="field-hint">Deployment steps for Dev / Staging / Production environments</span>
+    </div>
 
-          <!-- Dropdown to add user -->
-          <select (change)="addAccessUser($event)" style="margin-bottom: 1rem; width: 100%; max-width: 400px;">
-            <option value="" disabled selected>Select a user to grant access...</option>
-            @for (user of availableAccessUsers; track user.emp_id) {
-            <option [value]="user.emp_id || user.id">{{ user.emp_name || user.name || 'Unknown User' }}</option>
-            }
-          </select>
+    <div class="form-group" style="width: 100%;">
+      <label>Documentation</label>
+      <div
+        style="background: var(--bg-surface); border-radius: var(--radius-sm); border: 1px solid var(--border-color); width: 100%;">
+        <quill-editor [(ngModel)]="repo_coding_standards" [styles]="{height: '640px', width: '100%', display: 'block'}"
+          style="width: 100%; display: block;"
+          placeholder="Enter comprehensive documentation, guidelines, standards, and notes here..."></quill-editor>
+      </div>
+      <span class="field-hint">General documentation, coding standards, and other important references</span>
+    </div>
 
-          <!-- Selected Users List -->
-          @if (repo_access.length > 0) {
-          <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-            @for (access of repo_access; track access.emp_id; let i = $index) {
-            <div
-              style="display: flex; align-items: center; gap: 1rem; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-card);">
+    <div class="form-group">
+      <label>Architecture Diagram (Mermaid Syntax)</label>
+      <textarea style="min-height: 350px;"
+        placeholder="graph TD&#10;  A[Client] --> B[API Gateway]&#10;  B --> C[Auth Service]&#10;  B --> D[User Service]&#10;  C --> E[(Database)]&#10;  D --> E"
+        [(ngModel)]="repo_architecture_diagram" rows="6"></textarea>
+      <span class="field-hint">Use <a href='https://mermaid.js.org/syntax/flowchart.html' target='_blank'>Mermaid.js
+          syntax</a> — rendered as a diagram in the Architecture tab</span>
+    </div>
+
+    }
+    @if (activeTab === 'access') {
+    <!-- Section: Repository Access -->
+    <div class="section-divider">
+      <span>Repository Access Control</span>
+    </div>
+    <div>
+      <div class="form-row">
+        <div class="form-group" style="width: 100%;">
+          <label>Maintainer</label>
+          <div
+            style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; padding: 1rem;">
+            <select [(ngModel)]="repo_maintainer" style="width: 100%; max-width: 400px;">
+              <option value="" disabled selected>Select a maintainer...</option>
+              @for (user of allUsers; track user.emp_id) {
+              <option [value]="user.emp_id || user.id">{{ user.emp_name || user.name || 'Unknown User' }}</option>
+              }
+            </select>
+          </div>
+        </div>
+      </div>
+
+
+      <div class="form-row">
+        <div class="form-group" style="width: 100%;">
+          <label>Grant Access to Developers</label>
+          <div
+            style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; padding: 1rem; margin-bottom: 0.5rem;">
+
+            <!-- Dropdown to add user -->
+            <select (change)="addAccessUser($event)" style="margin-bottom: 1rem; width: 100%; max-width: 400px;">
+              <option value="" disabled selected>Select a user to grant access...</option>
+              @for (user of availableAccessUsers; track user.emp_id) {
+              <option [value]="user.emp_id || user.id">{{ user.emp_name || user.name || 'Unknown User' }}</option>
+              }
+            </select>
+
+            <!-- Selected Users List -->
+            @if (repo_access.length > 0) {
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+              @for (access of repo_access; track access.emp_id; let i = $index) {
               <div
-                style="width: 24px; height: 24px; background: #000; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.75rem;">
-                {{ (access.name || 'U').charAt(0).toUpperCase() }}
+                style="display: flex; align-items: center; gap: 1rem; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-card);">
+                <div
+                  style="width: 24px; height: 24px; background: #000; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.75rem;">
+                  {{ (access.name || 'U').charAt(0).toUpperCase() }}
+                </div>
+                <div style="flex-grow: 1; font-weight: 500;">
+                  {{ access.name }}
+                </div>
+                <select [(ngModel)]="access.can" style="padding: 0.25rem 0.5rem; width: auto;">
+                  <option value="view">Viewer (Read-Only)</option>
+                  <option value="edit">Editor (Can Propose Edits)</option>
+                </select>
+                <button type="button" class="btn-sm"
+                  style="background: transparent; color: #ef4444; border-color: #ef4444;"
+                  (click)="removeAccessUser(i)">Remove</button>
               </div>
-              <div style="flex-grow: 1; font-weight: 500;">
-                {{ access.name }}
-              </div>
-              <select [(ngModel)]="access.can" style="padding: 0.25rem 0.5rem; width: auto;">
-                <option value="view">Viewer (Read-Only)</option>
-                <option value="edit">Editor (Can Propose Edits)</option>
-              </select>
-              <button type="button" class="btn-sm"
-                style="background: transparent; color: #ef4444; border-color: #ef4444;"
-                (click)="removeAccessUser(i)">Remove</button>
+              }
             </div>
+            } @else {
+            <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">No specific access granted. (Admins have
+              default access).</p>
             }
           </div>
-          } @else {
-          <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">No specific access granted. (Admins have
-            default access).</p>
-          }
+        </div>
+      </div>
+    </div>
+    }
+    <div class="form-actions" style="margin-top: 2rem; display: flex; justify-content: flex-start; gap: 15px;">
+      <button type="button" class="btn-secondary" routerLink="/admin/repositories">Cancel</button>
+      <button type="button" class="btn-primary" (click)="submitRepo()" [disabled]="isSubmitting">
+        {{ isSubmitting ? 'Saving...' : (isEditMode ? 'Update Repository' : 'Create Repository') }}
+      </button>
+    </div>
+
+  </div>
+  <!-- Management Modal -->
+  @if (showManageModal) {
+  <div class="modal-backdrop"
+    style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+    <div class="modal-card"
+      style="background: var(--bg-surface); width: 100%; max-width: 600px; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); display: flex; flex-direction: column; max-height: 90vh;">
+
+      <!-- Header -->
+      <div
+        style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="margin: 0; font-size: 1.125rem;">{{ modalTitle }}</h3>
+        <button
+          style="background: transparent; border: none; font-size: 1.25rem; cursor: pointer; color: var(--text-muted);"
+          (click)="closeManageModal()">✕</button>
+      </div>
+
+      <!-- Body: Table of Items -->
+      <div style="padding: 0; overflow-y: auto; flex: 1;">
+        <table style="margin: 0; width: 100%; border-collapse: collapse;">
+          <thead style="background: var(--bg-main); position: sticky; top: 0; z-index: 1;">
+            <tr>
+              <th style="padding: 0.75rem 1.5rem; text-align: left; font-size: 0.8125rem; color: var(--text-muted);">#
+              </th>
+              <th style="padding: 0.75rem 1.5rem; text-align: left; font-size: 0.8125rem; color: var(--text-muted);">
+                Category Name</th>
+              <th style="padding: 0.75rem 1.5rem; text-align: right; font-size: 0.8125rem; color: var(--text-muted);">
+                Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of currentManageItems; track item.id; let i = $index) {
+            <tr style="border-bottom: 1px solid var(--border-color);">
+              <td style="padding: 0.75rem 1.5rem; font-size: 0.875rem;">{{ i + 1 }}</td>
+              <td style="padding: 0.75rem 1.5rem; font-size: 0.875rem; font-weight: 500;">{{ item.name }}</td>
+              <td style="padding: 0.75rem 1.5rem; text-align: right;">
+                <button class="btn-sm"
+                  style="background: transparent; border: 1px solid var(--border-color); color: var(--text-primary); padding: 0.25rem 0.5rem; display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.75rem;"
+                  (click)="confirmDeleteManageItem(item)">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2">
+                    </path>
+                  </svg>
+                  Delete
+                </button>
+              </td>
+            </tr>
+            }
+            @if (currentManageItems.length === 0) {
+            <tr>
+              <td colspan="3" style="padding: 1.5rem; text-align: center; color: var(--text-muted);">No items found.
+              </td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Footer: Add New Item -->
+      <div
+        style="padding: 1.25rem 1.5rem; border-top: 1px solid var(--border-color); background: var(--bg-main); border-bottom-left-radius: var(--radius-lg); border-bottom-right-radius: var(--radius-lg);">
+        <label style="display: block; font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.5rem;">Category Name
+          <span style="color: var(--danger-color);">*</span></label>
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+          <input type="text" placeholder="Enter a category name" [(ngModel)]="newManageItemName"
+            (keyup.enter)="saveManageItem()"
+            style="flex: 1; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: var(--radius-sm);">
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+          <button type="button" class="btn-sm"
+            style="background: transparent; color: var(--text-primary); padding: 0.5rem 1rem; border: 1px solid var(--border-color);"
+            (click)="closeManageModal()">Close</button>
+          <button type="button" class="btn-sm btn-primary" style="padding: 0.5rem 1rem;" (click)="saveManageItem()">✔
+            Save</button>
         </div>
       </div>
     </div>
   </div>
   }
-  <div class="form-actions" style="margin-top: 2rem; display: flex; justify-content: flex-start; gap: 15px;">
-    <button type="button" class="btn-secondary" routerLink="/admin/repositories">Cancel</button>
-    <button type="button" class="btn-primary" (click)="submitRepo()" [disabled]="isSubmitting">
-      {{ isSubmitting ? 'Saving...' : (isEditMode ? 'Update Repository' : 'Create Repository') }}
-    </button>
-  </div>
 
-</div>
-<!-- Management Modal -->
-@if (showManageModal) {
-<div class="modal-backdrop"
-  style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
-  <div class="modal-card"
-    style="background: var(--bg-surface); width: 100%; max-width: 600px; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); display: flex; flex-direction: column; max-height: 90vh;">
+  <!-- Delete Confirmation Modal for Manage Items -->
+  @if (itemToDelete) {
+  <div class="modal-backdrop"
+    style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 1060; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+    <div class="modal-card"
+      style="background: var(--bg-surface); width: 100%; max-width: 450px; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); display: flex; flex-direction: column;">
 
-    <!-- Header -->
-    <div
-      style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
-      <h3 style="margin: 0; font-size: 1.125rem;">{{ modalTitle }}</h3>
-      <button
-        style="background: transparent; border: none; font-size: 1.25rem; cursor: pointer; color: var(--text-muted);"
-        (click)="closeManageModal()">✕</button>
-    </div>
-
-    <!-- Body: Table of Items -->
-    <div style="padding: 0; overflow-y: auto; flex: 1;">
-      <table style="margin: 0; width: 100%; border-collapse: collapse;">
-        <thead style="background: var(--bg-main); position: sticky; top: 0; z-index: 1;">
-          <tr>
-            <th style="padding: 0.75rem 1.5rem; text-align: left; font-size: 0.8125rem; color: var(--text-muted);">#
-            </th>
-            <th style="padding: 0.75rem 1.5rem; text-align: left; font-size: 0.8125rem; color: var(--text-muted);">
-              Category Name</th>
-            <th style="padding: 0.75rem 1.5rem; text-align: right; font-size: 0.8125rem; color: var(--text-muted);">
-              Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (item of currentManageItems; track item.id; let i = $index) {
-          <tr style="border-bottom: 1px solid var(--border-color);">
-            <td style="padding: 0.75rem 1.5rem; font-size: 0.875rem;">{{ i + 1 }}</td>
-            <td style="padding: 0.75rem 1.5rem; font-size: 0.875rem; font-weight: 500;">{{ item.name }}</td>
-            <td style="padding: 0.75rem 1.5rem; text-align: right;">
-              <button class="btn-sm"
-                style="background: transparent; border: 1px solid var(--border-color); color: var(--text-primary); padding: 0.25rem 0.5rem; display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.75rem;"
-                (click)="confirmDeleteManageItem(item)">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2">
-                  </path>
-                </svg>
-                Delete
-              </button>
-            </td>
-          </tr>
-          }
-          @if (currentManageItems.length === 0) {
-          <tr>
-            <td colspan="3" style="padding: 1.5rem; text-align: center; color: var(--text-muted);">No items found.</td>
-          </tr>
-          }
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Footer: Add New Item -->
-    <div
-      style="padding: 1.25rem 1.5rem; border-top: 1px solid var(--border-color); background: var(--bg-main); border-bottom-left-radius: var(--radius-lg); border-bottom-right-radius: var(--radius-lg);">
-      <label style="display: block; font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.5rem;">Category Name <span
-          style="color: var(--danger-color);">*</span></label>
-      <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
-        <input type="text" placeholder="Enter a category name" [(ngModel)]="newManageItemName"
-          (keyup.enter)="saveManageItem()"
-          style="flex: 1; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: var(--radius-sm);">
+      <!-- Header -->
+      <div
+        style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="margin: 0; font-size: 1.125rem;">Confirm Deletion</h3>
+        <button
+          style="background: transparent; border: none; font-size: 1.25rem; cursor: pointer; color: var(--text-muted);"
+          (click)="cancelDeleteManageItem()">✕</button>
       </div>
-      <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
-        <button type="button" class="btn-sm"
-          style="background: transparent; color: var(--text-primary); padding: 0.5rem 1rem; border: 1px solid var(--border-color);"
-          (click)="closeManageModal()">Close</button>
-        <button type="button" class="btn-sm btn-primary" style="padding: 0.5rem 1rem;" (click)="saveManageItem()">✔
-          Save</button>
+
+      <!-- Body -->
+      <div style="padding: 1.5rem;">
+        <p style="margin: 0; color: var(--text-muted); line-height: 1.6;">
+          Are you sure you want to delete <strong style="color: var(--text-main);">{{ itemToDelete.name }}</strong>?
+          This
+          action cannot be undone.
+        </p>
       </div>
+
+      <!-- Footer -->
+      <div
+        style="padding: 1.25rem 1.5rem; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 1rem; background: var(--bg-main); border-bottom-left-radius: var(--radius-lg); border-bottom-right-radius: var(--radius-lg);">
+        <button type="button"
+          style="background: transparent; border: 1px solid var(--border-color); color: var(--text-main); padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;"
+          (click)="cancelDeleteManageItem()">Cancel</button>
+        <button type="button"
+          style="background: #ef4444; border: 1px solid #ef4444; color: #fff; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-weight: 500;"
+          (click)="executeDeleteManageItem()">Yes, Delete</button>
+      </div>
+
     </div>
   </div>
-</div>
-}
-
-<!-- Delete Confirmation Modal for Manage Items -->
-@if (itemToDelete) {
-<div class="modal-backdrop"
-  style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 1060; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
-  <div class="modal-card"
-    style="background: var(--bg-surface); width: 100%; max-width: 450px; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); display: flex; flex-direction: column;">
-
-    <!-- Header -->
-    <div
-      style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
-      <h3 style="margin: 0; font-size: 1.125rem;">Confirm Deletion</h3>
-      <button
-        style="background: transparent; border: none; font-size: 1.25rem; cursor: pointer; color: var(--text-muted);"
-        (click)="cancelDeleteManageItem()">✕</button>
-    </div>
-
-    <!-- Body -->
-    <div style="padding: 1.5rem;">
-      <p style="margin: 0; color: var(--text-muted); line-height: 1.6;">
-        Are you sure you want to delete <strong style="color: var(--text-main);">{{ itemToDelete.name }}</strong>? This
-        action cannot be undone.
-      </p>
-    </div>
-
-    <!-- Footer -->
-    <div
-      style="padding: 1.25rem 1.5rem; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 1rem; background: var(--bg-main); border-bottom-left-radius: var(--radius-lg); border-bottom-right-radius: var(--radius-lg);">
-      <button type="button"
-        style="background: transparent; border: 1px solid var(--border-color); color: var(--text-main); padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;"
-        (click)="cancelDeleteManageItem()">Cancel</button>
-      <button type="button"
-        style="background: #ef4444; border: 1px solid #ef4444; color: #fff; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-weight: 500;"
-        (click)="executeDeleteManageItem()">Yes, Delete</button>
-    </div>
-
-  </div>
-</div>
-}
+  }

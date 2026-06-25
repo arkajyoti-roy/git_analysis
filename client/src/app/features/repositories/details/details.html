@@ -204,10 +204,17 @@
             <td [style.border-bottom]="(api.payload || api.response) ? 'none' : ''" style="font-family: monospace; text-align: left; vertical-align: top;">{{ api.path || 'N/A' }}</td>
             <td [style.border-bottom]="(api.payload || api.response) ? 'none' : ''" style="text-align: left; vertical-align: top;">{{ api.desc || 'No description' }}</td>
           </tr>
-          @if (api.payload || api.response) {
+          <!-- <tr></tr> -->
+          @if (api.payload || api.response || api.headers) {
           <tr style="background: var(--bg-main);">
             <td colspan="3" style="padding: 1rem; text-align: left;">
               <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                 @if (api.headers) {
+                <div style="flex: 1; min-width: 250px;">
+                  <strong style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 0.5rem;">Headers</strong>
+                  <pre style="background: var(--bg-surface); padding: 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); font-family: monospace; font-size: 0.85rem; white-space: pre-wrap; margin: 0; color: var(--text-main);">{{ api.headers }}</pre>
+                </div>
+                }
                 @if (api.payload) {
                 <div style="flex: 1; min-width: 250px;">
                   <strong style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 0.5rem;">Payload</strong>
