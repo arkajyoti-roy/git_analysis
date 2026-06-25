@@ -127,8 +127,11 @@
     <div class="form-group">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
         <label style="margin: 0;">Environment Variables</label>
-        <button type="button" class="btn-sm" style="padding: 0.35rem 0.75rem; font-size: 0.8rem; background: var(--primary-color); border: 1px solid var(--primary-color); color: var(--bg-surface); border-radius: 6px; cursor: pointer; font-weight: 500; display: inline-flex; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.1); transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'" (click)="envFileInput.click()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;">
+        <button type="button" class="btn-sm"
+          style="padding: 0.35rem 0.75rem; font-size: 0.8rem; background: var(--primary-color); border: 1px solid var(--primary-color); color: var(--bg-surface); border-radius: 6px; cursor: pointer; font-weight: 500; display: inline-flex; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.1); transition: opacity 0.2s;"
+          onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'" (click)="envFileInput.click()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            style="margin-right: 6px;">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path>
           </svg>
           Import .env
@@ -147,31 +150,55 @@
       <div
         style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.5rem; margin-bottom: 0.5rem;">
         @for (api of repo_apis; track $index) {
-        <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-surface);">
-          <!-- Top Row: Method, Path, Desc, Remove -->
-          <div style="display: flex; gap: 0.5rem; align-items: flex-start;">
-            <select [(ngModel)]="api.method" [style.color]="getMethodColor(api.method)" style="flex: 0 0 100px;">
-                <option style="color: #0CBB52;" value="GET">GET</option>
-                <option style="color: #FFB400;" value="POST">POST</option>
-                <option style="color: #097BED;" value="PUT">PUT</option>
-                <option style="color: #A359DF;" value="PATCH">PATCH</option>
-                <option style="color: #E05353;" value="DELETE">DELETE</option>
-                <option style="color: #009688;" value="HEAD">HEAD</option>
-                <option style="color: #E15599;" value="OPTIONS">OPTIONS</option>
-            </select>
+       <div
+  style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-surface);">
 
-            <input type="text" placeholder="e.g. /api/users" [(ngModel)]="api.path" style="flex: 1;">
-            <input type="text" placeholder="Description..." [(ngModel)]="api.desc" style="flex: 2;">
-            <button type="button" class="btn-sm" (click)="removeApiRow($index)"
-              style="background: transparent; border: 1px solid var(--border-color); color: var(--danger-color); padding: 0.25rem 0.5rem; font-size: 1rem; cursor: pointer;"
-              title="Remove API">✕</button>
-          </div>
-          <!-- Bottom Row: Payload and Response -->
-          <div style="display: flex; gap: 0.5rem;">
-            <textarea placeholder="Payload (JSON)" [(ngModel)]="api.payload" rows="3" style="flex: 1; font-family: monospace; resize: vertical;"></textarea>
-            <textarea placeholder="Expected Response (JSON)" [(ngModel)]="api.response" rows="3" style="flex: 1; font-family: monospace; resize: vertical;"></textarea>
-          </div>
-        </div>
+  <!-- Top Row: Method, Path, Desc, Remove -->
+  <div style="display: flex; gap: 0.5rem; align-items: flex-start;">
+    
+    <div style="display:flex; flex-direction:column; flex:0 0 100px;">
+      <label>Method</label>
+      <select [(ngModel)]="api.method" [style.color]="getMethodColor(api.method)">
+        <option style="color: #0CBB52;" value="GET">GET</option>
+        <option style="color: #FFB400;" value="POST">POST</option>
+        <option style="color: #097BED;" value="PUT">PUT</option>
+        <option style="color: #A359DF;" value="PATCH">PATCH</option>
+        <option style="color: #E05353;" value="DELETE">DELETE</option>
+        <option style="color: #009688;" value="HEAD">HEAD</option>
+        <option style="color: #E15599;" value="OPTIONS">OPTIONS</option>
+      </select>
+    </div>
+
+    <div style="display:flex; flex-direction:column; flex:1;">
+      <label>Endpoints</label>
+      <input type="text" placeholder="e.g. /api/users" [(ngModel)]="api.path">
+    </div>
+
+    <div style="display:flex; flex-direction:column; flex:2;">
+      <label>Description</label>
+      <input type="text" placeholder="Description..." [(ngModel)]="api.desc">
+    </div>
+
+    <button type="button" class="btn-sm" (click)="removeApiRow($index)"
+      style="background: transparent; border: 1px solid var(--border-color); color: var(--danger-color); padding: 0.25rem 0.5rem; font-size: 1rem; cursor: pointer;"
+      title="Remove API">✕</button>
+  </div>
+
+  <!-- Bottom Row: Payload and Response -->
+  <div style="display: flex; gap: 0.5rem;">
+    <div style="display:flex; flex-direction:column; flex:1;">
+      <label>Payload</label>
+      <textarea placeholder="Payload (JSON)" [(ngModel)]="api.payload" rows="3"
+        style="font-family: monospace; resize: vertical;"></textarea>
+    </div>
+    <div style="display:flex; flex-direction:column; flex:1;">
+      <label>Response</label>
+      <textarea placeholder="Expected Response (JSON)" [(ngModel)]="api.response" rows="3"
+        style="font-family: monospace; resize: vertical;"></textarea>
+    </div>
+  </div>
+</div>
+
         }
         @if (repo_apis.length === 0) {
         <p style="margin: 0 0 0.5rem 0; font-size: 0.85rem; color: var(--text-muted);">No APIs defined yet.</p>
@@ -182,8 +209,11 @@
     <div class="form-group">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
         <label style="margin: 0;">Database Schema</label>
-        <button type="button" class="btn-sm" style="padding: 0.35rem 0.75rem; font-size: 0.8rem; background: var(--primary-color); border: 1px solid var(--primary-color); color: var(--bg-surface); border-radius: 6px; cursor: pointer; font-weight: 500; display: inline-flex; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.1); transition: opacity 0.2s;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'" (click)="sqlFileInput.click()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px;">
+        <button type="button" class="btn-sm"
+          style="padding: 0.35rem 0.75rem; font-size: 0.8rem; background: var(--primary-color); border: 1px solid var(--primary-color); color: var(--bg-surface); border-radius: 6px; cursor: pointer; font-weight: 500; display: inline-flex; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.1); transition: opacity 0.2s;"
+          onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'" (click)="sqlFileInput.click()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            style="margin-right: 6px;">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path>
           </svg>
           Import .sql
@@ -237,12 +267,12 @@
       [(ngModel)]="repo_deployment" rows="5"></textarea>
     <span class="field-hint">Deployment steps for Dev / Staging / Production environments</span>
   </div>
-  
+
   <div class="form-group" style="width: 100%;">
     <label>Documentation</label>
-    <div style="background: var(--bg-surface); border-radius: var(--radius-sm); border: 1px solid var(--border-color); width: 100%;">
-      <quill-editor [(ngModel)]="repo_coding_standards" 
-        [styles]="{height: '640px', width: '100%', display: 'block'}"
+    <div
+      style="background: var(--bg-surface); border-radius: var(--radius-sm); border: 1px solid var(--border-color); width: 100%;">
+      <quill-editor [(ngModel)]="repo_coding_standards" [styles]="{height: '640px', width: '100%', display: 'block'}"
         style="width: 100%; display: block;"
         placeholder="Enter comprehensive documentation, guidelines, standards, and notes here..."></quill-editor>
     </div>
@@ -395,26 +425,37 @@
 
 <!-- Delete Confirmation Modal for Manage Items -->
 @if (itemToDelete) {
-<div class="modal-backdrop" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 1060; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
-  <div class="modal-card" style="background: var(--bg-surface); width: 100%; max-width: 450px; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); display: flex; flex-direction: column;">
-    
+<div class="modal-backdrop"
+  style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 1060; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+  <div class="modal-card"
+    style="background: var(--bg-surface); width: 100%; max-width: 450px; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); display: flex; flex-direction: column;">
+
     <!-- Header -->
-    <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+    <div
+      style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
       <h3 style="margin: 0; font-size: 1.125rem;">Confirm Deletion</h3>
-      <button style="background: transparent; border: none; font-size: 1.25rem; cursor: pointer; color: var(--text-muted);" (click)="cancelDeleteManageItem()">✕</button>
+      <button
+        style="background: transparent; border: none; font-size: 1.25rem; cursor: pointer; color: var(--text-muted);"
+        (click)="cancelDeleteManageItem()">✕</button>
     </div>
 
     <!-- Body -->
     <div style="padding: 1.5rem;">
       <p style="margin: 0; color: var(--text-muted); line-height: 1.6;">
-        Are you sure you want to delete <strong style="color: var(--text-main);">{{ itemToDelete.name }}</strong>? This action cannot be undone.
+        Are you sure you want to delete <strong style="color: var(--text-main);">{{ itemToDelete.name }}</strong>? This
+        action cannot be undone.
       </p>
     </div>
 
     <!-- Footer -->
-    <div style="padding: 1.25rem 1.5rem; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 1rem; background: var(--bg-main); border-bottom-left-radius: var(--radius-lg); border-bottom-right-radius: var(--radius-lg);">
-      <button type="button" style="background: transparent; border: 1px solid var(--border-color); color: var(--text-main); padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;" (click)="cancelDeleteManageItem()">Cancel</button>
-      <button type="button" style="background: #ef4444; border: 1px solid #ef4444; color: #fff; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-weight: 500;" (click)="executeDeleteManageItem()">Yes, Delete</button>
+    <div
+      style="padding: 1.25rem 1.5rem; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 1rem; background: var(--bg-main); border-bottom-left-radius: var(--radius-lg); border-bottom-right-radius: var(--radius-lg);">
+      <button type="button"
+        style="background: transparent; border: 1px solid var(--border-color); color: var(--text-main); padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;"
+        (click)="cancelDeleteManageItem()">Cancel</button>
+      <button type="button"
+        style="background: #ef4444; border: 1px solid #ef4444; color: #fff; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-weight: 500;"
+        (click)="executeDeleteManageItem()">Yes, Delete</button>
     </div>
 
   </div>
