@@ -2,6 +2,8 @@ import { Component, OnInit, AfterViewChecked, ElementRef, ViewChild, OnDestroy }
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
+import { CONFIG } from '../../../config/config';
 import { RepositoryService } from '../../../core/services/repository.service';
 import { ThemeService } from '../../../core/services/theme.service';
 import { ToastService } from '../../../core/services/toast.service';
@@ -17,6 +19,19 @@ import mermaid from 'mermaid';
   styleUrl: './details.css',
 })
 export class Details implements OnInit, OnDestroy {
+  getMethodColor(method: string): string {
+  switch (method.toUpperCase()) {
+    case 'GET': return '#0CBB52';     // Green
+    case 'POST': return '#FFB400';    // Yellow / Gold
+    case 'PUT': return '#097BED';     // Blue
+    case 'PATCH': return '#A359DF';   // Purple
+    case 'DELETE': return '#E05353';  // Red
+    case 'HEAD': return '#009688';    // Teal
+    case 'OPTIONS': return '#E15599'; // Pink
+    default: return '#999999';        // Fallback gray
+  }
+}
+
   activeTab = 'overview';
   repoId: number | null = null;
   repo: any = null;
@@ -24,6 +39,10 @@ export class Details implements OnInit, OnDestroy {
   isDev = false;
   private mermaidRendered = false;
   private pollInterval: any;
+  
+  commit_message = '';
+  selectedBranchId = '';
+  repoBranches: any[] = [];
 
   editorOptions = { 
     theme: 'vs', 
@@ -42,6 +61,11 @@ export class Details implements OnInit, OnDestroy {
   get parsedInstallSteps(): string[] {
     if (!this.repo?.repo_getting_started) return [];
     return String(this.repo.repo_getting_started).split('\n').filter((s: string) => s.trim() !== '');
+  }
+
+  get parsedDeploymentSteps(): string[] {
+    if (!this.repo?.repo_deployment) return [];
+    return String(this.repo.repo_deployment).split('\n').filter((s: string) => s.trim() !== '');
   }
 
   get parsedEnvVars(): {key: string, value: string}[] {
@@ -69,6 +93,7 @@ export class Details implements OnInit, OnDestroy {
   constructor(
     private route: ActivatedRoute,
     private repoService: RepositoryService,
+    private http: HttpClient,
     public themeService: ThemeService,
     private toast: ToastService
   ) {
@@ -93,6 +118,7 @@ export class Details implements OnInit, OnDestroy {
       if (idStr) {
         this.repoId = parseInt(idStr, 10);
         this.fetchRepoDetails(this.repoId);
+        this.fetchBranches(this.repoId);
         
         // Auto reload every 1.5 seconds (1500 ms) as requested
         if (this.pollInterval) clearInterval(this.pollInterval);
@@ -130,6 +156,55 @@ export class Details implements OnInit, OnDestroy {
         if (!isPolling) this.isLoading = false;
       }
     });
+  }
+
+  fetchBranches(id: number) {
+    this.http.get(`${CONFIG.BASE_URL}/branches`).subscribe({
+      next: (res: any) => {
+        const data = Array.isArray(res) ? res : (res.data || []);
+        this.repoBranches = data.filter((item: any) => item.repository_id == id);
+      },
+      error: () => {}
+    });
+  }
+
+  addCommit() {
+    if (!this.commit_message.trim()) {
+      this.toast.error('Commit message cannot be empty');
+      return;
+    }
+    
+    // Construct commit entry
+    const branchName = this.repoBranches.find(b => String(b.id) === String(this.selectedBranchId))?.repo_branch_name || 'main';
+    const commitEntry = `[${branchName}] ${this.commit_message.trim()}`;
+    
+    // Prepare updated array
+    let currentCommits = [];
+    if (this.repo.repo_major_commits) {
+      currentCommits = Array.isArray(this.repo.repo_major_commits) 
+        ? [...this.repo.repo_major_commits] 
+        : typeof this.repo.repo_major_commits === 'string' 
+          ? this.repo.repo_major_commits.split('\n').filter((x: string) => x.trim())
+          : [this.repo.repo_major_commits];
+    }
+    currentCommits.push(commitEntry);
+
+    const payload = {
+      repo_major_commits: currentCommits
+    };
+
+    if (this.repoId) {
+      this.http.put(`${CONFIG.BASE_URL}/repositories/${this.repoId}`, payload).subscribe({
+        next: () => {
+          this.toast.success('Commit added successfully');
+          this.commit_message = '';
+          this.fetchRepoDetails(this.repoId!, true);
+        },
+        error: () => {
+          this.toast.error('Failed to add commit');
+        }
+      });
+    }
   }
 
   onArchitectureTabActive() {

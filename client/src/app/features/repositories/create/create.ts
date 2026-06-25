@@ -17,6 +17,19 @@ import { TitleCasePipe } from '@angular/common';
   styleUrl: './create.css',
 })
 export class Create implements OnInit {
+methodColors: { [key: string]: string } = {
+  GET: '#0CBB52',
+  POST: '#FFB400',
+  PUT: '#097BED',
+  PATCH: '#A359DF',
+  DELETE: '#E05353',
+  HEAD: '#009688',
+  OPTIONS: '#E15599'
+};
+
+getMethodColor(method: string): string {
+  return this.methodColors[method?.toUpperCase()] || '#000000';
+}
 
   // Edit mode
   isEditMode = false;
@@ -56,6 +69,7 @@ export class Create implements OnInit {
   showManageModal = false;
   managingType: 'stack' | 'status' | 'arch' | 'branch' | null = null;
   newManageItemName = '';
+  itemToDelete: any = null;
 
   get modalTitle(): string {
     if (this.managingType === 'stack') return 'Manage Stack';
@@ -317,11 +331,23 @@ export class Create implements OnInit {
     this.newManageItemName = '';
   }
 
-  deleteManageItem(id: number | string) {
+  confirmDeleteManageItem(item: any) {
+    this.itemToDelete = item;
+  }
+
+  cancelDeleteManageItem() {
+    this.itemToDelete = null;
+  }
+
+  executeDeleteManageItem() {
+    if (!this.itemToDelete) return;
+    const id = this.itemToDelete.id;
+    
     if (this.managingType === 'status') {
       this.http.delete(`${CONFIG.BASE_URL}/repo-statuses/${id}`).subscribe({
         next: () => {
           this.toast.success('Status deleted successfully');
+          this.itemToDelete = null;
           this.fetchStatuses();
         },
         error: (err) => this.showError(err)
@@ -330,6 +356,7 @@ export class Create implements OnInit {
       this.http.delete(`${CONFIG.BASE_URL}/repo-stacks/${id}`).subscribe({
         next: () => {
           this.toast.success('Stack deleted successfully');
+          this.itemToDelete = null;
           this.fetchStacks();
         },
         error: (err) => this.showError(err)
@@ -338,6 +365,7 @@ export class Create implements OnInit {
       this.http.delete(`${CONFIG.BASE_URL}/repo-architectures/${id}`).subscribe({
         next: () => {
           this.toast.success('Architecture deleted successfully');
+          this.itemToDelete = null;
           this.fetchArchitectures();
         },
         error: (err) => this.showError(err)
@@ -346,6 +374,7 @@ export class Create implements OnInit {
       this.http.delete(`${CONFIG.BASE_URL}/branches/${id}`).subscribe({
         next: () => {
           this.toast.success('Branch deleted successfully');
+          this.itemToDelete = null;
           this.fetchBranches();
         },
         error: (err) => this.showError(err)

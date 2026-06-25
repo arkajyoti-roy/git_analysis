@@ -23,11 +23,26 @@
           <td style="text-align: center; justify-content: center;">{{ user.emp_id || user.id }}</td>
           <td style="text-align: center; justify-content: center;">{{ user.emp_name || user.name }}</td>
           <td style="text-align: center; justify-content: center;">{{ user.emp_email || user.email }}</td>
-          <td style="text-align: center; justify-content: center;"><span class="role-badge">{{ user.emp_role || user.role }}</span></td>
+          <td style="text-align: center; justify-content: center;">
+            @if (editingUserId === (user.emp_id || user.id)) {
+              <select [(ngModel)]="editingUserRole" style="padding: 4px; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-main); color: var(--text-main);">
+                <option value="admin">Admin</option>
+                <option value="sr-dev">Senior Developer</option>
+                <option value="jr-dev">Junior Developer</option>
+              </select>
+            } @else {
+              <span class="role-badge">{{ user.emp_role || user.role }}</span>
+            }
+          </td>
           <td style="text-align: center; justify-content: center;">
             <div class="action-buttons">
-              <button class="btn-edit">Edit</button>
-              <button class="btn-delete">Delete</button>
+              @if (editingUserId === (user.emp_id || user.id)) {
+                <button class="btn-edit" style="background: #10b981; border-color: #10b981; color: #fff;" (click)="saveEdit(user)">Save</button>
+                <button class="btn-delete" style="background: #6b7280; border-color: #6b7280; color: #fff;" (click)="cancelEdit()">Cancel</button>
+              } @else {
+                <button class="btn-edit" (click)="startEdit(user)">Edit</button>
+                <button class="btn-delete" (click)="confirmDelete(user)">Delete</button>
+              }
             </div>
           </td>
         </tr>
@@ -38,4 +53,31 @@
       }
     </tbody>
   </table>
+}
+
+@if (userToDelete) {
+<div class="modal-backdrop" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+  <div class="modal-card" style="background: var(--bg-surface); width: 100%; max-width: 450px; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); display: flex; flex-direction: column;">
+    
+    <!-- Header -->
+    <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+      <h3 style="margin: 0; font-size: 1.125rem;">Confirm Deletion</h3>
+      <button style="background: transparent; border: none; font-size: 1.25rem; cursor: pointer; color: var(--text-muted);" (click)="cancelDelete()">✕</button>
+    </div>
+
+    <!-- Body -->
+    <div style="padding: 1.5rem;">
+      <p style="margin: 0; color: var(--text-muted); line-height: 1.6;">
+        Are you sure you want to delete <strong style="color: var(--text-main);">{{ userToDelete.emp_name || userToDelete.name }}</strong>? This action cannot be undone.
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <div style="padding: 1.25rem 1.5rem; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 1rem; background: var(--bg-main); border-bottom-left-radius: var(--radius-lg); border-bottom-right-radius: var(--radius-lg);">
+      <button type="button" style="background: transparent; border: 1px solid var(--border-color); color: var(--text-main); padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;" (click)="cancelDelete()">Cancel</button>
+      <button type="button" style="background: #ef4444; border: 1px solid #ef4444; color: #fff; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-weight: 500;" (click)="executeDelete()">Delete User</button>
+    </div>
+
+  </div>
+</div>
 }

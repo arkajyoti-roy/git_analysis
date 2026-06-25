@@ -24,4 +24,12 @@ export class UserService {
   clearCache() {
     this.usersCache$ = null;
   }
+
+  updateUser(id: number, payload: any): Observable<any> {
+    return this.http.put(`${CONFIG.BASE_URL}/users/${id}`, payload);
+  }
+
+  deleteUser(id: number): Observable<any> {
+    return this.http.delete(`${CONFIG.BASE_URL}/users/${id}`);
+  }
 }
