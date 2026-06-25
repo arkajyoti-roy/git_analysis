@@ -9,10 +9,11 @@ import { RepositoryService } from '../../../core/services/repository.service';
 import { UserService } from '../../../core/services/user.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { TitleCasePipe } from '@angular/common';
+import { QuillModule } from 'ngx-quill';
 
 @Component({
   selector: 'app-create',
-  imports: [FormsModule, MonacoEditorModule, RouterLink, TitleCasePipe],
+  imports: [FormsModule, MonacoEditorModule, RouterLink, TitleCasePipe, QuillModule],
   templateUrl: './create.html',
   styleUrl: './create.css',
 })

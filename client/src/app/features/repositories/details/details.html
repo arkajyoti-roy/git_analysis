@@ -11,8 +11,7 @@
     <button [class.active]="activeTab === 'database'" (click)="activeTab='database'">Database</button>
     <button [class.active]="activeTab === 'environment'" (click)="activeTab='environment'">Environment</button>
     <button [class.active]="activeTab === 'deployment'" (click)="activeTab='deployment'">Deployment</button>
-    <button [class.active]="activeTab === 'coding-standards'" (click)="activeTab='coding-standards'">Coding
-      Standards</button>
+    <button [class.active]="activeTab === 'coding-standards'" (click)="activeTab='coding-standards'">Documentation</button>
     <!-- <button [class.active]="activeTab === 'commits'" (click)="activeTab='commits'">Commits</button> -->
   </div>
 
@@ -327,11 +326,11 @@
       <h3>Coding Standards</h3>
       @if (repo.repo_coding_standards) {
       <div
-        style="background: var(--bg-main); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); white-space: pre-wrap; font-family: inherit; line-height: 1.8;">
-        {{ repo.repo_coding_standards }}
+        style="background: var(--bg-main); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); font-family: inherit; line-height: 1.8;"
+        [innerHTML]="repo.repo_coding_standards">
       </div>
       } @else {
-      <p>No coding standards documented.</p>
+      <p>No documentation provided.</p>
       }
       }
     </div>

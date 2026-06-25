@@ -212,21 +212,23 @@
     <span>IDP Documentation</span>
   </div>
 
-  <div class="form-row">
-    <div class="form-group">
-      <label>Deployment Guide</label>
-      <textarea
-        placeholder="## Development&#10;npm run dev&#10;&#10;## Staging&#10;docker-compose up -d&#10;&#10;## Production&#10;kubectl apply -f k8s/"
-        [(ngModel)]="repo_deployment" rows="5"></textarea>
-      <span class="field-hint">Deployment steps for Dev / Staging / Production environments</span>
+  <div class="form-group">
+    <label>Deployment Guide</label>
+    <textarea
+      placeholder="## Development&#10;npm run dev&#10;&#10;## Staging&#10;docker-compose up -d&#10;&#10;## Production&#10;kubectl apply -f k8s/"
+      [(ngModel)]="repo_deployment" rows="5"></textarea>
+    <span class="field-hint">Deployment steps for Dev / Staging / Production environments</span>
+  </div>
+  
+  <div class="form-group" style="width: 100%;">
+    <label>Documentation</label>
+    <div style="background: var(--bg-surface); border-radius: var(--radius-sm); border: 1px solid var(--border-color); width: 100%;">
+      <quill-editor [(ngModel)]="repo_coding_standards" 
+        [styles]="{height: '350px', width: '100%', display: 'block'}"
+        style="width: 100%; display: block;"
+        placeholder="Enter comprehensive documentation, guidelines, standards, and notes here..."></quill-editor>
     </div>
-    <div class="form-group">
-      <label>Coding Standards</label>
-      <textarea
-        placeholder="## Naming Conventions&#10;- camelCase for variables&#10;- PascalCase for classes&#10;&#10;## Folder Structure&#10;- src/features/ — feature modules&#10;- src/core/ — shared services"
-        [(ngModel)]="repo_coding_standards" rows="5"></textarea>
-      <span class="field-hint">Naming conventions, folder structure, error handling patterns</span>
-    </div>
+    <span class="field-hint">General documentation, coding standards, and other important references</span>
   </div>
 
   <div class="form-group">
