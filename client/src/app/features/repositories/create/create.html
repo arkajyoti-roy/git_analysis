@@ -138,30 +138,30 @@
       <div
         style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.5rem; margin-bottom: 0.5rem;">
         @for (api of repo_apis; track $index) {
-        <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem; align-items: flex-start;">
-          <!-- <select [(ngModel)]="api.method" style="flex: 0 0 100px;">
-              <option style="color: #0CBB52;" value="GET">GET</option>
-              <option style="color: #FFB400;" value="POST">POST</option>
-              <option style="color: #097BED;" value="PUT">PUT</option>
-              <option style="color: #A359DF;" value="PATCH">PATCH</option>
-              <option style="color: #E05353;" value="DELETE">DELETE</option>
-              <option style="color: #009688;" value="HEAD">HEAD</option>
-              <option style="color: #E15599;" value="OPTIONS">OPTIONS</option>
-            </select> -->
-          <select [(ngModel)]="api.method" [style.color]="getMethodColor(api.method)" style="flex: 0 0 100px;">
-              <option style="color: #0CBB52;" value="GET">GET</option>
-              <option style="color: #FFB400;" value="POST">POST</option>
-              <option style="color: #097BED;" value="PUT">PUT</option>
-              <option style="color: #A359DF;" value="PATCH">PATCH</option>
-              <option style="color: #E05353;" value="DELETE">DELETE</option>
-              <option style="color: #009688;" value="HEAD">HEAD</option>
-              <option style="color: #E15599;" value="OPTIONS">OPTIONS</option>
-          </select>
+        <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-surface);">
+          <!-- Top Row: Method, Path, Desc, Remove -->
+          <div style="display: flex; gap: 0.5rem; align-items: flex-start;">
+            <select [(ngModel)]="api.method" [style.color]="getMethodColor(api.method)" style="flex: 0 0 100px;">
+                <option style="color: #0CBB52;" value="GET">GET</option>
+                <option style="color: #FFB400;" value="POST">POST</option>
+                <option style="color: #097BED;" value="PUT">PUT</option>
+                <option style="color: #A359DF;" value="PATCH">PATCH</option>
+                <option style="color: #E05353;" value="DELETE">DELETE</option>
+                <option style="color: #009688;" value="HEAD">HEAD</option>
+                <option style="color: #E15599;" value="OPTIONS">OPTIONS</option>
+            </select>
 
-          <input type="text" placeholder="e.g. /api/users" [(ngModel)]="api.path" style="flex: 1;">
-          <input type="text" placeholder="Description..." [(ngModel)]="api.desc" style="flex: 2;">
-          <button type="button" class="btn-sm" (click)="removeApiRow($index)"
-            style="background: #ef4444; border-color: #ef4444; color: white;">✕</button>
+            <input type="text" placeholder="e.g. /api/users" [(ngModel)]="api.path" style="flex: 1;">
+            <input type="text" placeholder="Description..." [(ngModel)]="api.desc" style="flex: 2;">
+            <button type="button" class="btn-sm" (click)="removeApiRow($index)"
+              style="background: transparent; border: 1px solid var(--border-color); color: var(--danger-color); padding: 0.25rem 0.5rem; font-size: 1rem; cursor: pointer;"
+              title="Remove API">✕</button>
+          </div>
+          <!-- Bottom Row: Payload and Response -->
+          <div style="display: flex; gap: 0.5rem;">
+            <textarea placeholder="Payload (JSON)" [(ngModel)]="api.payload" rows="3" style="flex: 1; font-family: monospace; resize: vertical;"></textarea>
+            <textarea placeholder="Expected Response (JSON)" [(ngModel)]="api.response" rows="3" style="flex: 1; font-family: monospace; resize: vertical;"></textarea>
+          </div>
         </div>
         }
         @if (repo_apis.length === 0) {

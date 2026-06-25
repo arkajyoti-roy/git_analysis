@@ -40,7 +40,7 @@ getMethodColor(method: string): string {
   repo_status = '';
   repo_branch = 'main';
   repo_arch = '';
-  repo_apis: { method: string, path: string, desc: string }[] = [];
+  repo_apis: { method: string, path: string, desc: string, payload?: string, response?: string }[] = [];
   repo_schema = '';
   repo_init_author = '';
   repo_init_date = new Date().toISOString().split('T')[0];
@@ -464,7 +464,7 @@ getMethodColor(method: string): string {
   }
 
   addApiRow() {
-    this.repo_apis.push({ method: 'GET', path: '', desc: '' });
+    this.repo_apis.push({ method: 'GET', path: '', desc: '', payload: '', response: '' });
   }
 
   removeApiRow(index: number) {
