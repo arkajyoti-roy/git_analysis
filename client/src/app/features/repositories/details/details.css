@@ -15,6 +15,9 @@
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--border-color);
   height: fit-content;
+  overflow: hidden; 
+  position: sticky;
+  top: 2rem;
 }
 
 .details-sidebar button {

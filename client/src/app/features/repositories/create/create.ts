@@ -259,7 +259,9 @@ getMethodColor(method: string): string {
           this.repo_apis = repo.repo_apis.map((api: any) => ({
             method: api?.method || 'GET',
             path: api?.path || '',
-            desc: api?.desc || ''
+            desc: api?.desc || '',
+            payload: api?.payload || '',
+            response: api?.response || ''
           }));
         } else if (typeof repo.repo_apis === 'string' && repo.repo_apis.trim() !== '') {
           try {
