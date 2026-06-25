@@ -224,7 +224,7 @@
     <label>Documentation</label>
     <div style="background: var(--bg-surface); border-radius: var(--radius-sm); border: 1px solid var(--border-color); width: 100%;">
       <quill-editor [(ngModel)]="repo_coding_standards" 
-        [styles]="{height: '350px', width: '100%', display: 'block'}"
+        [styles]="{height: '640px', width: '100%', display: 'block'}"
         style="width: 100%; display: block;"
         placeholder="Enter comprehensive documentation, guidelines, standards, and notes here..."></quill-editor>
     </div>
@@ -233,7 +233,7 @@
 
   <div class="form-group">
     <label>Architecture Diagram (Mermaid Syntax)</label>
-    <textarea
+    <textarea style="min-height: 350px;"
       placeholder="graph TD&#10;  A[Client] --> B[API Gateway]&#10;  B --> C[Auth Service]&#10;  B --> D[User Service]&#10;  C --> E[(Database)]&#10;  D --> E"
       [(ngModel)]="repo_architecture_diagram" rows="6"></textarea>
     <span class="field-hint">Use <a href='https://mermaid.js.org/syntax/flowchart.html' target='_blank'>Mermaid.js
