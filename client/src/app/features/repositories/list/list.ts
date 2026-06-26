@@ -4,10 +4,11 @@ import { HttpClient } from '@angular/common/http';
 import { CONFIG } from '../../../config/config';
 import { RepositoryService } from '../../../core/services/repository.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-list',
-  imports: [RouterLink],
+  imports: [RouterLink, FormsModule],
   templateUrl: './list.html',
   styleUrl: './list.css',
 })
@@ -15,6 +16,11 @@ export class List implements OnInit, OnDestroy {
   repositories: any[] = [];
   isLoading: boolean = true;
   private pollInterval: any;
+
+  searchQuery = '';
+  currentPage = 1;
+  itemsPerPage = 10;
+  Math = Math;
 
   constructor(private http: HttpClient, private repoService: RepositoryService, private toast: ToastService) {}
 
@@ -44,6 +50,36 @@ export class List implements OnInit, OnDestroy {
         if (!isPolling) this.isLoading = false;
       }
     });
+  }
+
+  get filteredRepos() {
+    let filtered = this.repositories;
+    if (this.searchQuery) {
+      const q = this.searchQuery.toLowerCase();
+      filtered = filtered.filter(r => 
+        (r.repo_name || '').toLowerCase().includes(q) ||
+        (r.repo_stack || '').toLowerCase().includes(q) ||
+        (r.repo_status || '').toLowerCase().includes(q)
+      );
+    }
+    return filtered;
+  }
+
+  get totalPages() {
+    return Math.ceil(this.filteredRepos.length / this.itemsPerPage) || 1;
+  }
+
+  get paginatedRepos() {
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    return this.filteredRepos.slice(startIndex, startIndex + this.itemsPerPage);
+  }
+
+  nextPage() {
+    if (this.currentPage < this.totalPages) this.currentPage++;
+  }
+
+  prevPage() {
+    if (this.currentPage > 1) this.currentPage--;
   }
 
   deleteRepo(id: number) {

@@ -19,6 +19,11 @@ export class List implements OnInit, OnDestroy {
   userToDelete: any = null;
   private pollInterval: any;
 
+  searchQuery = '';
+  currentPage = 1;
+  itemsPerPage = 10;
+  Math = Math;
+
   // Create User Modal State
   showAddUserModal = false;
   emp_name = '';
@@ -63,6 +68,36 @@ export class List implements OnInit, OnDestroy {
         console.error('Error fetching users:', error);
       }
     });
+  }
+
+  get filteredUsers() {
+    let filtered = this.users;
+    if (this.searchQuery) {
+      const q = this.searchQuery.toLowerCase();
+      filtered = filtered.filter(u => 
+        (u.emp_name || u.name || '').toLowerCase().includes(q) ||
+        (u.emp_email || u.email || '').toLowerCase().includes(q) ||
+        (u.emp_id || u.id || '').toString().includes(q)
+      );
+    }
+    return filtered;
+  }
+
+  get totalPages() {
+    return Math.ceil(this.filteredUsers.length / this.itemsPerPage) || 1;
+  }
+
+  get paginatedUsers() {
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    return this.filteredUsers.slice(startIndex, startIndex + this.itemsPerPage);
+  }
+
+  nextPage() {
+    if (this.currentPage < this.totalPages) this.currentPage++;
+  }
+
+  prevPage() {
+    if (this.currentPage > 1) this.currentPage--;
   }
 
   startEdit(user: any) {
