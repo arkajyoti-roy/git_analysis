@@ -185,59 +185,64 @@
         </button>
         }
       </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Method</th>
-            <th>Endpoint</th>
-            <th>Description</th>
-          </tr>
-        </thead> 
-        <tbody>
-          @for(api of parsedApis; track $index) {
-          <tr [style.border-bottom]="(api.payload || api.response) ? 'none' : ''">
-            <td [style.border-bottom]="(api.payload || api.response) ? 'none' : ''" style="vertical-align: top;">
-              <span [style.color]="getMethodColor(api.method || 'GET')" style="font-weight: 600;">
-                {{ api.method || 'GET' }}
-              </span>
-            </td>
-            <td [style.border-bottom]="(api.payload || api.response) ? 'none' : ''" style="font-family: monospace; text-align: left; vertical-align: top;">{{ api.path || 'N/A' }}</td>
-            <td [style.border-bottom]="(api.payload || api.response) ? 'none' : ''" style="text-align: left; vertical-align: top;">{{ api.desc || 'No description' }}</td>
-          </tr>
-          <!-- <tr></tr> -->
-          @if (api.payload || api.response || api.headers) {
-          <tr style="background: var(--bg-main);">
-            <td colspan="3" style="padding: 1rem; text-align: left;">
-              <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                 @if (api.headers) {
-                <div style="flex: 1; min-width: 250px;">
-                  <strong style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 0.5rem;">Headers</strong>
-                  <pre style="background: var(--bg-surface); padding: 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); font-family: monospace; font-size: 0.85rem; white-space: pre-wrap; margin: 0; color: var(--text-main);">{{ api.headers }}</pre>
-                </div>
-                }
-                @if (api.payload) {
-                <div style="flex: 1; min-width: 250px;">
-                  <strong style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 0.5rem;">Payload</strong>
-                  <pre style="background: var(--bg-surface); padding: 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); font-family: monospace; font-size: 0.85rem; white-space: pre-wrap; margin: 0; color: var(--text-main);">{{ api.payload }}</pre>
-                </div>
-                }
-                @if (api.response) {
-                <div style="flex: 1; min-width: 250px;">
-                  <strong style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 0.5rem;">Expected Response</strong>
-                  <pre style="background: var(--bg-surface); padding: 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); font-family: monospace; font-size: 0.85rem; white-space: pre-wrap; margin: 0; color: var(--text-main);">{{ api.response }}</pre>
-                </div>
-                }
+      <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        @for(api of parsedApis; track $index; let i = $index) {
+        <div style="border: 1px solid var(--border-color); border-radius: var(--radius-md); overflow: hidden; background: var(--bg-surface);">
+          
+          <!-- Card Header (Serial, Method, Endpoint) -->
+          <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: var(--bg-main); border-bottom: 1px solid var(--border-color);">
+            <div style="width: 28px; height: 28px; border: 1px solid var(--border-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.85rem; color: black">
+              {{ i + 1 }}
+            </div>
+            <div [style.color]="getMethodColor(api.method || 'GET')" style="font-weight: 700; font-size: 1.1rem; min-width: 80px;">
+              {{ api.method || 'GET' }}
+            </div>
+            <div style="font-family: monospace; font-size: 1.05rem; font-weight: 500; color: var(--text-main); flex: 1;">
+              {{ api.path || 'N/A' }}
+            </div>
+          </div>
+
+          <!-- Card Body -->
+          <div style="padding: 1rem; display: flex; flex-direction: column; gap: 1rem;">
+            
+            <!-- Description -->
+            <div>
+              <strong style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.5px;">Description</strong>
+              <div style="color: var(--text-main);">{{ api.desc || 'No description provided' }}</div>
+            </div>
+
+            <!-- Details Row (Headers, Payload, Response) -->
+            @if (api.payload || api.response || api.headers) {
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 0.5rem; padding-top: 1rem; border-top: 1px dashed var(--border-color);">
+              @if (api.headers) {
+              <div style="flex: 1; min-width: 250px;">
+                <strong style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.5px;">Headers</strong>
+                <pre style="background: var(--bg-main); padding: 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); font-family: monospace; font-size: 0.85rem; white-space: pre-wrap; margin: 0; color: var(--text-main);">{{ api.headers }}</pre>
               </div>
-            </td>
-          </tr>
-          }
-          } @empty {
-          <tr>
-            <td colspan="3" style="text-align: center;">No APIs documented.</td>
-          </tr>
-          }
-        </tbody>
-      </table>
+              }
+              @if (api.payload) {
+              <div style="flex: 1; min-width: 250px;">
+                <strong style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.5px;">Payload</strong>
+                <pre style="background: var(--bg-main); padding: 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); font-family: monospace; font-size: 0.85rem; white-space: pre-wrap; margin: 0; color: var(--text-main);">{{ api.payload }}</pre>
+              </div>
+              }
+              @if (api.response) {
+              <div style="flex: 1; min-width: 250px;">
+                <strong style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.5px;">Expected Response</strong>
+                <pre style="background: var(--bg-main); padding: 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); font-family: monospace; font-size: 0.85rem; white-space: pre-wrap; margin: 0; color: var(--text-main);">{{ api.response }}</pre>
+              </div>
+              }
+            </div>
+            }
+
+          </div>
+        </div>
+        } @empty {
+        <div style="text-align: center; padding: 2rem; background: var(--bg-surface); border: 1px dashed var(--border-color); border-radius: var(--radius-md); color: var(--text-muted);">
+          No APIs documented for this repository.
+        </div>
+        }
+      </div>
       }
 
       @if(activeTab === 'code-snippet') {
