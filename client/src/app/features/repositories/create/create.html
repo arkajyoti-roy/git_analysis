@@ -387,9 +387,20 @@
                 <div style="flex-grow: 1; font-weight: 500;">
                   {{ access.name }}
                 </div>
-                <select [(ngModel)]="access.can" style="padding: 0.25rem 0.5rem; width: auto;">
-                  <option value="view">Viewer (Read-Only)</option>
-                  <option value="edit">Editor (Can Propose Edits)</option>
+                <select [(ngModel)]="access.can" style="padding: 0.25rem 0.5rem; width: auto; min-width: 150px; max-width: 250px;">
+                  <option value="" disabled selected>Select a role...</option>
+                  @for (group of roleOptions; track group.category) {
+                    <optgroup [label]="group.category">
+                      @for (role of group.roles; track role) {
+                        <option [value]="role">{{ role }}</option>
+                      }
+                    </optgroup>
+                  }
+                  <!-- Fallbacks in case API fails or for legacy data -->
+                  @if (roleOptions.length === 0) {
+                    <option value="view">Viewer (Read-Only)</option>
+                    <option value="edit">Editor (Can Propose Edits)</option>
+                  }
                 </select>
                 <button type="button" class="btn-sm"
                   style="background: transparent; color: #ef4444; border-color: #ef4444;"

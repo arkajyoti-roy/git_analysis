@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
+import { forkJoin, of } from 'rxjs';
 import { CONFIG } from '../../../config/config';
 import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
 import { ThemeService } from '../../../core/services/theme.service';
@@ -56,10 +57,11 @@ getMethodColor(method: string): string {
   repo_coding_standards = '';
   repo_architecture_diagram = '';
 
-  repo_access: { emp_id: string, name: string, can: string }[] = [];
+  repo_access: { emp_id: string, name: string, can: string, role_id?: number | null }[] = [];
   repo_maintainer: string = '';
   availableUsers: any[] = [];
   allUsers: any[] = [];
+  roleOptions: { category: string, roles: string[] }[] = [];
 
   activeTab: string = 'basic';
   isSubmitting = false;
@@ -152,6 +154,21 @@ getMethodColor(method: string): string {
     this.fetchArchitectures();
     this.fetchStacks();
     this.fetchBranches();
+    this.fetchRoleOptions();
+  }
+
+  fetchRoleOptions() {
+    this.http.get(`${CONFIG.BASE_URL}/repo-roles/options`).subscribe({
+      next: (res: any) => {
+        if (res.success && res.data) {
+          this.roleOptions = Object.keys(res.data).map(category => ({
+            category,
+            roles: res.data[category]
+          }));
+        }
+      },
+      error: () => {}
+    });
   }
 
   fetchStatuses() {
@@ -379,9 +396,39 @@ getMethodColor(method: string): string {
         // Flatten pivot data if the backend uses Laravel Many-to-Many relationships
         this.repo_access = parsedAccess.map((access: any) => ({
           ...access,
+          role_id: access.pivot?.id || access.id || null,
           name: access.name || access.emp_name || 'Unknown',
-          can: access.can || access.role || access.repo_role || access.access_level || access.pivot?.can || access.pivot?.role || 'view'
+          can: access.role_name || access.can || access.role || access.repo_role || access.access_level || access.pivot?.can || access.pivot?.role || access.pivot?.role_name || 'view'
         }));
+
+        // Fetch exact roles from repo-roles table to ensure accurate role tracking in edit mode
+        this.http.get(`${CONFIG.BASE_URL}/repo-roles`).subscribe({
+          next: (roleRes: any) => {
+            const data = Array.isArray(roleRes) ? roleRes : (roleRes.data || []);
+            const currentRepoRoles = data.filter((r: any) => r.repo_id == id);
+            
+            // Map the actual assigned roles back into the UI state
+            this.repo_access.forEach(access => {
+              const matchedRole = currentRepoRoles.find((r: any) => r.emp_id == (access.emp_id || (access as any).id));
+              if (matchedRole) {
+                access.role_id = matchedRole.id;
+                access.can = matchedRole.role_name;
+              }
+            });
+
+            // Add any missing users that exist in repo-roles but not in the main repo_access array
+            currentRepoRoles.forEach((role: any) => {
+              if (!this.repo_access.some(a => a.emp_id == role.emp_id)) {
+                this.repo_access.push({
+                  emp_id: role.emp_id.toString(),
+                  role_id: role.id,
+                  can: role.role_name,
+                  name: this.allUsers.find(u => u.emp_id == role.emp_id)?.emp_name || 'Unknown'
+                });
+              }
+            });
+          }
+        });
 
         // Handle repo maintainer
         this.repo_maintainer = repo.repo_maintainer ? repo.repo_maintainer.toString() : '';
@@ -553,7 +600,8 @@ getMethodColor(method: string): string {
       this.repo_access.push({
         emp_id: (user.emp_id || user.id).toString(),
         name: user.emp_name || user.name || 'Unknown User',
-        can: 'view' // default
+        can: '', // default empty so they select a role
+        role_id: null
       });
     }
     event.target.value = '';
@@ -598,22 +646,59 @@ getMethodColor(method: string): string {
       repo_deployment: this.repo_deployment,
       repo_coding_standards: this.repo_coding_standards,
       repo_architecture_diagram: this.repo_architecture_diagram,
-      repo_access: this.repo_access.map((a: any) => ({
-        ...a,
-        emp_id: parseInt(a.emp_id, 10),
-        operation: a.can ? a.can.toUpperCase() : 'VIEW'
-      })),
+      repo_access: this.repo_access.map((a: any) => {
+        let category = '';
+        for (const group of this.roleOptions) {
+          if (group.roles.includes(a.can)) {
+            category = group.category;
+            break;
+          }
+        }
+        return {
+          emp_id: parseInt(a.emp_id, 10),
+          role_catagory: category,
+          role_name: a.can
+        };
+      }),
       repo_maintainer: this.repo_maintainer ? parseInt(this.repo_maintainer, 10) : null
     };
 
     if (this.repo_code_snippet) payload.repo_code_snippet = this.repo_code_snippet;
 
     this.http.post(`${CONFIG.BASE_URL}/repositories`, payload).subscribe({
-      next: () => {
-        this.isSubmitting = false;
-        this.toast.success('Repository created successfully!');
-        this.repoService.clearCache();
-        this.router.navigate(['/admin/repositories']);
+      next: (res: any) => {
+        const newRepoId = res.data?.id || res.id;
+        if (newRepoId && payload.repo_access.length > 0) {
+          const requests = this.repo_access.map((a: any) => {
+            let category = '';
+            for (const group of this.roleOptions) {
+              if (group.roles.includes(a.can)) category = group.category;
+            }
+            if (a.role_id) {
+              return this.http.put(`${CONFIG.BASE_URL}/repo-roles/${a.role_id}`, { role_catagory: category, role_name: a.can });
+            } else {
+              return this.http.post(`${CONFIG.BASE_URL}/repo-roles`, { emp_id: a.emp_id, repo_id: newRepoId, branch_id: null, role_catagory: category, role_name: a.can });
+            }
+          });
+
+          forkJoin(requests).subscribe({
+            next: () => {
+              this.isSubmitting = false;
+              this.toast.success('Repository created and roles assigned!');
+              this.repoService.clearCache();
+              this.router.navigate(['/admin/repositories']);
+            },
+            error: (err) => {
+              this.isSubmitting = false;
+              this.showError(err);
+            }
+          });
+        } else {
+          this.isSubmitting = false;
+          this.toast.success('Repository created successfully!');
+          this.repoService.clearCache();
+          this.router.navigate(['/admin/repositories']);
+        }
       },
       error: (err) => {
         this.isSubmitting = false;
@@ -643,11 +728,20 @@ getMethodColor(method: string): string {
       repo_deployment: this.repo_deployment,
       repo_coding_standards: this.repo_coding_standards,
       repo_architecture_diagram: this.repo_architecture_diagram,
-      repo_access: this.repo_access.map((a: any) => ({
-        ...a,
-        emp_id: parseInt(a.emp_id, 10),
-        operation: a.can ? a.can.toUpperCase() : 'VIEW'
-      })),
+      repo_access: this.repo_access.map((a: any) => {
+        let category = '';
+        for (const group of this.roleOptions) {
+          if (group.roles.includes(a.can)) {
+            category = group.category;
+            break;
+          }
+        }
+        return {
+          emp_id: parseInt(a.emp_id, 10),
+          role_catagory: category,
+          role_name: a.can
+        };
+      }),
       repo_maintainer: this.repo_maintainer ? parseInt(this.repo_maintainer, 10) : null
     };
 
@@ -655,10 +749,37 @@ getMethodColor(method: string): string {
 
     this.http.put(`${CONFIG.BASE_URL}/repositories/${this.repoId}`, payload).subscribe({
       next: () => {
-        this.isSubmitting = false;
-        this.toast.success('Repository updated successfully!');
-        this.repoService.clearCache();
-        this.router.navigate(['/admin/repositories', this.repoId]);
+        if (payload.repo_access.length > 0) {
+          const requests = this.repo_access.map((a: any) => {
+            let category = '';
+            for (const group of this.roleOptions) {
+              if (group.roles.includes(a.can)) category = group.category;
+            }
+            if (a.role_id) {
+              return this.http.put(`${CONFIG.BASE_URL}/repo-roles/${a.role_id}`, { role_catagory: category, role_name: a.can });
+            } else {
+              return this.http.post(`${CONFIG.BASE_URL}/repo-roles`, { emp_id: a.emp_id, repo_id: this.repoId, branch_id: null, role_catagory: category, role_name: a.can });
+            }
+          });
+
+          forkJoin(requests).subscribe({
+            next: () => {
+              this.isSubmitting = false;
+              this.toast.success('Repository and roles updated successfully!');
+              this.repoService.clearCache();
+              this.router.navigate(['/admin/repositories', this.repoId]);
+            },
+            error: (err) => {
+              this.isSubmitting = false;
+              this.showError(err);
+            }
+          });
+        } else {
+          this.isSubmitting = false;
+          this.toast.success('Repository updated successfully!');
+          this.repoService.clearCache();
+          this.router.navigate(['/admin/repositories', this.repoId]);
+        }
       },
       error: (err) => {
         this.isSubmitting = false;

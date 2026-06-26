@@ -49,27 +49,22 @@
         <div><strong>Architecture:</strong> {{ repo.repo_arch }}</div>
       </div>
 
-      <h4 style="margin-top: 2rem;">Access Control</h4>
-      @if (repo.repo_access && repo.repo_access.length > 0) {
-      <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem;">
-        @for (access of repo.repo_access; track access.emp_id) {
-        <div
-          style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 0.5rem 1rem; border-radius: 4px; display: flex; align-items: center; gap: 0.5rem;">
-          <div
-            style="width: 24px; height: 24px; background: var(--primary-color); color: #000; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.75rem;">
-            {{ (access.name || access.emp_name || 'U').charAt(0).toUpperCase() }}
+      <h4 style="margin-top: 2rem;">Roles</h4>
+      @if (repoRoles && repoRoles.length > 0) {
+      <div style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.75rem;">
+        @for (role of repoRoles; track role.id) {
+        <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+          <div style="font-weight: 600; font-size: 1.1rem; color: var(--text-main);">
+            {{ getUserName(role.emp_id) }} <span style="font-weight: normal; font-size: 0.95rem; color: var(--text-muted);">({{ role.emp_id }})</span>
           </div>
-          <div>
-            <span style="font-weight: 500;">{{ access.name || access.emp_name || 'Unknown' }}</span>
-            <span class="status-badge"
-              style="font-size: 0.7rem; margin-left: 0.5rem; padding: 0.1rem 0.4rem; background: var(--bg-card); border: 1px solid var(--border-color);">{{
-              access.can === 'edit' ? 'Editor' : 'Viewer' }}</span>
+          <div style="margin-top: 0.25rem; font-size: 1rem; color: var(--text-main);">
+            <strong>Role:</strong> {{ role.role_name }} <span style="color: var(--text-muted);">({{ role.role_catagory }})</span>
           </div>
         </div>
         }
       </div>
       } @else {
-      <p>No specific access rules defined. Admins have default access.</p>
+      <p>No roles defined for this repository.</p>
       }
 
       <h4 style="margin-top: 2rem; color: white;">Known Issues</h4>

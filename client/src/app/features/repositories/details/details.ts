@@ -46,6 +46,7 @@ export class Details implements OnInit, OnDestroy {
   
   allUsers: any[] = [];
   maintainerName: string = 'None';
+  repoRoles: any[] = [];
 
   editorOptions = { 
     theme: 'vs', 
@@ -125,12 +126,14 @@ export class Details implements OnInit, OnDestroy {
         this.repoId = parseInt(idStr, 10);
         this.fetchRepoDetails(this.repoId);
         this.fetchBranches(this.repoId);
+        this.fetchRepoRoles(this.repoId);
         
         // Auto reload every 1.5 seconds (1500 ms) as requested
         if (this.pollInterval) clearInterval(this.pollInterval);
         this.pollInterval = setInterval(() => {
           if (this.repoId) {
             this.fetchRepoDetails(this.repoId, true);
+            this.fetchRepoRoles(this.repoId);
           }
         }, 1500);
       }
@@ -176,6 +179,16 @@ export class Details implements OnInit, OnDestroy {
     });
   }
 
+  fetchRepoRoles(id: number) {
+    this.http.get(`${CONFIG.BASE_URL}/repo-roles`).subscribe({
+      next: (res: any) => {
+        const data = Array.isArray(res) ? res : (res.data || []);
+        this.repoRoles = data.filter((item: any) => item.repo_id == id);
+      },
+      error: () => {}
+    });
+  }
+
   fetchUsers() {
     this.http.get(`${CONFIG.BASE_URL}/users`).subscribe({
       next: (res: any) => {
@@ -196,6 +209,12 @@ export class Details implements OnInit, OnDestroy {
     } else {
       this.maintainerName = `Unknown (ID: ${mId})`;
     }
+  }
+
+  getUserName(empId: any): string {
+    if (!empId || this.allUsers.length === 0) return 'Unknown User';
+    const user = this.allUsers.find(u => (u.emp_id || u.id)?.toString() === String(empId));
+    return user ? (user.emp_name || user.name || 'Unknown User') : 'Unknown User';
   }
 
   addCommit() {
