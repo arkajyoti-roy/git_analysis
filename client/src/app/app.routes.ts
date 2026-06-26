@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 import { Login } from './features/auth/login/login';
 import { Dashboard } from './features/admin/dashboard/dashboard';
-import { Create as UserCreate } from './features/users/create/create';
+
 import { List as UserList } from './features/users/list/list';
 import { AdminLayout } from './shared/admin-layout/admin-layout';
 import { Details as RepoDetails } from './features/repositories/details/details';
@@ -44,10 +44,7 @@ export const routes: Routes = [
         path: 'dashboard',
         component: Dashboard
       },
-      {
-        path: 'users/create',
-        component: UserCreate
-      },
+
       {
         path: 'users',
         component: UserList

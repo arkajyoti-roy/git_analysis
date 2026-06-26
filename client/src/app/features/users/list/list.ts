@@ -1,12 +1,13 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 import { UserService } from '../../../core/services/user.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { Create } from '../create/create';
+import { CONFIG } from '../../../config/config';
 
 @Component({
   selector: 'app-list',
-  imports: [Create, FormsModule],
+  imports: [FormsModule],
   templateUrl: './list.html',
   styleUrl: './list.css',
 })
@@ -18,9 +19,18 @@ export class List implements OnInit, OnDestroy {
   userToDelete: any = null;
   private pollInterval: any;
 
+  // Create User Modal State
+  showAddUserModal = false;
+  emp_name = '';
+  emp_email = '';
+  emp_pass = '';
+  emp_role = '';
+  isCreating = false;
+
   constructor(
     private userService: UserService,
-    private toast: ToastService
+    private toast: ToastService,
+    private http: HttpClient
   ) {}
 
   ngOnInit() {
@@ -107,6 +117,50 @@ export class List implements OnInit, OnDestroy {
         console.error('Error deleting user:', err);
         this.toast.error('Failed to delete user');
         this.userToDelete = null;
+      }
+    });
+  }
+
+  // Create User Methods
+  openAddUserModal() {
+    this.emp_name = '';
+    this.emp_email = '';
+    this.emp_pass = '';
+    this.emp_role = '';
+    this.showAddUserModal = true;
+  }
+
+  closeAddUserModal() {
+    this.showAddUserModal = false;
+  }
+
+  createUser() {
+    if (!this.emp_name || !this.emp_email || !this.emp_pass || !this.emp_role) {
+      this.toast.warning('Please fill all fields');
+      return;
+    }
+
+    this.isCreating = true;
+    const payload = {
+      emp_name: this.emp_name,
+      emp_email: this.emp_email,
+      emp_pass: this.emp_pass,
+      emp_role: this.emp_role
+    };
+
+    this.http.post(`${CONFIG.BASE_URL}/auth/register`, payload).subscribe({
+      next: (response: any) => {
+        this.isCreating = false;
+        if(response.success){
+          this.toast.success('User Created Successfully');
+          this.closeAddUserModal();
+          this.fetchUsers(true);
+        }
+      },
+      error: (error) => {
+        this.isCreating = false;
+        console.error(error);
+        this.toast.error(error?.error?.message || 'Failed To Create User');
       }
     });
   }

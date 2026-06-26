@@ -1,7 +1,6 @@
-<app-create></app-create>
-
-<div class="users-header">
-  <h2>Manage Users</h2>
+<div class="users-header" style="display: flex; justify-content: space-between; align-items: center;">
+  <h2 style="margin: 0;">Manage Users</h2>
+  <button class="btn-primary" (click)="openAddUserModal()" style="padding: 0.5rem 1rem; border-radius: 4px;">+ Add User</button>
 </div>
 
 @if (isLoading) {
@@ -78,6 +77,53 @@
     <div style="padding: 1.25rem 1.5rem; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 1rem; background: var(--bg-main); border-bottom-left-radius: var(--radius-lg); border-bottom-right-radius: var(--radius-lg);">
       <button type="button" style="background: transparent; border: 1px solid var(--border-color); color: var(--text-main); padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;" (click)="cancelDelete()">Cancel</button>
       <button type="button" style="background: #ef4444; border: 1px solid #ef4444; color: #fff; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-weight: 500;" (click)="executeDelete()">Delete User</button>
+    </div>
+
+  </div>
+</div>
+}
+
+@if (showAddUserModal) {
+<div class="modal-backdrop" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+  <div class="modal-card" style="background: var(--bg-surface); width: 100%; max-width: 500px; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); display: flex; flex-direction: column;">
+    
+    <!-- Header -->
+    <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+      <h3 style="margin: 0; font-size: 1.125rem;">Create User</h3>
+      <button style="background: transparent; border: none; font-size: 1.25rem; cursor: pointer; color: var(--text-muted);" (click)="closeAddUserModal()">✕</button>
+    </div>
+
+    <!-- Body -->
+    <div style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+      <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+        <label style="font-weight: 500;">Name</label>
+        <input type="text" placeholder="Full Name" [(ngModel)]="emp_name" style="padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-main); color: var(--text-main);">
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+        <label style="font-weight: 500;">Email</label>
+        <input type="email" placeholder="Email Address" [(ngModel)]="emp_email" style="padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-main); color: var(--text-main);">
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+        <label style="font-weight: 500;">Password</label>
+        <input type="password" placeholder="Password" [(ngModel)]="emp_pass" style="padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-main); color: var(--text-main);">
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+        <label style="font-weight: 500;">Role</label>
+        <select [(ngModel)]="emp_role" style="padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-main); color: var(--text-main);">
+          <option value="" disabled selected>Select Role</option>
+          <option value="admin">Admin</option>
+          <option value="sr-dev">Senior Developer</option>
+          <option value="jr-dev">Junior Developer</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div style="padding: 1.25rem 1.5rem; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 1rem; background: var(--bg-main); border-bottom-left-radius: var(--radius-lg); border-bottom-right-radius: var(--radius-lg);">
+      <button type="button" style="background: transparent; border: 1px solid var(--border-color); color: var(--text-main); padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;" (click)="closeAddUserModal()">Cancel</button>
+      <button type="button" style="background: var(--primary-color); border: 1px solid var(--primary-color); color: var(--bg-surface); padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-weight: 500;" [disabled]="isCreating" (click)="createUser()">
+        {{ isCreating ? 'Creating...' : 'Create User' }}
+      </button>
     </div>
 
   </div>
