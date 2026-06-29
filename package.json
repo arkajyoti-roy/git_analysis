@@ -1,6 +1,6 @@
 {
-  "name": "client",
-  "version": "0.0.0",
+  "name": "RepoLens",
+  "version": "0.0.11",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",

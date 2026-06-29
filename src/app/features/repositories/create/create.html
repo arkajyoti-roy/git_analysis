@@ -31,11 +31,25 @@
       DB & APIs
     </button>
     <button type="button"
+      [style.border-bottom]="activeTab === 'architecture' ? '2px solid var(--primary-color)' : '2px solid transparent'"
+      [style.color]="activeTab === 'architecture' ? 'var(--text-main)' : 'var(--text-muted)'"
+      style="background: transparent; border: none; font-weight: 500; font-size: 1rem; border-radius: 0; cursor: pointer; padding: 0.5rem 0.5rem; white-space: nowrap; transition: 0.2s;"
+      (click)="activeTab = 'architecture'">
+      Architecture Stack
+    </button>
+    <button type="button"
       [style.border-bottom]="activeTab === 'access' ? '2px solid var(--primary-color)' : '2px solid transparent'"
       [style.color]="activeTab === 'access' ? 'var(--text-main)' : 'var(--text-muted)'"
       style="background: transparent; border: none; font-weight: 500; font-size: 1rem; border-radius: 0; cursor: pointer; padding: 0.5rem 0.5rem; white-space: nowrap; transition: 0.2s;"
       (click)="activeTab = 'access'">
       Access Control
+    </button>
+    <button type="button"
+      [style.border-bottom]="activeTab === 'files' ? '2px solid var(--primary-color)' : '2px solid transparent'"
+      [style.color]="activeTab === 'files' ? 'var(--text-main)' : 'var(--text-muted)'"
+      style="background: transparent; border: none; font-weight: 500; font-size: 1rem; border-radius: 0; cursor: pointer; padding: 0.5rem 0.5rem; white-space: nowrap; transition: 0.2s;"
+      (click)="activeTab = 'files'">
+      Docs & Files
     </button>
   </div>
 
@@ -165,15 +179,24 @@
     <div class="form-group">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
         <label style="margin: 0;">Environment Variables</label>
-        <button type="button" class="btn-sm"
-          style="padding: 0.35rem 0.75rem; font-size: 0.8rem; background: var(--primary-color); border: 1px solid var(--primary-color); color: var(--bg-surface); border-radius: 6px; cursor: pointer; font-weight: 500; display: inline-flex; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.1); transition: opacity 0.2s;"
-          onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'" (click)="envFileInput.click()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            style="margin-right: 6px;">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path>
-          </svg>
-          Import .env
-        </button>
+        <div style="display: flex; gap: 0.5rem;">
+          <button type="button" class="btn-sm"
+            style="padding: 0.35rem 0.75rem; font-size: 0.8rem; background: var(--primary-color); border: 1px solid var(--primary-color); color: var(--bg-surface); border-radius: 6px; cursor: pointer; font-weight: 500; display: inline-flex; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.1); transition: opacity 0.2s;"
+            onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'" (click)="envFileInput.click()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              style="margin-right: 6px;">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path>
+            </svg>
+            Import .env
+          </button>
+          <button type="button" class="btn-sm btn-secondary" (click)="downloadEnvFile()"
+            style="padding: 0.35rem 0.75rem; font-size: 0.8rem; border-radius: 6px; cursor: pointer; font-weight: 500; display: inline-flex; align-items: center; gap: 4px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15v-12"/>
+            </svg>
+            Download .env
+          </button>
+        </div>
         <input type="file" #envFileInput style="display: none;" accept=".env" (change)="onEnvFileSelected($event)">
       </div>
       <textarea placeholder="DB_HOST=localhost&#10;DB_PORT=5432&#10;API_KEY=your-key-here" [(ngModel)]="repo_env"
@@ -254,15 +277,24 @@
       <div class="form-group">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
           <label style="margin: 0;">Database Schema</label>
-          <button type="button" class="btn-sm"
-            style="padding: 0.35rem 0.75rem; font-size: 0.8rem; background: var(--primary-color); border: 1px solid var(--primary-color); color: var(--bg-surface); border-radius: 6px; cursor: pointer; font-weight: 500; display: inline-flex; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.1); transition: opacity 0.2s;"
-            onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'" (click)="sqlFileInput.click()">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              style="margin-right: 6px;">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path>
-            </svg>
-            Import .sql
-          </button>
+          <div style="display: flex; gap: 0.5rem;">
+            <button type="button" class="btn-sm"
+              style="padding: 0.35rem 0.75rem; font-size: 0.8rem; background: var(--primary-color); border: 1px solid var(--primary-color); color: var(--bg-surface); border-radius: 6px; cursor: pointer; font-weight: 500; display: inline-flex; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.1); transition: opacity 0.2s;"
+              onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'" (click)="sqlFileInput.click()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                style="margin-right: 6px;">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path>
+              </svg>
+              Import .sql
+            </button>
+            <button type="button" class="btn-sm btn-secondary" (click)="downloadSqlFile()"
+              style="padding: 0.35rem 0.75rem; font-size: 0.8rem; border-radius: 6px; cursor: pointer; font-weight: 500; display: inline-flex; align-items: center; gap: 4px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15v-12"/>
+              </svg>
+              Download .sql
+            </button>
+          </div>
           <input type="file" #sqlFileInput style="display: none;" accept=".sql" (change)="onSqlFileSelected($event)">
         </div>
         <textarea placeholder="e.g. users(id, name, email), orders(id, user_id, total)" [(ngModel)]="repo_schema"
@@ -326,15 +358,6 @@
           placeholder="Enter comprehensive documentation, guidelines, standards, and notes here..."></quill-editor>
       </div>
       <span class="field-hint">General documentation, coding standards, and other important references</span>
-    </div>
-
-    <div class="form-group">
-      <label>Architecture Diagram (Mermaid Syntax)</label>
-      <textarea style="min-height: 350px;"
-        placeholder="graph TD&#10;  A[Client] --> B[API Gateway]&#10;  B --> C[Auth Service]&#10;  B --> D[User Service]&#10;  C --> E[(Database)]&#10;  D --> E"
-        [(ngModel)]="repo_architecture_diagram" rows="6"></textarea>
-      <span class="field-hint">Use <a href='https://mermaid.js.org/syntax/flowchart.html' target='_blank'>Mermaid.js
-          syntax</a> — rendered as a diagram in the Architecture tab</span>
     </div>
 
     }
@@ -417,6 +440,180 @@
       </div>
     </div>
     }
+    @if (activeTab === 'files') {
+    <div style="display: flex; flex-direction: column; gap: 2rem;">
+      <!-- Upload / Stage File Form -->
+      <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; padding: 1.5rem;">
+        <h3 style="margin-top: 0; margin-bottom: 1.5rem; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+          </svg>
+          {{ isEditMode ? 'Upload Document / File' : 'Stage Document / File' }}
+        </h3>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+          <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+              <label style="font-weight: 500; font-size: 0.9rem; color: var(--text-muted);">Choose File</label>
+              <input type="file" id="createRepoFileInput" (change)="onFileSelected($event)"
+                     style="padding: 0.5rem; border: 1px solid var(--border-color); border-radius: var(--radius-sm); background: var(--bg-surface); color: var(--text-main);">
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+              <label style="font-weight: 500; font-size: 0.9rem; color: var(--text-muted);">Display Name</label>
+              <input type="text" [(ngModel)]="newFileName" placeholder="Enter custom display name..."
+                     style="padding: 0.65rem 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-sm); background: var(--bg-surface); color: var(--text-main);">
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <div style="display: flex; flex-direction: column; gap: 0.5rem; height: 100%;">
+              <label style="font-weight: 500; font-size: 0.9rem; color: var(--text-muted);">Description / Purpose</label>
+              <textarea [(ngModel)]="newFileDesc" placeholder="Enter short description of the file..." rows="4"
+                        style="padding: 0.65rem 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-sm); background: var(--bg-surface); color: var(--text-main); height: 100%; resize: none;"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end;">
+          @if (isEditMode) {
+            <button type="button" class="btn-primary" [disabled]="isUploadingFile || !selectedFileToUpload || !newFileName.trim()" (click)="uploadFileDirectly()"
+                    style="padding: 0.65rem 1.5rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.5rem;">
+              <svg *ngIf="isUploadingFile" class="spinner" width="16" height="16" viewBox="0 0 50 50">
+                <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+              </svg>
+              Upload File Directly
+            </button>
+          } @else {
+            <button type="button" class="btn-primary" [disabled]="!selectedFileToUpload || !newFileName.trim()" (click)="stageFile()"
+                    style="padding: 0.65rem 1.5rem; font-weight: 500;">
+              Stage File for Creation
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Existing Files (Edit Mode) or Staged Files (Create Mode) List -->
+      <div>
+        <h3 style="margin-top: 0; margin-bottom: 1.25rem; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+          </svg>
+          {{ isEditMode ? 'Uploaded Files (' + existingFiles.length + ')' : 'Staged Files (' + stagedFiles.length + ')' }}
+        </h3>
+
+        @if (isEditMode) {
+          @if (existingFiles.length > 0) {
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+              @for (file of existingFiles; track file.id) {
+                <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; display: flex; justify-content: space-between; align-items: center; gap: 1.5rem;">
+                  <div style="display: flex; flex-direction: column; gap: 0.35rem; flex: 1;">
+                    <div style="font-weight: 600; font-size: 1.1rem; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
+                      {{ file.file_name }}
+                      <span style="font-weight: normal; font-size: 0.8rem; background: var(--bg-surface); border: 1px solid var(--border-color); padding: 0.1rem 0.4rem; border-radius: 4px; color: var(--text-muted);">
+                        {{ file.original_name }}
+                      </span>
+                    </div>
+                    @if (file.file_description) {
+                      <p style="margin: 0; font-size: 0.95rem; color: var(--text-muted);">{{ file.file_description }}</p>
+                    }
+                    <div style="font-size: 0.8rem; color: var(--text-muted); display: flex; gap: 1.5rem; margin-top: 0.25rem;">
+                      <span><strong>Uploaded By:</strong> {{ file.uploader_name }}</span>
+                    </div>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0;">
+                    <a [href]="file.file_url" target="_blank" class="btn-sm" 
+                       style="background: transparent; color: var(--primary-color); border: 1px solid var(--primary-color); padding: 0.4rem 0.85rem; border-radius: var(--radius-sm); text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;">
+                      Download
+                    </a>
+                    <button type="button" class="btn-sm" (click)="deleteExistingFile(file.id)"
+                            style="background: transparent; color: var(--danger-color); border: 1px solid var(--danger-color); padding: 0.4rem 0.85rem; border-radius: var(--radius-sm); display: inline-flex; align-items: center; gap: 0.35rem;">
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <div style="background: var(--bg-card); border: 1px dashed var(--border-color); border-radius: var(--radius-md); padding: 3rem; text-align: center; color: var(--text-muted);">
+              No files uploaded against this repository yet.
+            </div>
+          }
+        } @else {
+          @if (stagedFiles.length > 0) {
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+              @for (file of stagedFiles; track $index; let i = $index) {
+                <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; display: flex; justify-content: space-between; align-items: center; gap: 1.5rem;">
+                  <div style="display: flex; flex-direction: column; gap: 0.35rem; flex: 1;">
+                    <div style="font-weight: 600; font-size: 1.1rem; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
+                      {{ file.name }}
+                      <span style="font-weight: normal; font-size: 0.8rem; background: var(--bg-surface); border: 1px solid var(--border-color); padding: 0.1rem 0.4rem; border-radius: 4px; color: var(--text-muted);">
+                        {{ file.file.name }}
+                      </span>
+                    </div>
+                    @if (file.desc) {
+                      <p style="margin: 0; font-size: 0.95rem; color: var(--text-muted);">{{ file.desc }}</p>
+                    }
+                  </div>
+                  <div style="display: flex; align-items: center; flex-shrink: 0;">
+                    <button type="button" class="btn-sm" (click)="unstageFile(i)"
+                            style="background: transparent; color: var(--danger-color); border: 1px solid var(--danger-color); padding: 0.4rem 0.85rem; border-radius: var(--radius-sm);">
+                      Remove Staged
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <div style="background: var(--bg-card); border: 1px dashed var(--border-color); border-radius: var(--radius-md); padding: 3rem; text-align: center; color: var(--text-muted);">
+              No files staged for upload yet. Staged files will upload automatically once the repository is created.
+            </div>
+          }
+        }
+      </div>
+    </div>
+    }
+
+    @if (activeTab === 'architecture') {
+    <div style="display: flex; flex-direction: column; gap: 2rem;">
+      <!-- Interactive Excalidraw Whiteboard (Edit Mode Only) -->
+      <div>
+        <h3 style="margin-top: 0; margin-bottom: 1rem; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+          </svg>
+          Interactive Drawboard
+        </h3>
+        
+        @if (isEditMode) {
+          <div *ngIf="whiteboardUrl" 
+               style="width: 100%; height: 65vh; border: 1px solid var(--border-color); border-radius: var(--radius-md); overflow: hidden; background: #121212; box-shadow: var(--shadow-md);">
+            <iframe [src]="whiteboardUrl" style="width: 100%; height: 100%; border: none;"></iframe>
+          </div>
+        } @else {
+          <div style="background: var(--bg-card); border: 1px dashed var(--border-color); border-radius: var(--radius-md); padding: 3rem; text-align: center; color: var(--text-muted);">
+            Interactive whiteboard drawboard is available after the repository is created. You can define the Mermaid.js system flowchart syntax below in the meantime.
+          </div>
+        }
+      </div>
+
+      <!-- Mermaid Flowchart Editor -->
+      <div class="form-group">
+        <h3 style="margin-top: 0; margin-bottom: 0.5rem; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+          System Diagram (Mermaid Syntax)
+        </h3>
+        <textarea style="min-height: 250px; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-sm); background: var(--bg-card); color: var(--text-main); font-family: monospace;"
+          placeholder="graph TD&#10;  A[Client] --> B[API Gateway]&#10;  B --> C[Auth Service]&#10;  B --> D[User Service]&#10;  C --> E[(Database)]&#10;  D --> E"
+          [(ngModel)]="repo_architecture_diagram" rows="6"></textarea>
+        <span class="field-hint">Use <a href='https://mermaid.js.org/syntax/flowchart.html' target='_blank'>Mermaid.js syntax</a> — rendered as a diagram in the repository details view.</span>
+      </div>
+    </div>
+    }
+
     <div class="form-actions" style="margin-top: 2rem; display: flex; justify-content: flex-start; gap: 15px;">
       <button type="button" class="btn-secondary" routerLink="/admin/repositories">Cancel</button>
       <button type="button" class="btn-primary" (click)="submitRepo()" [disabled]="isSubmitting">

@@ -1,0 +1,143 @@
+.repo-details-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding: 1rem 0.5rem;
+}
+
+.repo-details-container {
+  display: flex;
+  gap: 2rem;
+  padding: 1rem 0;
+}
+
+.details-sidebar {
+  width: 250px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background: var(--bg-surface);
+  padding: 1.5rem;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  height: fit-content;
+  overflow: hidden; 
+}
+
+.details-sidebar button {
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid transparent;
+  justify-content: flex-start;
+  padding: 0.75rem 1rem;
+  box-shadow: none;
+}
+
+.details-sidebar button:hover {
+  background: var(--bg-main);
+  color: var(--text-primary);
+}
+
+.details-sidebar button.active {
+  background: var(--primary-color);
+  color: white;
+}
+
+.details-content {
+  flex: 1;
+  background: var(--bg-surface);
+  padding: 1.5rem 2.5rem;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+}
+
+/* Desktop Fixed Header & Sidebar + Scrollable Content Card Layout */
+@media (min-width: 1024px) {
+  .repo-details-container {
+    height: calc(100vh - 190px);
+    overflow: hidden; /* Prevent page-level scrollbars */
+  }
+
+  .dev-container {
+    height: calc(100vh - 250px);
+  }
+
+  .details-content {
+    overflow-y: auto;
+    height: 100%;
+  }
+
+  .repo-details-header {
+    position: relative;
+    top: 0;
+    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+  }
+
+  .repo-details-header.dev-header {
+    top: 0; /* No offset needed since it doesn't stick */
+  }
+
+  .details-sidebar {
+    position: relative;
+    top: 0;
+    height: 100%; /* Match height of container */
+  }
+
+  .dev-container .details-sidebar {
+    top: 0;
+  }
+}
+
+.details-content h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--border-color);
+  margin: 1.5rem 0;
+}
+
+.tab-content h3 {
+  font-size: 1.125rem;
+  margin-bottom: 1rem;
+}
+
+/* Spinner for file upload progress */
+.spinner {
+  animation: rotate 2s linear infinite;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.spinner .path {
+  stroke: currentColor;
+  stroke-linecap: round;
+  animation: dash 1.5s ease-in-out infinite;
+}
+
+@keyframes rotate {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes dash {
+  0% {
+    stroke-dasharray: 1, 150;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -35;
+  }
+  100% {
+    stroke-dasharray: 90, 150;
+    stroke-dashoffset: -124;
+  }
+}

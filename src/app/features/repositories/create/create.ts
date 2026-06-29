@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
@@ -9,12 +10,12 @@ import { ThemeService } from '../../../core/services/theme.service';
 import { RepositoryService } from '../../../core/services/repository.service';
 import { UserService } from '../../../core/services/user.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { TitleCasePipe } from '@angular/common';
+import { TitleCasePipe, NgIf } from '@angular/common';
 import { QuillModule } from 'ngx-quill';
 
 @Component({
   selector: 'app-create',
-  imports: [FormsModule, MonacoEditorModule, RouterLink, TitleCasePipe, QuillModule],
+  imports: [FormsModule, MonacoEditorModule, RouterLink, TitleCasePipe, QuillModule, NgIf],
   templateUrl: './create.html',
   styleUrl: './create.css',
 })
@@ -57,7 +58,7 @@ getMethodColor(method: string): string {
   repo_coding_standards = '';
   repo_architecture_diagram = '';
 
-  repo_access: { emp_id: string, name: string, can: string, role_id?: number | null }[] = [];
+  repo_access: { emp_id: string, name: string, can: string, role_id?: number | null, role_catagory?: string }[] = [];
   repo_maintainer: string = '';
   availableUsers: any[] = [];
   allUsers: any[] = [];
@@ -65,6 +66,17 @@ getMethodColor(method: string): string {
 
   activeTab: string = 'basic';
   isSubmitting = false;
+
+  // Files & Docs staging properties
+  stagedFiles: { file: File, name: string, desc: string }[] = [];
+  existingFiles: any[] = [];
+  newFileName = '';
+  newFileDesc = '';
+  selectedFileToUpload: File | null = null;
+  isUploadingFile = false;
+
+  // Whiteboard property
+  whiteboardUrl: SafeResourceUrl | null = null;
 
   // Dynamic options tracking (will come from DB)
   stackOptions: { id: number | string, name: string }[] = [];
@@ -128,7 +140,8 @@ getMethodColor(method: string): string {
     public themeService: ThemeService,
     private repoService: RepositoryService,
     private userService: UserService,
-    private toast: ToastService
+    private toast: ToastService,
+    private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit() {
@@ -144,6 +157,7 @@ getMethodColor(method: string): string {
         this.isEditMode = true;
         this.repoId = parseInt(idStr, 10);
         this.loadRepoData(this.repoId);
+        this.fetchExistingFiles(this.repoId);
       } else {
         this.repo_init_author = localStorage.getItem('emp_name') || localStorage.getItem('admin_name') || '';
       }
@@ -313,6 +327,11 @@ getMethodColor(method: string): string {
     this.repoService.getRepositoryById(id).subscribe({
       next: (res: any) => {
         const repo = res.data || res;
+        
+        // Generate sanitized whiteboard URL
+        const rawUrl = `${CONFIG.BASE_URL.replace('/api', '')}/whiteboard.html?repo_id=${id}&token=${localStorage.getItem('token')}&theme=${this.themeService.isDarkMode ? 'dark' : 'light'}`;
+        this.whiteboardUrl = this.sanitizer.bypassSecurityTrustResourceUrl(rawUrl);
+
         this.repo_name = repo.repo_name || '';
         this.repo_status = repo.repo_status || 'Development Env';
         // Add status to list if it's custom
@@ -398,6 +417,7 @@ getMethodColor(method: string): string {
           ...access,
           role_id: access.pivot?.id || access.id || null,
           name: access.name || access.emp_name || 'Unknown',
+          role_catagory: access.role_catagory || access.pivot?.role_catagory || null,
           can: access.role_name || access.can || access.role || access.repo_role || access.access_level || access.pivot?.can || access.pivot?.role || access.pivot?.role_name || 'view'
         }));
 
@@ -413,6 +433,7 @@ getMethodColor(method: string): string {
               if (matchedRole) {
                 access.role_id = matchedRole.id;
                 access.can = matchedRole.role_name;
+                access.role_catagory = matchedRole.role_catagory;
               }
             });
 
@@ -423,6 +444,7 @@ getMethodColor(method: string): string {
                   emp_id: role.emp_id.toString(),
                   role_id: role.id,
                   can: role.role_name,
+                  role_catagory: role.role_catagory,
                   name: this.allUsers.find(u => u.emp_id == role.emp_id)?.emp_name || 'Unknown'
                 });
               }
@@ -647,20 +669,23 @@ getMethodColor(method: string): string {
       repo_coding_standards: this.repo_coding_standards,
       repo_architecture_diagram: this.repo_architecture_diagram,
       repo_access: this.repo_access.map((a: any) => {
-        let category = '';
+        let category = a.role_catagory || '';
         for (const group of this.roleOptions) {
           if (group.roles.includes(a.can)) {
             category = group.category;
             break;
           }
         }
+        if (!category) {
+          category = 'Management';
+        }
         return {
-          emp_id: parseInt(a.emp_id, 10),
+          emp_id: a.emp_id,
           role_catagory: category,
           role_name: a.can
         };
       }),
-      repo_maintainer: this.repo_maintainer ? parseInt(this.repo_maintainer, 10) : null
+      repo_maintainer: this.repo_maintainer || null
     };
 
     if (this.repo_code_snippet) payload.repo_code_snippet = this.repo_code_snippet;
@@ -668,41 +693,154 @@ getMethodColor(method: string): string {
     this.http.post(`${CONFIG.BASE_URL}/repositories`, payload).subscribe({
       next: (res: any) => {
         const newRepoId = res.data?.id || res.id;
-        if (newRepoId && payload.repo_access.length > 0) {
-          const requests = this.repo_access.map((a: any) => {
-            let category = '';
-            for (const group of this.roleOptions) {
-              if (group.roles.includes(a.can)) category = group.category;
-            }
-            if (a.role_id) {
-              return this.http.put(`${CONFIG.BASE_URL}/repo-roles/${a.role_id}`, { role_catagory: category, role_name: a.can });
-            } else {
-              return this.http.post(`${CONFIG.BASE_URL}/repo-roles`, { emp_id: a.emp_id, repo_id: newRepoId, branch_id: null, role_catagory: category, role_name: a.can });
-            }
-          });
-
-          forkJoin(requests).subscribe({
-            next: () => {
-              this.isSubmitting = false;
-              this.toast.success('Repository created and roles assigned!');
-              this.repoService.clearCache();
-              this.router.navigate(['/admin/repositories']);
-            },
-            error: (err) => {
-              this.isSubmitting = false;
-              this.showError(err);
-            }
-          });
+        if (newRepoId) {
+          this.uploadStagedFilesAndAssignRoles(newRepoId);
         } else {
           this.isSubmitting = false;
-          this.toast.success('Repository created successfully!');
-          this.repoService.clearCache();
-          this.router.navigate(['/admin/repositories']);
+          this.toast.error('Failed to resolve new repository ID.');
         }
       },
       error: (err) => {
         this.isSubmitting = false;
         this.showError(err);
+      }
+    });
+  }
+
+  uploadStagedFilesAndAssignRoles(newRepoId: number) {
+    const fileUploadRequests = this.stagedFiles.map(sf => {
+      const formData = new FormData();
+      formData.append('file', sf.file);
+      formData.append('file_name', sf.name);
+      formData.append('file_description', sf.desc);
+      return this.http.post(`${CONFIG.BASE_URL}/repositories/${newRepoId}/files`, formData);
+    });
+
+    const roleRequests = this.repo_access
+      .filter((a: any) => {
+        // Only create roles that are in the configured categories
+        return this.roleOptions.some(group => group.roles.includes(a.can));
+      })
+      .map((a: any) => {
+        let category = '';
+        for (const group of this.roleOptions) {
+          if (group.roles.includes(a.can)) {
+            category = group.category;
+            break;
+          }
+        }
+        return this.http.post(`${CONFIG.BASE_URL}/repo-roles`, { emp_id: a.emp_id, repo_id: newRepoId, branch_id: null, role_catagory: category, role_name: a.can });
+      });
+
+    const allRequests = [...fileUploadRequests, ...roleRequests];
+
+    if (allRequests.length > 0) {
+      forkJoin(allRequests).subscribe({
+        next: () => {
+          this.isSubmitting = false;
+          this.toast.success('Repository created, roles assigned, and files uploaded!');
+          this.repoService.clearCache();
+          this.router.navigate(['/admin/repositories']);
+        },
+        error: (err) => {
+          this.isSubmitting = false;
+          this.showError(err);
+        }
+      });
+    } else {
+      this.isSubmitting = false;
+      this.toast.success('Repository created successfully!');
+      this.repoService.clearCache();
+      this.router.navigate(['/admin/repositories']);
+    }
+  }
+
+  fetchExistingFiles(id: number) {
+    this.http.get(`${CONFIG.BASE_URL}/repositories/${id}/files`).subscribe({
+      next: (res: any) => {
+        this.existingFiles = res.data || [];
+      },
+      error: (err) => {
+        console.error('Failed to fetch existing files', err);
+      }
+    });
+  }
+
+  onFileSelected(event: any) {
+    const file: File = event.target.files[0];
+    if (file) {
+      this.selectedFileToUpload = file;
+      if (!this.newFileName.trim()) {
+        const dotIndex = file.name.lastIndexOf('.');
+        this.newFileName = dotIndex !== -1 ? file.name.substring(0, dotIndex) : file.name;
+      }
+    }
+  }
+
+  stageFile() {
+    if (!this.selectedFileToUpload || !this.newFileName.trim()) {
+      this.toast.warning('Please select a file and enter a name.');
+      return;
+    }
+    this.stagedFiles.push({
+      file: this.selectedFileToUpload,
+      name: this.newFileName.trim(),
+      desc: this.newFileDesc.trim()
+    });
+    this.newFileName = '';
+    this.newFileDesc = '';
+    this.selectedFileToUpload = null;
+    const fileInput = document.getElementById('createRepoFileInput') as HTMLInputElement;
+    if (fileInput) fileInput.value = '';
+    this.toast.success('File staged for upload!');
+  }
+
+  unstageFile(index: number) {
+    this.stagedFiles.splice(index, 1);
+    this.toast.success('File removed from staged list.');
+  }
+
+  uploadFileDirectly() {
+    if (!this.repoId || !this.selectedFileToUpload || !this.newFileName.trim()) {
+      this.toast.warning('Please select a file and enter a name.');
+      return;
+    }
+
+    this.isUploadingFile = true;
+    const formData = new FormData();
+    formData.append('file', this.selectedFileToUpload);
+    formData.append('file_name', this.newFileName.trim());
+    formData.append('file_description', this.newFileDesc.trim());
+
+    this.http.post(`${CONFIG.BASE_URL}/repositories/${this.repoId}/files`, formData).subscribe({
+      next: (res: any) => {
+        this.isUploadingFile = false;
+        this.toast.success('File uploaded successfully!');
+        this.newFileName = '';
+        this.newFileDesc = '';
+        this.selectedFileToUpload = null;
+        const fileInput = document.getElementById('createRepoFileInput') as HTMLInputElement;
+        if (fileInput) fileInput.value = '';
+        this.fetchExistingFiles(this.repoId!);
+      },
+      error: (err) => {
+        this.isUploadingFile = false;
+        this.showError(err);
+      }
+    });
+  }
+
+  deleteExistingFile(fileId: number) {
+    if (!confirm('Are you sure you want to delete this file?')) return;
+
+    this.http.delete(`${CONFIG.BASE_URL}/repo-files/${fileId}`).subscribe({
+      next: () => {
+        this.toast.success('File deleted successfully!');
+        if (this.repoId) this.fetchExistingFiles(this.repoId);
+      },
+      error: (err) => {
+        console.error('Failed to delete file', err);
+        this.toast.error(err.error?.message || 'Failed to delete file.');
       }
     });
   }
@@ -729,20 +867,23 @@ getMethodColor(method: string): string {
       repo_coding_standards: this.repo_coding_standards,
       repo_architecture_diagram: this.repo_architecture_diagram,
       repo_access: this.repo_access.map((a: any) => {
-        let category = '';
+        let category = a.role_catagory || '';
         for (const group of this.roleOptions) {
           if (group.roles.includes(a.can)) {
             category = group.category;
             break;
           }
         }
+        if (!category) {
+          category = 'Management';
+        }
         return {
-          emp_id: parseInt(a.emp_id, 10),
+          emp_id: a.emp_id,
           role_catagory: category,
           role_name: a.can
         };
       }),
-      repo_maintainer: this.repo_maintainer ? parseInt(this.repo_maintainer, 10) : null
+      repo_maintainer: this.repo_maintainer || null
     };
 
     if (this.repo_code_snippet) payload.repo_code_snippet = this.repo_code_snippet;
@@ -750,30 +891,45 @@ getMethodColor(method: string): string {
     this.http.put(`${CONFIG.BASE_URL}/repositories/${this.repoId}`, payload).subscribe({
       next: () => {
         if (payload.repo_access.length > 0) {
-          const requests = this.repo_access.map((a: any) => {
-            let category = '';
-            for (const group of this.roleOptions) {
-              if (group.roles.includes(a.can)) category = group.category;
-            }
-            if (a.role_id) {
-              return this.http.put(`${CONFIG.BASE_URL}/repo-roles/${a.role_id}`, { role_catagory: category, role_name: a.can });
-            } else {
-              return this.http.post(`${CONFIG.BASE_URL}/repo-roles`, { emp_id: a.emp_id, repo_id: this.repoId, branch_id: null, role_catagory: category, role_name: a.can });
-            }
-          });
+          const requests = this.repo_access
+            .filter((a: any) => {
+              // Only update roles that are in the configured categories
+              return this.roleOptions.some(group => group.roles.includes(a.can));
+            })
+            .map((a: any) => {
+              let category = '';
+              for (const group of this.roleOptions) {
+                if (group.roles.includes(a.can)) {
+                  category = group.category;
+                  break;
+                }
+              }
+              if (a.role_id) {
+                return this.http.put(`${CONFIG.BASE_URL}/repo-roles/${a.role_id}`, { role_catagory: category, role_name: a.can });
+              } else {
+                return this.http.post(`${CONFIG.BASE_URL}/repo-roles`, { emp_id: a.emp_id, repo_id: this.repoId, branch_id: null, role_catagory: category, role_name: a.can });
+              }
+            });
 
-          forkJoin(requests).subscribe({
-            next: () => {
-              this.isSubmitting = false;
-              this.toast.success('Repository and roles updated successfully!');
-              this.repoService.clearCache();
-              this.router.navigate(['/admin/repositories', this.repoId]);
-            },
-            error: (err) => {
-              this.isSubmitting = false;
-              this.showError(err);
-            }
-          });
+          if (requests.length > 0) {
+            forkJoin(requests).subscribe({
+              next: () => {
+                this.isSubmitting = false;
+                this.toast.success('Repository and roles updated successfully!');
+                this.repoService.clearCache();
+                this.router.navigate(['/admin/repositories', this.repoId]);
+              },
+              error: (err) => {
+                this.isSubmitting = false;
+                this.showError(err);
+              }
+            });
+          } else {
+            this.isSubmitting = false;
+            this.toast.success('Repository updated successfully!');
+            this.repoService.clearCache();
+            this.router.navigate(['/admin/repositories', this.repoId]);
+          }
         } else {
           this.isSubmitting = false;
           this.toast.success('Repository updated successfully!');
@@ -786,6 +942,36 @@ getMethodColor(method: string): string {
         this.showError(err);
       }
     });
+  }
+
+  downloadEnvFile() {
+    if (!this.repo_env || !this.repo_env.trim()) {
+      this.toast.warning('No environment variables to download.');
+      return;
+    }
+    const blob = new Blob([this.repo_env], { type: 'text/plain;charset=utf-8' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = '.env';
+    link.click();
+    window.URL.revokeObjectURL(url);
+    this.toast.success('.env file downloaded successfully');
+  }
+
+  downloadSqlFile() {
+    if (!this.repo_schema || !this.repo_schema.trim()) {
+      this.toast.warning('No database schema to download.');
+      return;
+    }
+    const blob = new Blob([this.repo_schema], { type: 'text/plain;charset=utf-8' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'schema.sql';
+    link.click();
+    window.URL.revokeObjectURL(url);
+    this.toast.success('Database schema (.sql) downloaded successfully');
   }
 
   private showError(err: any) {

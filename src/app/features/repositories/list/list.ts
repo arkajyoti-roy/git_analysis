@@ -82,17 +82,30 @@ export class List implements OnInit, OnDestroy {
     if (this.currentPage > 1) this.currentPage--;
   }
 
-  deleteRepo(id: number) {
-    if (confirm('Are you sure you want to delete this repository?')) {
-      this.http.delete(`${CONFIG.BASE_URL}/repositories/${id}`).subscribe({
-        next: () => {
-          this.repositories = this.repositories.filter(r => r.id !== id);
-          this.repoService.clearCache();
-        },
-        error: () => {
-          this.toast.error('Error deleting repository');
-        }
-      });
-    }
+  repoToDelete: any = null;
+
+  confirmDelete(repo: any) {
+    this.repoToDelete = repo;
+  }
+
+  cancelDelete() {
+    this.repoToDelete = null;
+  }
+
+  executeDelete() {
+    if (!this.repoToDelete) return;
+    const id = this.repoToDelete.id;
+    this.http.delete(`${CONFIG.BASE_URL}/repositories/${id}`).subscribe({
+      next: () => {
+        this.repositories = this.repositories.filter(r => r.id !== id);
+        this.repoService.clearCache();
+        this.repoToDelete = null;
+        this.toast.success('Repository deleted successfully');
+      },
+      error: () => {
+        this.toast.error('Error deleting repository');
+        this.repoToDelete = null;
+      }
+    });
   }
 }

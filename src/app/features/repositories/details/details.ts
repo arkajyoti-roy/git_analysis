@@ -1,4 +1,5 @@
 import { Component, OnInit, AfterViewChecked, ElementRef, ViewChild, OnDestroy } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -48,6 +49,16 @@ export class Details implements OnInit, OnDestroy {
   maintainerName: string = 'None';
   repoRoles: any[] = [];
 
+  // Files & Docs feature properties
+  repoFiles: any[] = [];
+  newFileName = '';
+  newFileDesc = '';
+  selectedFileToUpload: File | null = null;
+  isUploadingFile = false;
+
+  // Whiteboard property
+  whiteboardUrl: SafeResourceUrl | null = null;
+
   editorOptions = { 
     theme: 'vs', 
     language: 'javascript', 
@@ -94,14 +105,13 @@ export class Details implements OnInit, OnDestroy {
     }
   }
 
-
-
   constructor(
     private route: ActivatedRoute,
     private repoService: RepositoryService,
     private http: HttpClient,
     public themeService: ThemeService,
-    private toast: ToastService
+    private toast: ToastService,
+    private sanitizer: DomSanitizer
   ) {
     mermaid.initialize({ 
       startOnLoad: false, 
@@ -127,6 +137,7 @@ export class Details implements OnInit, OnDestroy {
         this.fetchRepoDetails(this.repoId);
         this.fetchBranches(this.repoId);
         this.fetchRepoRoles(this.repoId);
+        this.fetchRepoFiles(this.repoId);
         
         // Auto reload every 1.5 seconds (1500 ms) as requested
         if (this.pollInterval) clearInterval(this.pollInterval);
@@ -155,7 +166,11 @@ export class Details implements OnInit, OnDestroy {
         this.isLoading = false;
         
         this.updateMaintainerName();
-        
+        // Generate sanitized whiteboard URL only once to avoid iframe reloads during polling
+        if (!this.whiteboardUrl) {
+          const rawUrl = `${CONFIG.BASE_URL.replace('/api', '')}/whiteboard.html?repo_id=${id}&token=${localStorage.getItem('token')}&theme=${this.themeService.isDarkMode ? 'dark' : 'light'}`;
+          this.whiteboardUrl = this.sanitizer.bypassSecurityTrustResourceUrl(rawUrl);
+        }
         if (oldDiagram !== this.repo.repo_architecture_diagram) {
           this.mermaidRendered = false;
           if (this.activeTab === 'architecture') {
@@ -333,5 +348,106 @@ export class Details implements OnInit, OnDestroy {
     if (!this.parsedApis || this.parsedApis.length === 0) return;
     const text = this.parsedApis.map(api => `[${api.method || 'GET'}] ${api.path || 'N/A'}\nDescription: ${api.desc || 'No description'}`).join('\n\n');
     this.copyToClipboard(text);
+  }
+
+  // Files & Docs feature methods
+  fetchRepoFiles(id: number) {
+    this.http.get(`${CONFIG.BASE_URL}/repositories/${id}/files`).subscribe({
+      next: (res: any) => {
+        this.repoFiles = res.data || [];
+      },
+      error: (err) => {
+        console.error('Failed to fetch files', err);
+      }
+    });
+  }
+
+  onFileSelected(event: any) {
+    const file: File = event.target.files[0];
+    if (file) {
+      this.selectedFileToUpload = file;
+      if (!this.newFileName.trim()) {
+        // Pre-populate name with the file's original name without extension (cleaner)
+        const dotIndex = file.name.lastIndexOf('.');
+        this.newFileName = dotIndex !== -1 ? file.name.substring(0, dotIndex) : file.name;
+      }
+    }
+  }
+
+  uploadFile() {
+    if (!this.repoId || !this.selectedFileToUpload || !this.newFileName.trim()) {
+      this.toast.warning('Please select a file and enter a name.');
+      return;
+    }
+
+    this.isUploadingFile = true;
+    const formData = new FormData();
+    formData.append('file', this.selectedFileToUpload);
+    formData.append('file_name', this.newFileName.trim());
+    formData.append('file_description', this.newFileDesc.trim());
+
+    this.http.post(`${CONFIG.BASE_URL}/repositories/${this.repoId}/files`, formData).subscribe({
+      next: (res: any) => {
+        this.isUploadingFile = false;
+        this.toast.success('File uploaded successfully!');
+        this.newFileName = '';
+        this.newFileDesc = '';
+        this.selectedFileToUpload = null;
+        // Reset file input element
+        const fileInput = document.getElementById('repoFileInput') as HTMLInputElement;
+        if (fileInput) fileInput.value = '';
+        this.fetchRepoFiles(this.repoId!);
+      },
+      error: (err) => {
+        this.isUploadingFile = false;
+        console.error('Failed to upload file', err);
+        this.toast.error(err.error?.message || 'Failed to upload file. Please try again.');
+      }
+    });
+  }
+
+  deleteFile(fileId: number) {
+    if (!confirm('Are you sure you want to delete this file?')) return;
+
+    this.http.delete(`${CONFIG.BASE_URL}/repo-files/${fileId}`).subscribe({
+      next: () => {
+        this.toast.success('File deleted successfully!');
+        if (this.repoId) this.fetchRepoFiles(this.repoId);
+      },
+      error: (err) => {
+        console.error('Failed to delete file', err);
+        this.toast.error(err.error?.message || 'Failed to delete file.');
+      }
+    });
+  }
+
+  downloadEnvFile() {
+    if (!this.repo?.repo_env || !this.repo.repo_env.trim()) {
+      this.toast.warning('No environment variables to download.');
+      return;
+    }
+    const blob = new Blob([this.repo.repo_env], { type: 'text/plain;charset=utf-8' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = '.env';
+    link.click();
+    window.URL.revokeObjectURL(url);
+    this.toast.success('.env file downloaded successfully');
+  }
+
+  downloadSqlFile() {
+    if (!this.repo?.repo_schema || !this.repo.repo_schema.trim()) {
+      this.toast.warning('No database schema to download.');
+      return;
+    }
+    const blob = new Blob([this.repo.repo_schema], { type: 'text/plain;charset=utf-8' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'schema.sql';
+    link.click();
+    window.URL.revokeObjectURL(url);
+    this.toast.success('Database schema (.sql) downloaded successfully');
   }
 }

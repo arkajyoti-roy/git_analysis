@@ -31,7 +31,7 @@ export class Dashboard implements OnInit {
         const data = response.data || response;
         if (Array.isArray(data)) {
           this.totalUsers = data.length;
-          this.recentUsers = [...data].reverse().slice(0, 5);
+          this.recentUsers = data.slice(0, 5);
         }
       },
       error: () => {
@@ -44,7 +44,7 @@ export class Dashboard implements OnInit {
         const data = response.data || response;
         if (Array.isArray(data)) {
           this.totalRepositories = data.length;
-          this.recentRepos = [...data].reverse().slice(0, 5);
+          this.recentRepos = data.slice(0, 5);
         }
       },
       error: () => {}

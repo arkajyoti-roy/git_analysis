@@ -56,13 +56,11 @@
   border-radius: 999px;
   font-size: 0.7rem;
   font-weight: 600;
-  background: var(--warning-bg);
-  color: var(--warning-color);
-}
-
-.status-badge.completed {
-  background: var(--success-bg);
-  color: var(--success-color);
+  background: var(--bg-surface-hover);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .loading-state {
