@@ -38,6 +38,13 @@
       Architecture Stack
     </button>
     <button type="button"
+      [style.border-bottom]="activeTab === 'snippets' ? '2px solid var(--primary-color)' : '2px solid transparent'"
+      [style.color]="activeTab === 'snippets' ? 'var(--text-main)' : 'var(--text-muted)'"
+      style="background: transparent; border: none; font-weight: 500; font-size: 1rem; border-radius: 0; cursor: pointer; padding: 0.5rem 0.5rem; white-space: nowrap; transition: 0.2s;"
+      (click)="activeTab = 'snippets'">
+      Code Snippets
+    </button>
+    <button type="button"
       [style.border-bottom]="activeTab === 'access' ? '2px solid var(--primary-color)' : '2px solid transparent'"
       [style.color]="activeTab === 'access' ? 'var(--text-main)' : 'var(--text-muted)'"
       style="background: transparent; border: none; font-weight: 500; font-size: 1rem; border-radius: 0; cursor: pointer; padding: 0.5rem 0.5rem; white-space: nowrap; transition: 0.2s;"
@@ -209,7 +216,9 @@
   @if (activeTab === 'api') {
   <div class="form-row">
     <div class="form-group">
-      <label>APIs</label>
+      <div style="display: flex; justify-content: space-between; align-items: center; height: 32px; margin-bottom: 0.5rem;">
+        <label style="margin: 0;">APIs</label>
+      </div>
       <div
         style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.5rem; margin-bottom: 0.5rem;">
         @for (api of repo_apis; track $index) {
@@ -275,7 +284,7 @@
         </div>
       </div>
       <div class="form-group">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; height: 32px; margin-bottom: 0.5rem;">
           <label style="margin: 0;">Database Schema</label>
           <div style="display: flex; gap: 0.5rem;">
             <button type="button" class="btn-sm"
@@ -299,38 +308,6 @@
         </div>
         <textarea placeholder="e.g. users(id, name, email), orders(id, user_id, total)" [(ngModel)]="repo_schema"
           rows="4"></textarea>
-      </div>
-    </div>
-
-    }
-    @if (activeTab === 'access') {
-    <!-- Section: Project Tracking -->
-    <!-- <div class="section-divider">
-    <span>Project Tracking</span>
-  </div> -->
-    <!-- 
-  <div class="form-row">
-    <div class="form-group">
-      <label>Repository Issues</label>
-      <textarea placeholder="List any known issues..." [(ngModel)]="repo_issues" rows="3"></textarea>
-    </div>
-    <div class="form-group">
-      <label>Review Log</label>
-      <textarea readonly placeholder="Recent code review summaries..." [(ngModel)]="repo_review_log" rows="3"></textarea>
-    </div>
-  </div> -->
-
-    <!-- <div class="form-group">
-    <label>Major Commits</label>
-    <textarea placeholder="Important commit hashes or messages..." [(ngModel)]="repo_major_commits" rows="3"></textarea>
-  </div> -->
-
-    <div class="form-group" style="height: 300px;">
-      <label>Code Snippets</label>
-      <div
-        style="height: calc(100% - 1.5rem); border: 1px solid var(--border-color); border-radius: 4px; overflow: hidden;">
-        <ngx-monaco-editor [options]="editorOptions" [(ngModel)]="repo_code_snippet"
-          style="height: 100%;"></ngx-monaco-editor>
       </div>
     </div>
 
@@ -360,6 +337,52 @@
       <span class="field-hint">General documentation, coding standards, and other important references</span>
     </div>
 
+    }
+
+    @if (activeTab === 'snippets') {
+      <div style="display: flex; gap: 1.5rem; height: 500px; margin-top: 1rem;">
+        <!-- Left Sidebar: Snippet List -->
+        <div style="width: 250px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); display: flex; flex-direction: column; padding: 0.75rem; box-shadow: var(--shadow-sm);">
+          <button type="button" class="btn-sm" (click)="addSnippet()" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600; margin-bottom: 0.75rem; background: var(--primary-color); color: #fff; border: none; padding: 0.5rem; border-radius: var(--radius-sm); cursor: pointer;">
+            <span>+ Add Snippet</span>
+          </button>
+          
+          <div style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem; padding-right: 0.25rem;">
+            @for (snippet of repo_code_snippets; track $index) {
+              <div [style.background]="selectedSnippetIndex === $index ? 'rgba(37,99,235,0.08)' : 'transparent'"
+                   [style.border-color]="selectedSnippetIndex === $index ? 'var(--primary-color)' : 'var(--border-color)'"
+                   style="border: 1px solid; border-radius: var(--radius-sm); padding: 0.5rem; display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; cursor: pointer; transition: all 0.2s;"
+                   (click)="selectedSnippetIndex = $index">
+                <input type="text" [(ngModel)]="snippet.title" 
+                       style="background: transparent; border: none; color: var(--text-main); font-weight: 500; font-size: 0.85rem; width: 100%; outline: none;"
+                       (click)="$event.stopPropagation()">
+                <button type="button" (click)="deleteSnippet($index); $event.stopPropagation();" 
+                        style="background: transparent; border: none; color: #ef4444; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;">
+                  ✕
+                </button>
+              </div>
+            } @empty {
+              <div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 2rem 0;">
+                No snippets added.
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Right Panel: Editor -->
+        <div style="flex: 1; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); display: flex; flex-direction: column; overflow: hidden; box-shadow: var(--shadow-sm);">
+          @if (repo_code_snippets.length > 0 && selectedSnippetIndex >= 0 && selectedSnippetIndex < repo_code_snippets.length) {
+            <div style="flex: 1; height: 100%; overflow: hidden;">
+              <ngx-monaco-editor [options]="editorOptions" [ngModel]="getSelectedSnippetCode()" (ngModelChange)="setSelectedSnippetCode($event)" style="height: 100%; display: block;"></ngx-monaco-editor>
+            </div>
+          } @else {
+            <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem; color: var(--text-muted); font-size: 0.95rem; background: var(--bg-main);">
+              <span>No Code Snippet Selected</span>
+              <span style="font-size: 0.8rem; opacity: 0.8;">Click "+ Add Snippet" on the left panel to begin.</span>
+            </div>
+          }
+        </div>
+      </div>
     }
     @if (activeTab === 'access') {
     <!-- Section: Repository Access -->

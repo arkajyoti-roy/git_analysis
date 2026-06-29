@@ -3,7 +3,7 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
-import { forkJoin, of } from 'rxjs';
+import { forkJoin, of, combineLatest } from 'rxjs';
 import { CONFIG } from '../../../config/config';
 import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
 import { ThemeService } from '../../../core/services/theme.service';
@@ -52,6 +52,8 @@ getMethodColor(method: string): string {
   repo_review_log = '';
   repo_major_commits = '';
   repo_code_snippet = '';
+  repo_code_snippets: { title: string, code: string }[] = [];
+  selectedSnippetIndex = 0;
   repo_getting_started = '';
   repo_env = '';
   repo_deployment = '';
@@ -77,6 +79,7 @@ getMethodColor(method: string): string {
 
   // Whiteboard property
   whiteboardUrl: SafeResourceUrl | null = null;
+  selectedBranchId: number | null = null;
 
   // Dynamic options tracking (will come from DB)
   stackOptions: { id: number | string, name: string }[] = [];
@@ -151,7 +154,14 @@ getMethodColor(method: string): string {
     };
 
     // Check if editing
-    this.route.paramMap.subscribe(params => {
+    combineLatest([this.route.paramMap, this.route.queryParamMap]).subscribe(([params, queryParams]) => {
+      const branchIdStr = queryParams.get('branch_id');
+      if (branchIdStr) {
+        this.selectedBranchId = parseInt(branchIdStr, 10);
+      } else {
+        this.selectedBranchId = null;
+      }
+
       const idStr = params.get('id');
       if (idStr) {
         this.isEditMode = true;
@@ -324,7 +334,7 @@ getMethodColor(method: string): string {
   }
 
   loadRepoData(id: number) {
-    this.repoService.getRepositoryById(id).subscribe({
+    this.repoService.getRepositoryById(id, this.selectedBranchId || undefined).subscribe({
       next: (res: any) => {
         const repo = res.data || res;
         
@@ -349,7 +359,11 @@ getMethodColor(method: string): string {
         this.repo_init_author = repo.repo_init_author || '';
         this.repo_init_date = repo.repo_init_date || new Date().toISOString().split('T')[0];
         this.repo_deadline = repo.repo_deadline || '';
-        this.repo_code_snippet = repo.repo_code_snippet || '';
+        this.repo_code_snippets = repo.repo_code_snippets || [];
+        if (this.repo_code_snippets.length === 0 && repo.repo_code_snippet) {
+          this.repo_code_snippets = [{ title: 'Main Code Snippet', code: repo.repo_code_snippet }];
+        }
+        this.selectedSnippetIndex = 0;
         this.repo_getting_started = repo.repo_getting_started || '';
         this.repo_env = repo.repo_env || '';
         this.repo_deployment = repo.repo_deployment || '';
@@ -688,7 +702,7 @@ getMethodColor(method: string): string {
       repo_maintainer: this.repo_maintainer || null
     };
 
-    if (this.repo_code_snippet) payload.repo_code_snippet = this.repo_code_snippet;
+    payload.repo_code_snippets = this.repo_code_snippets;
 
     this.http.post(`${CONFIG.BASE_URL}/repositories`, payload).subscribe({
       next: (res: any) => {
@@ -848,6 +862,7 @@ getMethodColor(method: string): string {
   updateRepo() {
     const payload: any = {
       emp_id: this.getEmpId(),
+      branch_id: this.selectedBranchId,
       repo_name: this.repo_name,
       repo_stack: this.repo_stack,
       repo_status: this.repo_status,
@@ -886,7 +901,7 @@ getMethodColor(method: string): string {
       repo_maintainer: this.repo_maintainer || null
     };
 
-    if (this.repo_code_snippet) payload.repo_code_snippet = this.repo_code_snippet;
+    payload.repo_code_snippets = this.repo_code_snippets;
 
     this.http.put(`${CONFIG.BASE_URL}/repositories/${this.repoId}`, payload).subscribe({
       next: () => {
@@ -986,5 +1001,33 @@ getMethodColor(method: string): string {
       errorMsg += '\n\n' + err.error.message;
     }
     this.toast.error(errorMsg);
+  }
+
+  addSnippet() {
+    this.repo_code_snippets.push({
+      title: 'New Snippet ' + (this.repo_code_snippets.length + 1),
+      code: '// Enter code here...'
+    });
+    this.selectedSnippetIndex = this.repo_code_snippets.length - 1;
+  }
+
+  deleteSnippet(index: number) {
+    this.repo_code_snippets.splice(index, 1);
+    if (this.selectedSnippetIndex >= this.repo_code_snippets.length) {
+      this.selectedSnippetIndex = this.repo_code_snippets.length - 1;
+    }
+  }
+
+  getSelectedSnippetCode(): string {
+    if (this.selectedSnippetIndex >= 0 && this.selectedSnippetIndex < this.repo_code_snippets.length) {
+      return this.repo_code_snippets[this.selectedSnippetIndex].code;
+    }
+    return '';
+  }
+
+  setSelectedSnippetCode(code: string) {
+    if (this.selectedSnippetIndex >= 0 && this.selectedSnippetIndex < this.repo_code_snippets.length) {
+      this.repo_code_snippets[this.selectedSnippetIndex].code = code;
+    }
   }
 }

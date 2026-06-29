@@ -50,4 +50,14 @@ export class Dashboard implements OnInit {
       error: () => {}
     });
   }
+
+  getDisplayStack(stack: any): string {
+    if (!stack) return '';
+    if (Array.isArray(stack)) return stack.join(', ');
+    try {
+      const parsed = JSON.parse(stack);
+      if (Array.isArray(parsed)) return parsed.join(', ');
+    } catch {}
+    return stack;
+  }
 }

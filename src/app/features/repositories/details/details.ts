@@ -42,12 +42,23 @@ export class Details implements OnInit, OnDestroy {
   private pollInterval: any;
   
   commit_message = '';
-  selectedBranchId = '';
+  selectedBranchId: any = null;
   repoBranches: any[] = [];
   
   allUsers: any[] = [];
   maintainerName: string = 'None';
   repoRoles: any[] = [];
+
+  // Branch creation properties
+  showCreateBranchModal = false;
+  newBranchName = '';
+  newBranchDesc = '';
+
+  // Conversation/Chat properties
+  chatMessages: any[] = [];
+  newChatMessage = '';
+  private chatInterval: any;
+  private lastLoadedBranchId: any = null;
 
   // Files & Docs feature properties
   repoFiles: any[] = [];
@@ -70,6 +81,7 @@ export class Details implements OnInit, OnDestroy {
     scrollBeyondLastLine: false,
     padding: { top: 16 }
   };
+  selectedSnippetIndex: number = 0;
 
   @ViewChild('mermaidContainer') mermaidContainer!: ElementRef;
 
@@ -155,20 +167,28 @@ export class Details implements OnInit, OnDestroy {
     if (this.pollInterval) {
       clearInterval(this.pollInterval);
     }
+    if (this.chatInterval) {
+      clearInterval(this.chatInterval);
+    }
   }
 
   fetchRepoDetails(id: number, isPolling = false) {
     if (!isPolling && !this.repo) this.isLoading = true;
-    this.repoService.getRepositoryById(id).subscribe({
+    this.repoService.getRepositoryById(id, this.selectedBranchId || undefined).subscribe({
       next: (res: any) => {
         const oldDiagram = this.repo?.repo_architecture_diagram;
         this.repo = res.data || res;
         this.isLoading = false;
         
+        if (!this.selectedBranchId && this.repo.active_branch?.id) {
+          this.selectedBranchId = this.repo.active_branch.id;
+        }
+
         this.updateMaintainerName();
-        // Generate sanitized whiteboard URL only once to avoid iframe reloads during polling
-        if (!this.whiteboardUrl) {
-          const rawUrl = `${CONFIG.BASE_URL.replace('/api', '')}/whiteboard.html?repo_id=${id}&token=${localStorage.getItem('token')}&theme=${this.themeService.isDarkMode ? 'dark' : 'light'}`;
+        // Generate sanitized whiteboard URL when selected branch changes
+        if (this.lastLoadedBranchId !== this.selectedBranchId || !this.whiteboardUrl) {
+          this.lastLoadedBranchId = this.selectedBranchId;
+          const rawUrl = `${CONFIG.BASE_URL.replace('/api', '')}/whiteboard.html?repo_id=${id}&branch_id=${this.selectedBranchId || ''}&token=${localStorage.getItem('token')}&theme=${this.themeService.isDarkMode ? 'dark' : 'light'}`;
           this.whiteboardUrl = this.sanitizer.bypassSecurityTrustResourceUrl(rawUrl);
         }
         if (oldDiagram !== this.repo.repo_architecture_diagram) {
@@ -449,5 +469,123 @@ export class Details implements OnInit, OnDestroy {
     link.click();
     window.URL.revokeObjectURL(url);
     this.toast.success('Database schema (.sql) downloaded successfully');
+  }
+
+  onBranchChange(branchId: any) {
+    this.selectedBranchId = branchId;
+    this.selectedSnippetIndex = 0;
+    this.fetchRepoDetails(this.repoId!);
+  }
+
+  getLoggedEmpId(): string {
+    return localStorage.getItem('emp_id') || '';
+  }
+
+  makeDefaultBranch() {
+    if (!this.repoId || !this.selectedBranchId) return;
+    this.http.put(`${CONFIG.BASE_URL}/repositories/${this.repoId}`, {
+      repo_branch: this.selectedBranchId
+    }).subscribe({
+      next: () => {
+        this.toast.success('Default branch updated successfully');
+        this.fetchRepoDetails(this.repoId!);
+      },
+      error: (err) => {
+        this.toast.error('Failed to update default branch');
+      }
+    });
+  }
+
+  openCreateBranchModal() {
+    this.newBranchName = '';
+    this.newBranchDesc = '';
+    this.showCreateBranchModal = true;
+  }
+
+  closeCreateBranchModal() {
+    this.showCreateBranchModal = false;
+  }
+
+  submitCreateBranch() {
+    if (!this.newBranchName.trim()) {
+      this.toast.error('Branch name is required');
+      return;
+    }
+
+    const payload = {
+      repository_id: this.repoId,
+      branch_name: this.newBranchName.trim(),
+      repo_branch_desc: this.newBranchDesc.trim(),
+      branch_initer: localStorage.getItem('emp_id')
+    };
+
+    this.http.post(`${CONFIG.BASE_URL}/branches`, payload).subscribe({
+      next: (res: any) => {
+        this.toast.success('Branch created successfully!');
+        this.showCreateBranchModal = false;
+        this.fetchBranches(this.repoId!);
+        if (res.data?.id) {
+          this.onBranchChange(res.data.id);
+        }
+      },
+      error: (err) => {
+        this.toast.error(err.error?.message || 'Failed to create branch');
+      }
+    });
+  }
+
+  onConversationTabActive() {
+    this.activeTab = 'conversation';
+    this.fetchConversation();
+    if (this.chatInterval) clearInterval(this.chatInterval);
+    this.chatInterval = setInterval(() => {
+      if (this.activeTab === 'conversation') {
+        this.fetchConversation(true);
+      }
+    }, 2000);
+  }
+
+  fetchConversation(isPolling = false) {
+    if (!this.repoId) return;
+    this.http.get(`${CONFIG.BASE_URL}/repositories/${this.repoId}/conversations`).subscribe({
+      next: (res: any) => {
+        this.chatMessages = res.data || [];
+      },
+      error: () => {}
+    });
+  }
+
+  sendChatMessage() {
+    if (!this.newChatMessage.trim() || !this.repoId) return;
+    const msg = this.newChatMessage.trim();
+    this.newChatMessage = '';
+
+    this.http.post(`${CONFIG.BASE_URL}/repositories/${this.repoId}/conversations`, {
+      message: msg
+    }).subscribe({
+      next: () => {
+        this.fetchConversation();
+      },
+      error: () => {
+        this.toast.error('Failed to send message');
+      }
+    });
+  }
+
+  getSelectedBranchName(): string {
+    const selected = this.repoBranches.find(b => b.id == this.selectedBranchId);
+    return selected ? selected.repo_branch_name : (this.repo?.repo_branch || 'None');
+  }
+
+  getDisplayStack(): string {
+    if (!this.repo?.repo_stack) return 'None';
+    if (Array.isArray(this.repo.repo_stack)) {
+      return this.repo.repo_stack.join(', ');
+    }
+    try {
+      const parsed = JSON.parse(this.repo.repo_stack);
+      if (Array.isArray(parsed)) return parsed.join(', ');
+    } catch {}
+    return this.repo.repo_stack;
   }
 }

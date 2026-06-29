@@ -14,8 +14,11 @@ export class RepositoryService {
     return this.http.get(`${CONFIG.BASE_URL}/repositories`);
   }
 
-  getRepositoryById(id: number): Observable<any> {
-    return this.http.get(`${CONFIG.BASE_URL}/repositories/${id}`);
+  getRepositoryById(id: number, branchId?: number): Observable<any> {
+    const url = branchId 
+      ? `${CONFIG.BASE_URL}/repositories/${id}?branch_id=${branchId}`
+      : `${CONFIG.BASE_URL}/repositories/${id}`;
+    return this.http.get(url);
   }
 
   clearCache() {

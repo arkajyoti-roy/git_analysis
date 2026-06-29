@@ -89,29 +89,34 @@
         </div>
 
         <table>
-
             <thead>
                 <tr>
                     <th style="text-align: center; justify-content: center;">Repository</th>
                     <th style="text-align: center; justify-content: center;">Stack</th>
+                    <th style="text-align: center; justify-content: center;">Maintainer</th>
+                    <th style="text-align: center; justify-content: center;">Default Branch</th>
                     <th style="text-align: center; justify-content: center;">Status</th>
                 </tr>
             </thead>
-
             <tbody>
                 @for(repo of recentRepos; track repo.id) {
                     <tr>
                         <td style="text-align: center; justify-content: center;">{{ repo.repo_name }}</td>
-                        <td style="text-align: center; justify-content: center;">{{ repo.repo_stack }}</td>
+                        <td style="text-align: center; justify-content: center;">{{ getDisplayStack(repo.repo_stack) }}</td>
+                        <td style="text-align: center; justify-content: center; font-weight: 500;">{{ repo.maintainer?.emp_name || 'Not Assigned' }}</td>
+                        <td style="text-align: center; justify-content: center;">
+                            <span style="background: rgba(245,158,11,0.1); color: #f59e0b; font-weight: 600; padding: 0.15rem 0.45rem; border-radius: 4px; font-size: 0.75rem; border: 1px solid rgba(245,158,11,0.25); display: inline-flex; align-items: center; gap: 4px;">
+                                ★ {{ repo.repo_branch || 'None' }}
+                            </span>
+                        </td>
                         <td style="text-align: center; justify-content: center;"><span class="status-badge" [class.completed]="repo.repo_status === 'completed'">{{ repo.repo_status }}</span></td>
                     </tr>
                 } @empty {
                     <tr>
-                        <td colspan="3" style="color: var(--text-muted);">No repositories found.</td>
+                        <td colspan="5" style="color: var(--text-muted); text-align: center;">No repositories found.</td>
                     </tr>
                 }
             </tbody>
-
         </table>
 
     </div>
