@@ -61,6 +61,7 @@ getMethodColor(method: string): string {
   repo_architecture_diagram = '';
 
   repo_access: { emp_id: string, name: string, can: string, role_id?: number | null, role_catagory?: string }[] = [];
+  deletedRoles: number[] = [];
   repo_maintainer: string = '';
   availableUsers: any[] = [];
   allUsers: any[] = [];
@@ -439,7 +440,7 @@ getMethodColor(method: string): string {
         this.http.get(`${CONFIG.BASE_URL}/repo-roles`).subscribe({
           next: (roleRes: any) => {
             const data = Array.isArray(roleRes) ? roleRes : (roleRes.data || []);
-            const currentRepoRoles = data.filter((r: any) => r.repo_id == id);
+            const currentRepoRoles = data.filter((r: any) => r.repo_id == id && r.branch_id == this.selectedBranchId);
             
             // Map the actual assigned roles back into the UI state
             this.repo_access.forEach(access => {
@@ -644,6 +645,10 @@ getMethodColor(method: string): string {
   }
 
   removeAccessUser(index: number) {
+    const removed = this.repo_access[index];
+    if (removed && removed.role_id) {
+      this.deletedRoles.push(removed.role_id);
+    }
     this.repo_access.splice(index, 1);
   }
 
@@ -743,7 +748,7 @@ getMethodColor(method: string): string {
             break;
           }
         }
-        return this.http.post(`${CONFIG.BASE_URL}/repo-roles`, { emp_id: a.emp_id, repo_id: newRepoId, branch_id: null, role_catagory: category, role_name: a.can });
+        return this.http.post(`${CONFIG.BASE_URL}/repo-roles`, { emp_id: a.emp_id, repo_id: newRepoId, branch_id: this.selectedBranchId, role_catagory: category, role_name: a.can });
       });
 
     const allRequests = [...fileUploadRequests, ...roleRequests];
@@ -905,8 +910,15 @@ getMethodColor(method: string): string {
 
     this.http.put(`${CONFIG.BASE_URL}/repositories/${this.repoId}`, payload).subscribe({
       next: () => {
+        const requests: any[] = [];
+        
+        // Add delete requests for removed roles
+        this.deletedRoles.forEach(roleId => {
+          requests.push(this.http.delete(`${CONFIG.BASE_URL}/repo-roles/${roleId}`));
+        });
+
         if (payload.repo_access.length > 0) {
-          const requests = this.repo_access
+          const updateRequests = this.repo_access
             .filter((a: any) => {
               // Only update roles that are in the configured categories
               return this.roleOptions.some(group => group.roles.includes(a.can));
@@ -920,31 +932,27 @@ getMethodColor(method: string): string {
                 }
               }
               if (a.role_id) {
-                return this.http.put(`${CONFIG.BASE_URL}/repo-roles/${a.role_id}`, { role_catagory: category, role_name: a.can });
+                return this.http.put(`${CONFIG.BASE_URL}/repo-roles/${a.role_id}`, { role_catagory: category, role_name: a.can, branch_id: this.selectedBranchId });
               } else {
-                return this.http.post(`${CONFIG.BASE_URL}/repo-roles`, { emp_id: a.emp_id, repo_id: this.repoId, branch_id: null, role_catagory: category, role_name: a.can });
+                return this.http.post(`${CONFIG.BASE_URL}/repo-roles`, { emp_id: a.emp_id, repo_id: this.repoId, branch_id: this.selectedBranchId, role_catagory: category, role_name: a.can });
               }
             });
+            requests.push(...updateRequests);
+        }
 
-          if (requests.length > 0) {
-            forkJoin(requests).subscribe({
-              next: () => {
-                this.isSubmitting = false;
-                this.toast.success('Repository and roles updated successfully!');
-                this.repoService.clearCache();
-                this.router.navigate(['/admin/repositories', this.repoId]);
-              },
-              error: (err) => {
-                this.isSubmitting = false;
-                this.showError(err);
-              }
-            });
-          } else {
-            this.isSubmitting = false;
-            this.toast.success('Repository updated successfully!');
-            this.repoService.clearCache();
-            this.router.navigate(['/admin/repositories', this.repoId]);
-          }
+        if (requests.length > 0) {
+          forkJoin(requests).subscribe({
+            next: () => {
+              this.isSubmitting = false;
+              this.toast.success('Repository and roles updated successfully!');
+              this.repoService.clearCache();
+              this.router.navigate(['/admin/repositories', this.repoId]);
+            },
+            error: (err) => {
+              this.isSubmitting = false;
+              this.showError(err);
+            }
+          });
         } else {
           this.isSubmitting = false;
           this.toast.success('Repository updated successfully!');

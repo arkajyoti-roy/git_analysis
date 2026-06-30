@@ -59,6 +59,13 @@ export class Details implements OnInit, OnDestroy {
   newChatMessage = '';
   private chatInterval: any;
   private lastLoadedBranchId: any = null;
+  
+  // Mentions
+  showMentions = false;
+  mentionOptions: any[] = [];
+  filteredMentionOptions: any[] = [];
+  mentionSearchText = '';
+  mentionCursorPosition = 0;
 
   // Files & Docs feature properties
   repoFiles: any[] = [];
@@ -218,7 +225,7 @@ export class Details implements OnInit, OnDestroy {
     this.http.get(`${CONFIG.BASE_URL}/repo-roles`).subscribe({
       next: (res: any) => {
         const data = Array.isArray(res) ? res : (res.data || []);
-        this.repoRoles = data.filter((item: any) => item.repo_id == id);
+        this.repoRoles = data.filter((item: any) => item.repo_id == id && item.branch_id == this.selectedBranchId);
       },
       error: () => {}
     });
@@ -559,6 +566,7 @@ export class Details implements OnInit, OnDestroy {
     if (!this.newChatMessage.trim() || !this.repoId) return;
     const msg = this.newChatMessage.trim();
     this.newChatMessage = '';
+    this.showMentions = false;
 
     this.http.post(`${CONFIG.BASE_URL}/repositories/${this.repoId}/conversations`, {
       message: msg
@@ -570,6 +578,65 @@ export class Details implements OnInit, OnDestroy {
         this.toast.error('Failed to send message');
       }
     });
+  }
+
+  populateMentionOptions() {
+    this.mentionOptions = [];
+    
+    this.allUsers.forEach(user => {
+      this.mentionOptions.push({
+        type: 'User',
+        name: user.emp_name || user.name || user.emp_id,
+        id: user.emp_id
+      });
+    });
+
+    this.repoBranches.forEach(branch => {
+      this.mentionOptions.push({
+        type: 'Branch',
+        name: branch.repo_branch_name,
+        id: branch.id
+      });
+    });
+  }
+
+  onChatInput(event: any) {
+    const input = event.target as HTMLInputElement;
+    const value = input.value || '';
+    const cursor = input.selectionStart || 0;
+    
+    const textBeforeCursor = value.substring(0, cursor);
+    const lastAtSymbol = textBeforeCursor.lastIndexOf('@');
+    
+    if (lastAtSymbol !== -1) {
+      if (lastAtSymbol === 0 || textBeforeCursor[lastAtSymbol - 1] === ' ') {
+        this.showMentions = true;
+        this.mentionCursorPosition = lastAtSymbol;
+        this.mentionSearchText = textBeforeCursor.substring(lastAtSymbol + 1);
+        
+        if (this.mentionOptions.length === 0) {
+          this.populateMentionOptions();
+        }
+        
+        const search = this.mentionSearchText.toLowerCase();
+        this.filteredMentionOptions = this.mentionOptions.filter(opt => 
+          opt.name.toLowerCase().includes(search)
+        );
+        return;
+      }
+    }
+    
+    this.showMentions = false;
+  }
+
+  selectMention(option: any) {
+    const value = this.newChatMessage || '';
+    const beforeMention = value.substring(0, this.mentionCursorPosition);
+    let endOfMention = this.mentionCursorPosition + 1 + this.mentionSearchText.length;
+    const afterMention = value.substring(endOfMention);
+    
+    this.newChatMessage = `${beforeMention}@${option.name} ${afterMention}`;
+    this.showMentions = false;
   }
 
   getSelectedBranchName(): string {

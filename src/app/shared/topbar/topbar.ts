@@ -25,6 +25,11 @@ export class Topbar implements OnInit {
     return role === 'admin' ? '/admin/profile' : '/developer/profile';
   }
 
+  get settingsRoute(): string {
+    const role = localStorage.getItem('role') || 'dev';
+    return role === 'admin' ? '/admin/settings' : '/developer/settings';
+  }
+
   constructor(
     private router: Router,
     private http: HttpClient,

@@ -14,6 +14,8 @@ import { authGuard } from './core/guards/auth.guard';
 import { roleGuard } from './core/guards/role.guard';
 import { guestGuard } from './core/guards/guest.guard';
 import { profileGuard } from './core/guards/profile.guard';
+import { ForgotPasswordComponent } from './features/auth/forgot-password/forgot-password';
+import { SettingsComponent } from './features/settings/settings';
 
 
 
@@ -26,6 +28,11 @@ export const routes: Routes = [
   {
     path: 'login',
     component: Login,
+    canActivate: [guestGuard]
+  },
+  {
+    path: 'auth/forgot-password',
+    component: ForgotPasswordComponent,
     canActivate: [guestGuard]
   },
   {
@@ -70,6 +77,10 @@ export const routes: Routes = [
         component: ViewProfile
       },
       {
+        path: 'settings',
+        component: SettingsComponent
+      },
+      {
         path: '',
         redirectTo: 'dashboard',
         pathMatch: 'full'
@@ -96,6 +107,12 @@ export const routes: Routes = [
   {
     path: 'developer/profile',
     component: ViewProfile,
+    canActivate: [authGuard, roleGuard, profileGuard],
+    data: { roles: ['sr-dev', 'jr-dev', 'dev'] }
+  },
+  {
+    path: 'developer/settings',
+    component: SettingsComponent,
     canActivate: [authGuard, roleGuard, profileGuard],
     data: { roles: ['sr-dev', 'jr-dev', 'dev'] }
   },

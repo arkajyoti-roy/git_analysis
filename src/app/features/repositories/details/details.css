@@ -22,8 +22,8 @@
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--border-color);
-  height: fit-content;
-  overflow: hidden; 
+  max-height: calc(100vh - 150px);
+  overflow-y: auto; 
 }
 
 .details-sidebar button {
