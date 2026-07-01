@@ -77,19 +77,7 @@
     padding: 0.5rem;
   }
 
-  .repo-details-header.dev-header {
-    top: 0; /* No offset needed since it doesn't stick */
-  }
 
-  .details-sidebar {
-    position: relative;
-    top: 0;
-    height: 100%; /* Match height of container */
-  }
-
-  .dev-container .details-sidebar {
-    top: 0;
-  }
 }
 
 .details-content h2 {

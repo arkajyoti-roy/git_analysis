@@ -1,19 +1,20 @@
 <div class="sidebar">
   <div class="sidebar-header">
     <div class="brand">
-      <svg class="brand-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="currentColor" opacity="0.9"/>
-        <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
-        <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+      <svg class="brand-icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: #2563eb;">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M14.31 8l5.74 9.94M9.69 8h11.48M7.38 12l5.74-9.94M9.69 16l-5.74-9.94M14.31 16H2.83M16.62 12l-5.74 9.94"/>
+        <circle cx="12" cy="12" r="4.5" fill="var(--bg-surface, #1e1e2d)" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M10.5 10.5L9 12l1.5 1.5M13.5 10.5L15 12l-1.5 1.5M12.75 9.75l-1.5 4.5" stroke-width="1.2"/>
       </svg>
-      <span class="brand-name">RepoLens</span>
+      <span class="brand-name" style="font-family: 'Audiowide', 'Michroma', 'Orbitron', sans-serif; font-weight: 400; font-size: 1.4rem; letter-spacing: 0.5px; color: #2563eb;">RepoLens</span>
     </div>
   </div>
 
   <nav class="sidebar-nav">
     <ul>
       <li>
-        <a routerLink="/admin/dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+        <a [routerLink]="rolePrefix + '/dashboard'" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="3" y="3" width="7" height="7" rx="1"/>
             <rect x="14" y="3" width="7" height="7" rx="1"/>
@@ -23,8 +24,8 @@
           <span>Dashboard</span>
         </a>
       </li>
-      <li>
-        <a routerLink="/admin/users" routerLinkActive="active">
+      <li *ngIf="isAdmin">
+        <a [routerLink]="rolePrefix + '/users'" routerLinkActive="active">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
             <circle cx="9" cy="7" r="4"/>
@@ -35,7 +36,7 @@
         </a>
       </li>
       <li>
-        <a routerLink="/admin/repositories" routerLinkActive="active">
+        <a [routerLink]="rolePrefix + '/repositories'" routerLinkActive="active">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
           </svg>
@@ -43,7 +44,7 @@
         </a>
       </li>
       <li>
-        <a routerLink="/admin/profile" routerLinkActive="active">
+        <a [routerLink]="rolePrefix + '/profile'" routerLinkActive="active">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
             <circle cx="12" cy="7" r="4"/>
@@ -52,7 +53,7 @@
         </a>
       </li>
       <li>
-        <a routerLink="/admin/settings" routerLinkActive="active">
+        <a [routerLink]="rolePrefix + '/settings'" routerLinkActive="active">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="3"/>
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>

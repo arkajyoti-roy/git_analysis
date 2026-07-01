@@ -58,6 +58,8 @@ export class Topbar implements OnInit {
     } else {
       this.pageTitle = 'Developer';
     }
+
+    this.fetchProfile();
   }
 
   @HostListener('document:click', ['$event'])

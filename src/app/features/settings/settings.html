@@ -1,7 +1,11 @@
+
 <div class="settings-container">
-  <div class="settings-header">
-    <h2>Account Settings</h2>
-    <p class="subtitle">Manage your account security and preferences</p>
+  <div class="settings-header" style="display: flex; flex-direction: column; gap: 1rem;">
+    <div style="display: flex; align-items: center; gap: 1rem;">
+      <button (click)="goBack()" class="btn-sm" style="background: transparent; color: var(--text-main); border: 1px solid var(--border-color); padding: 0.25rem 0.75rem; cursor: pointer; border-radius: var(--radius-sm);">← Back</button>
+      <h2 style="margin: 0;">Account Settings</h2>
+    </div>
+    <p class="subtitle" style="margin: 0;">Manage your account security and preferences</p>
   </div>
 
   <div class="settings-grid">

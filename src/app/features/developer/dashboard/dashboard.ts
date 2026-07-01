@@ -1,11 +1,10 @@
 import { Component, OnInit } from '@angular/core';
-import { Topbar } from '../../../shared/topbar/topbar';
 import { RepositoryService } from '../../../core/services/repository.service';
 import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [Topbar, RouterLink],
+  imports: [RouterLink],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })

@@ -2,7 +2,7 @@
   <h2 style="margin: 0; font-size: 1.5rem; font-weight: 600;">Manage Repositories</h2>
   <div style="display: flex; gap: 1rem; align-items: center;">
     <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="currentPage = 1" placeholder="Search repositories..." style="padding: 0.5rem; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-surface); color: var(--text-main); min-width: 250px;">
-    <button routerLink="/admin/repositories/create" style="padding: 0.5rem 1rem; white-space: nowrap;">Add Repository</button>
+    <button [routerLink]="rolePrefix + '/repositories/create'" style="padding: 0.5rem 1rem; white-space: nowrap;">Add Repository</button>
   </div>
 </div>
  
@@ -41,9 +41,9 @@
           </td>
           <td>
             <div style="display: flex; justify-content: center; gap: 1rem;">
-              <button [routerLink]="['/admin/repositories', repo.id]" class="btn-sm"
+              <button [routerLink]="[rolePrefix + '/repositories', repo.id]" class="btn-sm"
                 style="background: transparent; border: 1px solid #2563eb; color: #2563eb;">View</button>
-              <button [routerLink]="['/admin/repositories', repo.id, 'edit']" class="btn-sm"
+              <button [routerLink]="[rolePrefix + '/repositories', repo.id, 'edit']" class="btn-sm"
                 style="background: transparent; border: 1px solid #d97706; color: #d97706;">Edit</button>
               <button (click)="confirmDelete(repo)" class="btn-sm"
                 style="background: #ef4444; border-color: #ef4444; color: white;">Delete</button>

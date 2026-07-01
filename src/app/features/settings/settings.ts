@@ -1,9 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { CONFIG } from '../../config/config';
 import { ToastService } from '../../core/services/toast.service';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 
 @Component({
   selector: 'app-settings',
@@ -12,7 +12,8 @@ import { CommonModule } from '@angular/common';
   templateUrl: './settings.html',
   styleUrl: './settings.css'
 })
-export class SettingsComponent {
+export class SettingsComponent implements OnInit {
+  isDev = false;
   // Email state
   newEmail = '';
   otp = '';
@@ -27,8 +28,18 @@ export class SettingsComponent {
 
   constructor(
     private http: HttpClient,
-    private toast: ToastService
+    private toast: ToastService,
+    private location: Location
   ) {}
+
+  ngOnInit() {
+    const role = localStorage.getItem('role') || 'dev';
+    this.isDev = role === 'dev' || role === 'sr-dev' || role === 'jr-dev';
+  }
+
+  goBack() {
+    this.location.back();
+  }
 
   // --- Email Change ---
   sendEmailOtp() {

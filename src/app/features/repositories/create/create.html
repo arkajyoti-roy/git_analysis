@@ -1,6 +1,6 @@
 <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-  <button routerLink="/admin/repositories" class="btn-sm"
-    style="background: transparent; color: var(--text-main); border: 1px solid var(--border-color); padding: 0.25rem 0.75rem;">←
+  <button (click)="goBack()" class="btn-sm"
+    style="background: transparent; color: var(--text-main); border: 1px solid var(--border-color); padding: 0.25rem 0.75rem; cursor: pointer;">←
     Back</button>
   <h2 style="margin: 0;">{{ isEditMode ? 'Edit Repository' : 'Create Repository' }}</h2>
 </div>
@@ -86,6 +86,13 @@
         <input type="text" placeholder="e.g. main" [(ngModel)]="repo_branch" style="flex: 1;">
         }
       </div>
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group" style="width: 100%;">
+      <label>GitHub Repository URL</label>
+      <input type="text" placeholder="e.g. https://github.com/owner/repository" [(ngModel)]="repo_github_url">
     </div>
   </div>
 
@@ -258,10 +265,50 @@
               title="Remove API">✕</button>
           </div>
           <!-- <div style="display: flex; gap: 0.5rem;"> -->
-            <div style="display:flex; flex-direction:column; flex:1;">
-              <label>Headers</label>
-              <textarea placeholder="Headers (JSON)" [(ngModel)]="api.headers" rows="3"
-                style="font-family: monospace; resize: vertical;"></textarea>
+            <div style="display:flex; flex-direction:column; flex:1; margin-bottom: 0.5rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
+                <label style="margin: 0;">Headers</label>
+                <label style="display: flex; align-items: center; gap: 0.25rem; font-size: 0.85rem; cursor: pointer; color: var(--text-muted);">
+                  <input type="checkbox" [(ngModel)]="api.isHeadersRaw" (change)="toggleHeadersRaw(api)" style="margin: 0;"> Raw
+                </label>
+              </div>
+
+              @if (api.isHeadersRaw) {
+                <textarea placeholder="Headers" [(ngModel)]="api.headers" rows="4"
+                  style="font-family: monospace; resize: vertical; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-card); color: var(--text-main);"></textarea>
+              } @else {
+                <div style="display: flex; flex-direction: column; gap: 0.25rem; background: var(--bg-card); padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px;">
+                  <datalist id="http-header-keys">
+                    <option value="Accept">
+                    <option value="Accept-Encoding">
+                    <option value="Accept-Language">
+                    <option value="Authorization">
+                    <option value="Cache-Control">
+                    <option value="Connection">
+                    <option value="Content-Type">
+                    <option value="Content-Length">
+                    <option value="Cookie">
+                    <option value="Host">
+                    <option value="Origin">
+                    <option value="Proxy-Authorization">
+                    <option value="Referer">
+                    <option value="User-Agent">
+                    <option value="X-Api-Key">
+                    <option value="X-Authorization">
+                    <option value="X-Forwarded-For">
+                    <option value="X-Requested-With">
+                  </datalist>
+                  @for (h of api.parsedHeaders; track $index) {
+                    <div style="display: grid; grid-template-columns: auto 1fr 2fr auto; gap: 0.5rem; align-items: center; width: 100%;">
+                      <input type="checkbox" [(ngModel)]="h.active" (change)="syncParsedHeadersToRaw(api)" style="margin: 0; cursor: pointer;">
+                      <input type="text" list="http-header-keys" placeholder="Header Key" [(ngModel)]="h.key" (change)="syncParsedHeadersToRaw(api)" style="width: 100%; box-sizing: border-box; padding: 0.4rem 0.5rem; font-size: 0.85rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-main); color: var(--text-main); outline: none;">
+                      <input type="text" placeholder="Header Value" [(ngModel)]="h.value" (change)="syncParsedHeadersToRaw(api)" style="width: 100%; box-sizing: border-box; padding: 0.4rem 0.5rem; font-size: 0.85rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-main); color: var(--text-main); outline: none;">
+                      <button type="button" class="btn-sm" (click)="removeParsedHeaderRow(api, $index)" style="background: transparent; color: var(--danger-color); border: none; cursor: pointer; padding: 0 0.25rem; font-size: 1rem;" title="Remove header">✕</button>
+                    </div>
+                  }
+                  <button type="button" class="btn-sm" (click)="addParsedHeaderRow(api)" style="align-self: flex-start; margin-top: 0.25rem; padding: 0.2rem 0.5rem; font-size: 0.8rem; border-radius: 2px; background: transparent; border: 1px dashed var(--border-color); color: var(--text-muted); cursor: pointer;">+ Add Header</button>
+                </div>
+              }
             </div>
             <!-- Bottom Row: Payload and Response -->
             <div style="display: flex; gap: 0.5rem;">
@@ -387,16 +434,16 @@
       </div>
     }
     @if (activeTab === 'access') {
-    <!-- Section: Repository Access -->
+    <!-- Section: Team Members Configuration -->
     <div class="section-divider">
-      <span>Repository Access Control</span>
+      <span>Team Members</span>
     </div>
     <div>
+      <!-- Maintainer -->
       <div class="form-row">
         <div class="form-group" style="width: 100%;">
           <label>Maintainer</label>
-          <div
-            style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; padding: 1rem;">
+          <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; padding: 1rem;">
             <select [(ngModel)]="repo_maintainer" style="width: 100%; max-width: 400px;">
               <option value="" disabled selected>Select a maintainer...</option>
               @for (user of allUsers; track user.emp_id) {
@@ -407,36 +454,50 @@
         </div>
       </div>
 
-
-      <div class="form-row">
+      <!-- Unified Team Members List -->
+      <div class="form-row" style="margin-top: 1.5rem;">
         <div class="form-group" style="width: 100%;">
-          <label>Grant Access to Developers</label>
-          <div
-            style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; padding: 1rem; margin-bottom: 0.5rem;">
-
-            <!-- Dropdown to add user -->
+          <label style="display: flex; align-items: center; gap: 0.5rem;">
+            Configure Collaborators
+            <span style="font-size: 0.78rem; font-weight: 400; color: var(--text-muted); background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 0.1rem 0.55rem;">Manage permissions and roles for admins and developers</span>
+          </label>
+          <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; padding: 1rem;">
+            <!-- Dropdown to add user (all users) -->
             <select (change)="addAccessUser($event)" style="margin-bottom: 1rem; width: 100%; max-width: 400px;">
-              <option value="" disabled selected>Select a user to grant access...</option>
+              <option value="" disabled selected>Select a user to add to team...</option>
               @for (user of availableAccessUsers; track user.emp_id) {
-              <option [value]="user.emp_id || user.id">{{ user.emp_name || user.name || 'Unknown User' }}</option>
+              <option [value]="user.emp_id || user.id">{{ user.emp_name || user.name || 'Unknown User' }}{{ user.emp_role === 'admin' ? ' (Admin)' : '' }}</option>
               }
             </select>
 
-            <!-- Selected Users List -->
             @if (repo_access.length > 0) {
             <div style="display: flex; flex-direction: column; gap: 0.5rem;">
               @for (access of repo_access; track access.emp_id; let i = $index) {
-              <div
-                style="display: flex; align-items: center; gap: 1rem; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-card);">
-                <div
-                  style="width: 24px; height: 24px; background: #000; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.75rem;">
+              <div style="display: flex; align-items: center; gap: 1rem; padding: 0.5rem 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-surface);">
+                <div style="width: 28px; height: 28px; background: var(--primary-color); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.75rem; flex-shrink: 0;">
                   {{ (access.name || 'U').charAt(0).toUpperCase() }}
                 </div>
-                <div style="flex-grow: 1; font-weight: 500;">
-                  {{ access.name }}
+                <div style="flex-grow: 1; font-weight: 500; font-size: 0.95rem;">
+                  {{ access.name }} <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal;">({{ access.emp_role === 'admin' ? 'Admin' : 'Developer' }})</span>
                 </div>
+                
+                <!-- Permission Column -->
+                <div style="display: flex; align-items: center; gap: 0.25rem;">
+                  @if (access.emp_role === 'admin') {
+                    <span style="font-size: 0.85rem; font-weight: 600; color: #16a34a; background: rgba(22,163,74,0.1); border: 1px solid rgba(22,163,74,0.3); border-radius: 4px; padding: 0.25rem 0.6rem; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;">
+                      EDIT (locked)
+                    </span>
+                  } @else {
+                    <select [(ngModel)]="access.permission" style="padding: 0.25rem 0.5rem; width: auto; min-width: 110px;">
+                      <option value="VIEW">View Only</option>
+                      <option value="EDIT">Can Edit</option>
+                    </select>
+                  }
+                </div>
+
+                <!-- Role Column -->
                 <select [(ngModel)]="access.can" style="padding: 0.25rem 0.5rem; width: auto; min-width: 150px; max-width: 250px;">
-                  <option value="" disabled selected>Select a role...</option>
+                  <option value="">No Role / Permission Only</option>
                   @for (group of roleOptions; track group.category) {
                     <optgroup [label]="group.category">
                       @for (role of group.roles; track role) {
@@ -444,12 +505,8 @@
                       }
                     </optgroup>
                   }
-                  <!-- Fallbacks in case API fails or for legacy data -->
-                  @if (roleOptions.length === 0) {
-                    <option value="view">Viewer (Read-Only)</option>
-                    <option value="edit">Editor (Can Propose Edits)</option>
-                  }
                 </select>
+
                 <button type="button" class="btn-sm"
                   style="background: transparent; color: #ef4444; border-color: #ef4444;"
                   (click)="removeAccessUser(i)">Remove</button>
@@ -457,8 +514,7 @@
               }
             </div>
             } @else {
-            <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">No specific access granted. (Admins have
-              default access).</p>
+            <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">No team members added yet.</p>
             }
           </div>
         </div>

@@ -3,13 +3,12 @@ import { CommonModule, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { CONFIG } from '../../../config/config';
-import { Topbar } from '../../../shared/topbar/topbar';
 import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-view-profile',
   standalone: true,
-  imports: [CommonModule, FormsModule, Topbar],
+  imports: [CommonModule, FormsModule],
   templateUrl: './view-profile.html',
   styleUrl: './view-profile.css'
 })

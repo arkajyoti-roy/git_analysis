@@ -1,9 +1,16 @@
-<app-topbar></app-topbar>
 
 <div class="dev-dashboard-container">
-  <div class="header-section">
-    <h2>Welcome, {{ userName }}</h2>
-    <p class="role-badge" [class.sr-badge]="isSrDev">{{ isSrDev ? 'Senior Developer' : 'Developer' }}</p>
+  <div class="header-section" style="display: flex; justify-content: space-between; align-items: center;">
+    <div>
+      <h2>Welcome, {{ userName }}</h2>
+      <p class="role-badge" [class.sr-badge]="isSrDev">{{ isSrDev ? 'Senior Developer' : 'Developer' }}</p>
+    </div>
+    <div style="display: flex; gap: 1rem;">
+      <button routerLink="/developer/repositories/create" class="btn-primary" style="display: flex; align-items: center; gap: 0.5rem; border-radius: var(--radius-md); padding: 0.5rem 1rem; border: none; font-weight: 500; cursor: pointer; transition: 0.2s;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Create Repository
+      </button>
+    </div>
   </div>
 
   <div class="dashboard-grid">

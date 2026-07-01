@@ -15,7 +15,13 @@
 
     <!-- User Profile -->
     <div class="user-profile" (click)="toggleProfilePopup()">
-      <div class="avatar">{{ userInitial }}</div>
+      <div class="avatar" style="overflow: hidden; display: flex; align-items: center; justify-content: center; padding: 0;">
+        @if (userProfile?.github_username) {
+          <img [src]="'https://github.com/' + userProfile.github_username + '.png'" style="width: 100%; height: 100%; object-fit: cover;" alt="GitHub Avatar">
+        } @else {
+          {{ userInitial }}
+        }
+      </div>
       <span class="user-name">{{ userName }}</span>
       <svg class="chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
     </div>
@@ -32,7 +38,13 @@
           <div class="popup-loading">Loading...</div>
         } @else if (userProfile) {
           <div class="popup-header">
-            <div class="popup-avatar">{{ userInitial }}</div>
+            <div class="popup-avatar" style="overflow: hidden; display: flex; align-items: center; justify-content: center; padding: 0;">
+              @if (userProfile?.github_username) {
+                <img [src]="'https://github.com/' + userProfile.github_username + '.png'" style="width: 100%; height: 100%; object-fit: cover;" alt="GitHub Avatar">
+              } @else {
+                {{ userInitial }}
+              }
+            </div>
             <div class="popup-user-info">
               <h4>{{ userProfile.emp_name || userProfile.admin_name || userName }}</h4>
               <span class="popup-role">{{ userProfile.emp_role || userProfile.role || 'User' }}</span>

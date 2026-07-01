@@ -24,6 +24,11 @@ export class List implements OnInit, OnDestroy {
 
   constructor(private http: HttpClient, private repoService: RepositoryService, private toast: ToastService) {}
 
+  get rolePrefix(): string {
+    const role = localStorage.getItem('role') || 'dev';
+    return role === 'admin' ? '/admin' : '/developer';
+  }
+
   ngOnInit() {
     this.fetchRepositories();
     // Auto reload every 30 seconds (30000 ms)

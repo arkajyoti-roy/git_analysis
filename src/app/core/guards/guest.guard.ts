@@ -7,27 +7,39 @@ export const guestGuard: CanActivateFn = (route, state) => {
   
   if (token) {
     try {
-      let payloadBase64 = token.split('.')[1];
-      if (payloadBase64) {
-        payloadBase64 = payloadBase64.replace(/-/g, '+').replace(/_/g, '/');
-        while (payloadBase64.length % 4) {
-          payloadBase64 += '=';
+      if (token.split('.').length === 3) {
+        let payloadBase64 = token.split('.')[1];
+        if (payloadBase64) {
+          payloadBase64 = payloadBase64.replace(/-/g, '+').replace(/_/g, '/');
+          while (payloadBase64.length % 4) {
+            payloadBase64 += '=';
+          }
+          
+          const decodedJson = atob(payloadBase64);
+          const decodedToken = JSON.parse(decodedJson);
+          const userRole = decodedToken.role || decodedToken.emp_role || localStorage.getItem('role');
+  
+          if (userRole === 'admin') {
+            router.navigate(['/admin/dashboard']);
+            return false;
+          } else if (userRole === 'sr-dev' || userRole === 'jr-dev' || userRole === 'dev') {
+            router.navigate(['/developer/dashboard']);
+            return false;
+          }
         }
-        
-        const decodedJson = atob(payloadBase64);
-        const decodedToken = JSON.parse(decodedJson);
-        const userRole = decodedToken.role || decodedToken.emp_role || localStorage.getItem('role');
-
-        if (userRole === 'admin') {
+      } else {
+        // Fallback for opaque token scenario
+        const fallbackRole = localStorage.getItem('role');
+        if (fallbackRole === 'admin') {
           router.navigate(['/admin/dashboard']);
           return false;
-        } else if (userRole === 'sr-dev' || userRole === 'jr-dev') {
+        } else if (fallbackRole === 'sr-dev' || fallbackRole === 'jr-dev' || fallbackRole === 'dev') {
           router.navigate(['/developer/dashboard']);
           return false;
         }
       }
     } catch (e) {
-      // Fallback for opaque token scenario
+      // If decoding fails
       const fallbackRole = localStorage.getItem('role');
       if (fallbackRole === 'admin') {
         router.navigate(['/admin/dashboard']);

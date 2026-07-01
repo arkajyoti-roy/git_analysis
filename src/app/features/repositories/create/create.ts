@@ -10,12 +10,12 @@ import { ThemeService } from '../../../core/services/theme.service';
 import { RepositoryService } from '../../../core/services/repository.service';
 import { UserService } from '../../../core/services/user.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { TitleCasePipe, NgIf } from '@angular/common';
+import { TitleCasePipe, NgIf, CommonModule, Location } from '@angular/common';
 import { QuillModule } from 'ngx-quill';
 
 @Component({
   selector: 'app-create',
-  imports: [FormsModule, MonacoEditorModule, RouterLink, TitleCasePipe, QuillModule, NgIf],
+  imports: [FormsModule, MonacoEditorModule, RouterLink, TitleCasePipe, QuillModule, NgIf, CommonModule],
   templateUrl: './create.html',
   styleUrl: './create.css',
 })
@@ -39,11 +39,21 @@ getMethodColor(method: string): string {
   repoId: number | null = null;
 
   repo_name = '';
+  repo_github_url = '';
   repo_stack: string[] = [];
   repo_status = '';
   repo_branch = 'main';
   repo_arch = '';
-  repo_apis: { method: string, path: string, desc: string, headers?: string, payload?: string, response?: string }[] = [];
+  repo_apis: { 
+    method: string, 
+    path: string, 
+    desc: string, 
+    headers?: string, 
+    payload?: string, 
+    response?: string,
+    isHeadersRaw?: boolean,
+    parsedHeaders?: { active: boolean, key: string, value: string }[]
+  }[] = [];
   repo_schema = '';
   repo_init_author = '';
   repo_init_date = new Date().toISOString().split('T')[0];
@@ -60,7 +70,8 @@ getMethodColor(method: string): string {
   repo_coding_standards = '';
   repo_architecture_diagram = '';
 
-  repo_access: { emp_id: string, name: string, can: string, role_id?: number | null, role_catagory?: string }[] = [];
+  // Access control: both admins and devs can be assigned roles
+  repo_access: { emp_id: string, name: string, can: string, permission?: string, role_id?: number | null, role_catagory?: string, emp_role?: string }[] = [];
   deletedRoles: number[] = [];
   repo_maintainer: string = '';
   availableUsers: any[] = [];
@@ -115,9 +126,10 @@ getMethodColor(method: string): string {
 
 
 
+  // For Access Control (roles): all users not already assigned a role
   get availableAccessUsers() {
-    return this.availableUsers.filter(u => 
-      !this.repo_access.some(a => a.emp_id === (u.emp_id || u.id))
+    return this.allUsers.filter(u =>
+      !this.repo_access.some(a => a.emp_id === (u.emp_id || u.id)?.toString())
     );
   }
 
@@ -145,8 +157,13 @@ getMethodColor(method: string): string {
     private repoService: RepositoryService,
     private userService: UserService,
     private toast: ToastService,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private location: Location
   ) {}
+
+  goBack() {
+    this.location.back();
+  }
 
   ngOnInit() {
     this.editorOptions = {
@@ -154,10 +171,10 @@ getMethodColor(method: string): string {
       theme: this.themeService.isDarkMode ? 'vs-dark' : 'vs'
     };
 
-    // Check if editing
+     // Check if editing
     combineLatest([this.route.paramMap, this.route.queryParamMap]).subscribe(([params, queryParams]) => {
       const branchIdStr = queryParams.get('branch_id');
-      if (branchIdStr) {
+      if (branchIdStr && branchIdStr !== 'null' && branchIdStr !== 'undefined') {
         this.selectedBranchId = parseInt(branchIdStr, 10);
       } else {
         this.selectedBranchId = null;
@@ -344,6 +361,7 @@ getMethodColor(method: string): string {
         this.whiteboardUrl = this.sanitizer.bypassSecurityTrustResourceUrl(rawUrl);
 
         this.repo_name = repo.repo_name || '';
+        this.repo_github_url = repo.repo_github_url || '';
         this.repo_status = repo.repo_status || 'Development Env';
         // Add status to list if it's custom
         if (this.repo_status && !this.statusOptions.some(s => s.name === this.repo_status)) {
@@ -358,8 +376,8 @@ getMethodColor(method: string): string {
 
         this.repo_schema = repo.repo_schema || '';
         this.repo_init_author = repo.repo_init_author || '';
-        this.repo_init_date = repo.repo_init_date || new Date().toISOString().split('T')[0];
-        this.repo_deadline = repo.repo_deadline || '';
+        this.repo_init_date = repo.repo_init_date ? repo.repo_init_date.split('T')[0].split(' ')[0] : new Date().toISOString().split('T')[0];
+        this.repo_deadline = repo.repo_deadline ? repo.repo_deadline.split('T')[0].split(' ')[0] : '';
         this.repo_code_snippets = repo.repo_code_snippets || [];
         if (this.repo_code_snippets.length === 0 && repo.repo_code_snippet) {
           this.repo_code_snippets = [{ title: 'Main Code Snippet', code: repo.repo_code_snippet }];
@@ -373,26 +391,38 @@ getMethodColor(method: string): string {
 
         // Handle array fields
         if (Array.isArray(repo.repo_apis)) {
-          this.repo_apis = repo.repo_apis.map((api: any) => ({
-            method: api?.method || 'GET',
-            path: api?.path || '',
-            desc: api?.desc || '',
-            headers: api?.headers || '',
-            payload: api?.payload || '',
-            response: api?.response || ''
-          }));
+          this.repo_apis = repo.repo_apis.map((api: any) => {
+            const newApi = {
+              method: api?.method || 'GET',
+              path: api?.path || '',
+              desc: api?.desc || '',
+              headers: api?.headers || '',
+              payload: api?.payload || '',
+              response: api?.response || '',
+              isHeadersRaw: false,
+              parsedHeaders: []
+            };
+            this.initParsedHeaders(newApi);
+            return newApi;
+          });
         } else if (typeof repo.repo_apis === 'string' && repo.repo_apis.trim() !== '') {
           try {
             const parsed = JSON.parse(repo.repo_apis);
             if (Array.isArray(parsed)) {
-              this.repo_apis = parsed;
+              this.repo_apis = parsed.map(api => {
+                const newApi = { ...api, isHeadersRaw: false, parsedHeaders: [] };
+                this.initParsedHeaders(newApi);
+                return newApi;
+              });
             } else if (typeof parsed === 'object') {
-              this.repo_apis = [parsed];
+              const newApi = { ...parsed, isHeadersRaw: false, parsedHeaders: [] };
+              this.initParsedHeaders(newApi);
+              this.repo_apis = [newApi];
             } else {
-              this.repo_apis = [{ method: 'INFO', path: 'Raw Text', desc: repo.repo_apis }];
+              this.repo_apis = [{ method: 'INFO', path: 'Raw Text', desc: repo.repo_apis, isHeadersRaw: false, parsedHeaders: [] }];
             }
           } catch {
-            this.repo_apis = [{ method: 'INFO', path: 'Raw Text', desc: repo.repo_apis }];
+            this.repo_apis = [{ method: 'INFO', path: 'Raw Text', desc: repo.repo_apis, isHeadersRaw: false, parsedHeaders: [] }];
           }
         } else {
           this.repo_apis = [];
@@ -428,39 +458,50 @@ getMethodColor(method: string): string {
         }
         
         // Flatten pivot data if the backend uses Laravel Many-to-Many relationships
-        this.repo_access = parsedAccess.map((access: any) => ({
-          ...access,
-          role_id: access.pivot?.id || access.id || null,
-          name: access.name || access.emp_name || 'Unknown',
-          role_catagory: access.role_catagory || access.pivot?.role_catagory || null,
-          can: access.role_name || access.can || access.role || access.repo_role || access.access_level || access.pivot?.can || access.pivot?.role || access.pivot?.role_name || 'view'
-        }));
+        this.repo_access = parsedAccess.map((access: any) => {
+          const userObj = this.allUsers.find(u => (u.emp_id || u.id)?.toString() === (access.emp_id || access.id)?.toString());
+          const isCreator = access.is_creator === true || access.pivot?.is_creator === true;
+          return {
+            ...access,
+            role_id: access.pivot?.id || access.id || null,
+            emp_id: (access.emp_id || access.id).toString(),
+            name: access.name || access.emp_name || userObj?.emp_name || 'Unknown',
+            emp_role: access.emp_role || userObj?.emp_role || 'dev',
+            role_catagory: access.role_catagory || access.pivot?.role_catagory || null,
+            can: access.role_name || access.can || access.role || access.repo_role || access.access_level || access.pivot?.can || access.pivot?.role || access.pivot?.role_name || '',
+            permission: access.permission || access.pivot?.permission || ((access.emp_role === 'admin' || userObj?.emp_role === 'admin' || isCreator) ? 'EDIT' : 'VIEW')
+          };
+        });
 
         // Fetch exact roles from repo-roles table to ensure accurate role tracking in edit mode
         this.http.get(`${CONFIG.BASE_URL}/repo-roles`).subscribe({
           next: (roleRes: any) => {
             const data = Array.isArray(roleRes) ? roleRes : (roleRes.data || []);
-            const currentRepoRoles = data.filter((r: any) => r.repo_id == id && r.branch_id == this.selectedBranchId);
+            const currentRepoRoles = data.filter((r: any) => r.repo_id == id);
             
             // Map the actual assigned roles back into the UI state
             this.repo_access.forEach(access => {
-              const matchedRole = currentRepoRoles.find((r: any) => r.emp_id == (access.emp_id || (access as any).id));
+              const matchedRole = currentRepoRoles.find((r: any) => r.emp_id == access.emp_id);
               if (matchedRole) {
                 access.role_id = matchedRole.id;
-                access.can = matchedRole.role_name;
+                access.can = matchedRole.role_catagory === 'Permission' ? '' : matchedRole.role_name;
                 access.role_catagory = matchedRole.role_catagory;
+                access.permission = matchedRole.permission || 'VIEW';
               }
             });
 
             // Add any missing users that exist in repo-roles but not in the main repo_access array
             currentRepoRoles.forEach((role: any) => {
               if (!this.repo_access.some(a => a.emp_id == role.emp_id)) {
+                const userObj = this.allUsers.find(u => u.emp_id == role.emp_id);
                 this.repo_access.push({
                   emp_id: role.emp_id.toString(),
                   role_id: role.id,
-                  can: role.role_name,
+                  can: role.role_catagory === 'Permission' ? '' : role.role_name,
                   role_catagory: role.role_catagory,
-                  name: this.allUsers.find(u => u.emp_id == role.emp_id)?.emp_name || 'Unknown'
+                  permission: role.permission || 'VIEW',
+                  name: userObj?.emp_name || 'Unknown',
+                  emp_role: userObj?.emp_role || 'dev'
                 });
               }
             });
@@ -621,23 +662,96 @@ getMethodColor(method: string): string {
   }
 
   addApiRow() {
-    this.repo_apis.push({ method: 'GET', path: '', desc: '', payload: '', response: '' });
+    this.repo_apis.push({ 
+      method: 'GET', 
+      path: '', 
+      desc: '', 
+      payload: '', 
+      response: '', 
+      headers: '', 
+      isHeadersRaw: false, 
+      parsedHeaders: [{ active: true, key: '', value: '' }] 
+    });
   }
 
   removeApiRow(index: number) {
     this.repo_apis.splice(index, 1);
   }
 
+  // Header Parsing Helpers
+  initParsedHeaders(api: any) {
+    if (!api.headers) {
+      api.parsedHeaders = [{ active: true, key: '', value: '' }];
+      return;
+    }
+    const lines = api.headers.split(/\r?\n/);
+    api.parsedHeaders = lines.map((line: string) => {
+      const active = !line.startsWith('~');
+      const cleanLine = active ? line : line.substring(1);
+      const colonIdx = cleanLine.indexOf(':');
+      if (colonIdx === -1) return { active, key: cleanLine.trim(), value: '' };
+      return {
+        active,
+        key: cleanLine.substring(0, colonIdx).trim(),
+        value: cleanLine.substring(colonIdx + 1).trim()
+      };
+    }).filter((h: any) => h.key || h.value);
+    
+    if (api.parsedHeaders.length === 0) {
+      api.parsedHeaders.push({ active: true, key: '', value: '' });
+    }
+  }
+
+  syncParsedHeadersToRaw(api: any) {
+    if (!api.parsedHeaders) return;
+    const lines = api.parsedHeaders
+      .filter((h: any) => h.key || h.value)
+      .map((h: any) => {
+        const prefix = h.active ? '' : '~';
+        return `${prefix}${h.key}: ${h.value}`;
+      });
+    api.headers = lines.join('\n');
+  }
+
+  syncRawToParsedHeaders(api: any) {
+    this.initParsedHeaders(api);
+  }
+
+  toggleHeadersRaw(api: any) {
+    if (api.isHeadersRaw) {
+      // Switching to RAW: sync the parsed array back to raw string
+      this.syncParsedHeadersToRaw(api);
+    } else {
+      // Switching to FORM: parse the raw string back to array
+      this.syncRawToParsedHeaders(api);
+    }
+  }
+
+  addParsedHeaderRow(api: any) {
+    api.parsedHeaders.push({ active: true, key: '', value: '' });
+    this.syncParsedHeadersToRaw(api);
+  }
+
+  removeParsedHeaderRow(api: any, index: number) {
+    api.parsedHeaders.splice(index, 1);
+    if (api.parsedHeaders.length === 0) {
+      api.parsedHeaders.push({ active: true, key: '', value: '' });
+    }
+    this.syncParsedHeadersToRaw(api);
+  }
+
   addAccessUser(event: any) {
     const val = event.target.value;
     if (!val) return;
     
-    const user = this.availableUsers.find(u => (u.emp_id || u.id)?.toString() === val);
+    const user = this.allUsers.find(u => (u.emp_id || u.id)?.toString() === val);
     if (user && !this.repo_access.some(a => a.emp_id === (user.emp_id || user.id)?.toString())) {
       this.repo_access.push({
         emp_id: (user.emp_id || user.id).toString(),
         name: user.emp_name || user.name || 'Unknown User',
         can: '', // default empty so they select a role
+        permission: user.emp_role === 'admin' ? 'EDIT' : 'VIEW', // admins get EDIT, devs default to VIEW
+        emp_role: user.emp_role || 'dev',
         role_id: null
       });
     }
@@ -670,6 +784,7 @@ getMethodColor(method: string): string {
   createRepo() {
     const payload: any = {
       repo_name: this.repo_name,
+      repo_github_url: this.repo_github_url,
       repo_stack: this.repo_stack,
       repo_status: this.repo_status,
       repo_branch: this.repo_branch,
@@ -689,19 +804,26 @@ getMethodColor(method: string): string {
       repo_architecture_diagram: this.repo_architecture_diagram,
       repo_access: this.repo_access.map((a: any) => {
         let category = a.role_catagory || '';
-        for (const group of this.roleOptions) {
-          if (group.roles.includes(a.can)) {
-            category = group.category;
-            break;
+        let roleName = a.can || '';
+        if (!roleName) {
+          category = 'Permission';
+          roleName = a.permission === 'EDIT' ? 'Editor' : 'Viewer';
+        } else {
+          for (const group of this.roleOptions) {
+            if (group.roles.includes(roleName)) {
+              category = group.category;
+              break;
+            }
           }
-        }
-        if (!category) {
-          category = 'Management';
+          if (!category) {
+            category = 'Management';
+          }
         }
         return {
           emp_id: a.emp_id,
           role_catagory: category,
-          role_name: a.can
+          role_name: roleName,
+          permission: a.permission || 'VIEW'
         };
       }),
       repo_maintainer: this.repo_maintainer || null
@@ -735,21 +857,32 @@ getMethodColor(method: string): string {
       return this.http.post(`${CONFIG.BASE_URL}/repositories/${newRepoId}/files`, formData);
     });
 
-    const roleRequests = this.repo_access
-      .filter((a: any) => {
-        // Only create roles that are in the configured categories
-        return this.roleOptions.some(group => group.roles.includes(a.can));
-      })
-      .map((a: any) => {
-        let category = '';
+    const roleRequests = this.repo_access.map((a: any) => {
+      let category = a.role_catagory || '';
+      let roleName = a.can || '';
+      if (!roleName) {
+        category = 'Permission';
+        roleName = a.permission === 'EDIT' ? 'Editor' : 'Viewer';
+      } else {
         for (const group of this.roleOptions) {
-          if (group.roles.includes(a.can)) {
+          if (group.roles.includes(roleName)) {
             category = group.category;
             break;
           }
         }
-        return this.http.post(`${CONFIG.BASE_URL}/repo-roles`, { emp_id: a.emp_id, repo_id: newRepoId, branch_id: this.selectedBranchId, role_catagory: category, role_name: a.can });
+        if (!category) {
+          category = 'Management';
+        }
+      }
+      return this.http.post(`${CONFIG.BASE_URL}/repo-roles`, {
+        emp_id: a.emp_id,
+        repo_id: newRepoId,
+        branch_id: null,
+        role_catagory: category,
+        role_name: roleName,
+        permission: a.permission || 'VIEW'
       });
+    });
 
     const allRequests = [...fileUploadRequests, ...roleRequests];
 
@@ -865,10 +998,19 @@ getMethodColor(method: string): string {
   }
 
   updateRepo() {
+    let activeBranchId = this.selectedBranchId;
+    if (this.branchOptions && this.branchOptions.length > 0) {
+      const found = this.branchOptions.find(b => b.name === this.repo_branch);
+      if (found) {
+        activeBranchId = typeof found.id === 'string' ? parseInt(found.id, 10) : found.id;
+      }
+    }
+
     const payload: any = {
       emp_id: this.getEmpId(),
-      branch_id: this.selectedBranchId,
+      branch_id: activeBranchId,
       repo_name: this.repo_name,
+      repo_github_url: this.repo_github_url,
       repo_stack: this.repo_stack,
       repo_status: this.repo_status,
       repo_branch: this.repo_branch,
@@ -888,19 +1030,26 @@ getMethodColor(method: string): string {
       repo_architecture_diagram: this.repo_architecture_diagram,
       repo_access: this.repo_access.map((a: any) => {
         let category = a.role_catagory || '';
-        for (const group of this.roleOptions) {
-          if (group.roles.includes(a.can)) {
-            category = group.category;
-            break;
+        let roleName = a.can || '';
+        if (!roleName) {
+          category = 'Permission';
+          roleName = a.permission === 'EDIT' ? 'Editor' : 'Viewer';
+        } else {
+          for (const group of this.roleOptions) {
+            if (group.roles.includes(roleName)) {
+              category = group.category;
+              break;
+            }
           }
-        }
-        if (!category) {
-          category = 'Management';
+          if (!category) {
+            category = 'Management';
+          }
         }
         return {
           emp_id: a.emp_id,
           role_catagory: category,
-          role_name: a.can
+          role_name: roleName,
+          permission: a.permission || 'VIEW'
         };
       }),
       repo_maintainer: this.repo_maintainer || null
@@ -917,27 +1066,43 @@ getMethodColor(method: string): string {
           requests.push(this.http.delete(`${CONFIG.BASE_URL}/repo-roles/${roleId}`));
         });
 
-        if (payload.repo_access.length > 0) {
-          const updateRequests = this.repo_access
-            .filter((a: any) => {
-              // Only update roles that are in the configured categories
-              return this.roleOptions.some(group => group.roles.includes(a.can));
-            })
-            .map((a: any) => {
-              let category = '';
+        if (this.repo_access.length > 0) {
+          const updateRequests = this.repo_access.map((a: any) => {
+            let category = a.role_catagory || '';
+            let roleName = a.can || '';
+            if (!roleName) {
+              category = 'Permission';
+              roleName = a.permission === 'EDIT' ? 'Editor' : 'Viewer';
+            } else {
               for (const group of this.roleOptions) {
-                if (group.roles.includes(a.can)) {
+                if (group.roles.includes(roleName)) {
                   category = group.category;
                   break;
                 }
               }
-              if (a.role_id) {
-                return this.http.put(`${CONFIG.BASE_URL}/repo-roles/${a.role_id}`, { role_catagory: category, role_name: a.can, branch_id: this.selectedBranchId });
-              } else {
-                return this.http.post(`${CONFIG.BASE_URL}/repo-roles`, { emp_id: a.emp_id, repo_id: this.repoId, branch_id: this.selectedBranchId, role_catagory: category, role_name: a.can });
+              if (!category) {
+                category = 'Management';
               }
-            });
-            requests.push(...updateRequests);
+            }
+            if (a.role_id) {
+              return this.http.put(`${CONFIG.BASE_URL}/repo-roles/${a.role_id}`, {
+                role_catagory: category,
+                role_name: roleName,
+                branch_id: null,
+                permission: a.permission || 'VIEW'
+              });
+            } else {
+              return this.http.post(`${CONFIG.BASE_URL}/repo-roles`, {
+                emp_id: a.emp_id,
+                repo_id: this.repoId,
+                branch_id: null,
+                role_catagory: category,
+                role_name: roleName,
+                permission: a.permission || 'VIEW'
+              });
+            }
+          });
+          requests.push(...updateRequests);
         }
 
         if (requests.length > 0) {

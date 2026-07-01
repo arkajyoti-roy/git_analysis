@@ -93,28 +93,45 @@ export const routes: Routes = [
     pathMatch: 'full'
   },
   {
-    path: 'developer/dashboard',
-    component: DEVDashboard,
+    path: 'developer',
+    component: AdminLayout,
     canActivate: [authGuard, roleGuard, profileGuard],
-    data: { roles: ['sr-dev', 'jr-dev', 'dev'] }
-  },
-  {
-    path: 'developer/repositories/:id',
-    component: RepoDetails,
-    canActivate: [authGuard, roleGuard, profileGuard],
-    data: { roles: ['sr-dev', 'jr-dev', 'dev'] }
-  },
-  {
-    path: 'developer/profile',
-    component: ViewProfile,
-    canActivate: [authGuard, roleGuard, profileGuard],
-    data: { roles: ['sr-dev', 'jr-dev', 'dev'] }
-  },
-  {
-    path: 'developer/settings',
-    component: SettingsComponent,
-    canActivate: [authGuard, roleGuard, profileGuard],
-    data: { roles: ['sr-dev', 'jr-dev', 'dev'] }
+    data: { roles: ['sr-dev', 'jr-dev', 'dev'] },
+    children: [
+      {
+        path: 'dashboard',
+        component: DEVDashboard
+      },
+      {
+        path: 'repositories/create',
+        component: RepoCreate
+      },
+      {
+        path: 'repositories/:id/edit',
+        component: RepoCreate
+      },
+      {
+        path: 'repositories/:id',
+        component: RepoDetails
+      },
+      {
+        path: 'repositories',
+        component: RepoList
+      },
+      {
+        path: 'profile',
+        component: ViewProfile
+      },
+      {
+        path: 'settings',
+        component: SettingsComponent
+      },
+      {
+        path: '',
+        redirectTo: 'dashboard',
+        pathMatch: 'full'
+      }
+    ]
   },
   {
     path: '**',

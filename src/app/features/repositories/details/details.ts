@@ -1,7 +1,7 @@
 import { Component, OnInit, AfterViewChecked, ElementRef, ViewChild, OnDestroy } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { CommonModule, DatePipe } from '@angular/common';
+import { CommonModule, DatePipe, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { CONFIG } from '../../../config/config';
@@ -10,12 +10,11 @@ import { ThemeService } from '../../../core/services/theme.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
 import { EditorComponent } from 'ngx-monaco-editor-v2';
-import { Topbar } from '../../../shared/topbar/topbar';
 import mermaid from 'mermaid';
 
 @Component({
   selector: 'app-details',
-  imports: [CommonModule, DatePipe, RouterLink, MonacoEditorModule, FormsModule, Topbar],
+  imports: [CommonModule, DatePipe, RouterLink, MonacoEditorModule, FormsModule],
   templateUrl: './details.html',
   styleUrl: './details.css',
 })
@@ -48,6 +47,7 @@ export class Details implements OnInit, OnDestroy {
   allUsers: any[] = [];
   maintainerName: string = 'None';
   repoRoles: any[] = [];
+  activityLogs: any[] = [];
 
   // Branch creation properties
   showCreateBranchModal = false;
@@ -130,13 +130,23 @@ export class Details implements OnInit, OnDestroy {
     private http: HttpClient,
     public themeService: ThemeService,
     private toast: ToastService,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private location: Location
   ) {
     mermaid.initialize({ 
       startOnLoad: false, 
       theme: 'dark',
       securityLevel: 'loose'
     });
+  }
+
+  get rolePrefix(): string {
+    const role = localStorage.getItem('role') || 'dev';
+    return role === 'admin' ? '/admin' : '/developer';
+  }
+
+  goBack() {
+    this.location.back();
   }
 
   ngOnInit() {
@@ -164,6 +174,9 @@ export class Details implements OnInit, OnDestroy {
           if (this.repoId) {
             this.fetchRepoDetails(this.repoId, true);
             this.fetchRepoRoles(this.repoId);
+            if (this.activeTab === 'activity') {
+              this.fetchActivityLogs();
+            }
           }
         }, 1500);
       }
@@ -225,7 +238,7 @@ export class Details implements OnInit, OnDestroy {
     this.http.get(`${CONFIG.BASE_URL}/repo-roles`).subscribe({
       next: (res: any) => {
         const data = Array.isArray(res) ? res : (res.data || []);
-        this.repoRoles = data.filter((item: any) => item.repo_id == id && item.branch_id == this.selectedBranchId);
+        this.repoRoles = data.filter((item: any) => item.repo_id == id);
       },
       error: () => {}
     });
@@ -257,6 +270,12 @@ export class Details implements OnInit, OnDestroy {
     if (!empId || this.allUsers.length === 0) return 'Unknown User';
     const user = this.allUsers.find(u => (u.emp_id || u.id)?.toString() === String(empId));
     return user ? (user.emp_name || user.name || 'Unknown User') : 'Unknown User';
+  }
+
+  getGitHubUsername(empId: any): string {
+    if (!empId || this.allUsers.length === 0) return '';
+    const user = this.allUsers.find(u => (u.emp_id || u.id)?.toString() === String(empId));
+    return user ? (user.github_username || '') : '';
   }
 
   addCommit() {
@@ -482,6 +501,23 @@ export class Details implements OnInit, OnDestroy {
     this.selectedBranchId = branchId;
     this.selectedSnippetIndex = 0;
     this.fetchRepoDetails(this.repoId!);
+  }
+
+  onActivityTabActive() {
+    this.activeTab = 'activity';
+    this.fetchActivityLogs();
+  }
+
+  fetchActivityLogs() {
+    if (!this.repoId) return;
+    this.http.get(`${CONFIG.BASE_URL}/repositories/${this.repoId}/activity-logs`).subscribe({
+      next: (res: any) => {
+        this.activityLogs = res.data || res;
+      },
+      error: (err) => {
+        console.error('Failed to fetch activity logs', err);
+      }
+    });
   }
 
   getLoggedEmpId(): string {
