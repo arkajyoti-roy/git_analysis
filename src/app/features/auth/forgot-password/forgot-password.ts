@@ -44,7 +44,13 @@ export class ForgotPasswordComponent {
       },
       error: (err) => {
         this.isLoading = false;
-        this.toast.error(err.error?.message || 'Error sending OTP');
+        let errMsg = err.error?.message || 'Error sending OTP';
+        if (err.error?.errors) {
+          errMsg = Object.values(err.error.errors)
+            .map((msgs: any) => Array.isArray(msgs) ? msgs.join(', ') : msgs)
+            .join('\n');
+        }
+        this.toast.error(errMsg);
       }
     });
   }
@@ -79,7 +85,13 @@ export class ForgotPasswordComponent {
       },
       error: (err) => {
         this.isLoading = false;
-        this.toast.error(err.error?.message || 'Error resetting password');
+        let errMsg = err.error?.message || 'Error resetting password';
+        if (err.error?.errors) {
+          errMsg = Object.values(err.error.errors)
+            .map((msgs: any) => Array.isArray(msgs) ? msgs.join(', ') : msgs)
+            .join('\n');
+        }
+        this.toast.error(errMsg);
       }
     });
   }

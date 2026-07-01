@@ -49,13 +49,15 @@ export class SettingsComponent implements OnInit {
     }
     
     this.isEmailLoading = true;
-    this.http.post(`${CONFIG.BASE_URL}/auth/send-email-otp`, {}, {
+    this.http.post(`${CONFIG.BASE_URL}/auth/send-email-otp`, {
+      new_email: this.newEmail
+    }, {
       headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
     }).subscribe({
       next: (res: any) => {
         this.isEmailLoading = false;
         if (res.success) {
-          this.toast.success('OTP sent to your CURRENT email address');
+          this.toast.success('OTP sent to both current and new email addresses');
           this.emailStep = 'otp';
         } else {
           this.toast.error(res.message || 'Failed to send OTP');
@@ -63,7 +65,13 @@ export class SettingsComponent implements OnInit {
       },
       error: (err) => {
         this.isEmailLoading = false;
-        this.toast.error(err.error?.message || 'Error sending OTP');
+        let errMsg = err.error?.message || 'Error sending OTP';
+        if (err.error?.errors) {
+          errMsg = Object.values(err.error.errors)
+            .map((msgs: any) => Array.isArray(msgs) ? msgs.join(', ') : msgs)
+            .join('\n');
+        }
+        this.toast.error(errMsg);
       }
     });
   }
@@ -95,7 +103,13 @@ export class SettingsComponent implements OnInit {
       },
       error: (err) => {
         this.isEmailLoading = false;
-        this.toast.error(err.error?.message || 'Error updating email');
+        let errMsg = err.error?.message || 'Error updating email';
+        if (err.error?.errors) {
+          errMsg = Object.values(err.error.errors)
+            .map((msgs: any) => Array.isArray(msgs) ? msgs.join(', ') : msgs)
+            .join('\n');
+        }
+        this.toast.error(errMsg);
       }
     });
   }
