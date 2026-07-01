@@ -1,0 +1,823 @@
+<div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+  <button (click)="goBack()" class="btn-sm"
+    style="background: transparent; color: var(--text-main); border: 1px solid var(--border-color); padding: 0.25rem 0.75rem; cursor: pointer;">←
+    Back</button>
+  <h2 style="margin: 0;">{{ isEditMode ? 'Edit Repository' : 'Create Repository' }}</h2>
+</div>
+
+<div class="form-card">
+
+  <div
+    style="display: flex; gap: 1rem; border-bottom: 1px solid var(--border-color); margin-bottom: 0px; padding-bottom: 0.5rem; overflow-x: auto;">
+    <button type="button"
+      [style.border-bottom]="activeTab === 'basic' ? '2px solid var(--primary-color)' : '2px solid transparent'"
+      [style.color]="activeTab === 'basic' ? 'var(--text-main)' : 'var(--text-muted)'"
+      style="background: transparent; border: none; font-weight: 500; border-radius: 0; font-size: 1rem; cursor: pointer; padding: 0.5rem 0.5rem; white-space: nowrap; transition: 0.2s;"
+      (click)="activeTab = 'basic'">
+      Basic Info
+    </button>
+    <button type="button"
+      [style.border-bottom]="activeTab === 'env' ? '2px solid var(--primary-color)' : '2px solid transparent'"
+      [style.color]="activeTab === 'env' ? 'var(--text-main)' : 'var(--text-muted)'"
+      style="background: transparent; border: none; font-weight: 500; border-radius: 0; font-size: 1rem; cursor: pointer; padding: 0.5rem 0.5rem; white-space: nowrap; transition: 0.2s;"
+      (click)="activeTab = 'env'">
+      Env & Docs
+    </button>
+    <button type="button"
+      [style.border-bottom]="activeTab === 'api' ? '2px solid var(--primary-color)' : '2px solid transparent'"
+      [style.color]="activeTab === 'api' ? 'var(--text-main)' : 'var(--text-muted)'"
+      style="background: transparent; border: none; font-weight: 500; border-radius: 0; font-size: 1rem; cursor: pointer; padding: 0.5rem 0.5rem; white-space: nowrap; transition: 0.2s;"
+      (click)="activeTab = 'api'">
+      DB & APIs
+    </button>
+    <button type="button"
+      [style.border-bottom]="activeTab === 'architecture' ? '2px solid var(--primary-color)' : '2px solid transparent'"
+      [style.color]="activeTab === 'architecture' ? 'var(--text-main)' : 'var(--text-muted)'"
+      style="background: transparent; border: none; font-weight: 500; font-size: 1rem; border-radius: 0; cursor: pointer; padding: 0.5rem 0.5rem; white-space: nowrap; transition: 0.2s;"
+      (click)="activeTab = 'architecture'">
+      Architecture Stack
+    </button>
+    <button type="button"
+      [style.border-bottom]="activeTab === 'snippets' ? '2px solid var(--primary-color)' : '2px solid transparent'"
+      [style.color]="activeTab === 'snippets' ? 'var(--text-main)' : 'var(--text-muted)'"
+      style="background: transparent; border: none; font-weight: 500; font-size: 1rem; border-radius: 0; cursor: pointer; padding: 0.5rem 0.5rem; white-space: nowrap; transition: 0.2s;"
+      (click)="activeTab = 'snippets'">
+      Code Snippets
+    </button>
+    <button type="button"
+      [style.border-bottom]="activeTab === 'access' ? '2px solid var(--primary-color)' : '2px solid transparent'"
+      [style.color]="activeTab === 'access' ? 'var(--text-main)' : 'var(--text-muted)'"
+      style="background: transparent; border: none; font-weight: 500; font-size: 1rem; border-radius: 0; cursor: pointer; padding: 0.5rem 0.5rem; white-space: nowrap; transition: 0.2s;"
+      (click)="activeTab = 'access'">
+      Access Control
+    </button>
+    <button type="button"
+      [style.border-bottom]="activeTab === 'files' ? '2px solid var(--primary-color)' : '2px solid transparent'"
+      [style.color]="activeTab === 'files' ? 'var(--text-main)' : 'var(--text-muted)'"
+      style="background: transparent; border: none; font-weight: 500; font-size: 1rem; border-radius: 0; cursor: pointer; padding: 0.5rem 0.5rem; white-space: nowrap; transition: 0.2s;"
+      (click)="activeTab = 'files'">
+      Docs & Files
+    </button>
+  </div>
+
+  @if (activeTab === 'basic') {
+  <!-- Section: Basic Info -->
+  <!-- <div class="section-divider">
+    <span>Basic Information</span>
+  </div> -->
+
+  <div class="form-row">
+    <div class="form-group">
+      <label>Repository Name</label>
+      <input type="text" placeholder="e.g. Auth Service" [(ngModel)]="repo_name">
+    </div>
+    <div class="form-group">
+      <label>Repository Branch</label>
+      <div style="display: flex; gap: 0.5rem;">
+        @if (isEditMode) {
+        <select [(ngModel)]="repo_branch" style="flex: 1;">
+          <option value="" disabled selected>Select a branch...</option>
+          @for (branch of branchOptions; track branch.id) {
+          <option [value]="branch.name">{{ branch.name }}</option>
+          }
+        </select>
+        <button type="button" class="btn-sm btn-secondary" (click)="openManageModal('branch')">Add</button>
+        } @else {
+        <input type="text" placeholder="e.g. main" [(ngModel)]="repo_branch" style="flex: 1;">
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group" style="width: 100%;">
+      <label>GitHub Repository URL</label>
+      <input type="text" placeholder="e.g. https://github.com/owner/repository" [(ngModel)]="repo_github_url">
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label>Architecture</label>
+      <div style="margin-bottom: 0.5rem;">
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+          <select [(ngModel)]="repo_arch" style="flex: 1;">
+            <option value="" disabled selected>Select an architecture...</option>
+            @for (arch of archOptions; track arch.id) {
+            <option [value]="arch.name">{{ arch.name }}</option>
+            }
+          </select>
+          <button type="button" class="btn-sm btn-secondary" (click)="openManageModal('arch')">Add</button>
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Status</label>
+      <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+        <select [(ngModel)]="repo_status" style="flex: 1;">
+          <option value="" disabled selected>Select status...</option>
+          @for (status of statusOptions; track status.id) {
+          <option [value]="status.name">{{ status.name | titlecase }}</option>
+          }
+        </select>
+        <button type="button" class="btn-sm btn-secondary" (click)="openManageModal('status')">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label>Initial Author</label>
+      <input type="text" placeholder="e.g. John Doe" [(ngModel)]="repo_init_author" readonly>
+    </div>
+    <div class="form-group">
+      <label>Repository Stack</label>
+      <div style="margin-bottom: 0.5rem;">
+        <!-- Normal Dropdown -->
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+          <select (change)="addStackFromDropdown($event)" style="flex: 1;">
+            <option value="" disabled selected>Select a stack to add...</option>
+            @for (stack of availableStacks; track stack.id) {
+            <option [value]="stack.name">{{ stack.name }}</option>
+            }
+          </select>
+          <button type="button" class="btn-sm btn-secondary" (click)="openManageModal('stack')">Add</button>
+        </div>
+
+        <!-- Selected Stacks as Chips -->
+        @if(repo_stack.length > 0) {
+        <div
+          style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem; padding: 0.5rem; border: 1px dashed var(--border-color); border-radius: 4px;">
+          @for (stack of repo_stack; track stack) {
+          <span
+            style="background: var(--bg-card); border: 1px solid var(--border-color); padding: 0.2rem 0.5rem; border-radius: 12px; font-size: 0.85rem; display: flex; align-items: center; gap: 0.25rem;">
+            {{ stack }}
+            <span (click)="removeStack(stack)"
+              style="cursor: pointer; color: #ef4444; font-weight: bold; padding: 0 0.2rem;">×</span>
+          </span>
+          }
+        </div>
+        }
+      </div>
+    </div>
+  </div>
+
+
+
+  <div class="form-row">
+    <div class="form-group">
+      <label>Initial Date</label>
+      <input type="date" [(ngModel)]="repo_init_date">
+    </div>
+    <div class="form-group">
+      <label>Deadline</label>
+      <input type="date" [(ngModel)]="repo_deadline">
+    </div>
+  </div>
+
+  }
+
+  @if (activeTab === 'env') {
+  <!-- Section: Setup & Configuration -->
+  <!-- <div class="section-divider">
+    <span>Setup &amp; Configuration</span>
+  </div> -->
+
+  <div class="form-row">
+    <div class="form-group">
+      <div style="display: flex; align-items: center; margin-bottom: 0.5rem; min-height: 29px;">
+        <label style="margin: 0;">Getting Started / Install Steps</label>
+      </div>
+      <textarea placeholder="npm install&#10;npm run dev&#10;open http://localhost:3000"
+        [(ngModel)]="repo_getting_started" rows="4" style="resize: vertical;"></textarea>
+      <span class="field-hint">One command per line — displayed as terminal steps</span>
+    </div>
+    <div class="form-group">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+        <label style="margin: 0;">Environment Variables</label>
+        <div style="display: flex; gap: 0.5rem;">
+          <button type="button" class="btn-sm"
+            style="padding: 0.35rem 0.75rem; font-size: 0.8rem; background: var(--primary-color); border: 1px solid var(--primary-color); color: var(--bg-surface); border-radius: 6px; cursor: pointer; font-weight: 500; display: inline-flex; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.1); transition: opacity 0.2s;"
+            onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'" (click)="envFileInput.click()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              style="margin-right: 6px;">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path>
+            </svg>
+            Import .env
+          </button>
+          <button type="button" class="btn-sm btn-secondary" (click)="downloadEnvFile()"
+            style="padding: 0.35rem 0.75rem; font-size: 0.8rem; border-radius: 6px; cursor: pointer; font-weight: 500; display: inline-flex; align-items: center; gap: 4px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15v-12"/>
+            </svg>
+            Download .env
+          </button>
+        </div>
+        <input type="file" #envFileInput style="display: none;" accept=".env" (change)="onEnvFileSelected($event)">
+      </div>
+      <textarea placeholder="DB_HOST=localhost&#10;DB_PORT=5432&#10;API_KEY=your-key-here" [(ngModel)]="repo_env"
+        rows="4" style="resize: vertical;"></textarea>
+      <span class="field-hint">KEY=VALUE format, one per line</span>
+    </div>
+  </div>
+
+  }
+  @if (activeTab === 'api') {
+  <div class="form-row">
+    <div class="form-group">
+      <div style="display: flex; justify-content: space-between; align-items: center; height: 32px; margin-bottom: 0.5rem;">
+        <label style="margin: 0;">APIs</label>
+      </div>
+      <div
+        style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.5rem; margin-bottom: 0.5rem;">
+        @for (api of repo_apis; track $index) {
+        <div
+          style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-surface);">
+
+          <!-- Top Row: Method, Path, Desc, Remove -->
+          <div style="display: flex; gap: 0.5rem; align-items: flex-start;">
+
+            <div style="display:flex; flex-direction:column; flex:0 0 100px;">
+              <label>Method</label>
+              <select [(ngModel)]="api.method" [style.color]="getMethodColor(api.method)">
+                <option style="color: #0CBB52;" value="GET">GET</option>
+                <option style="color: #FFB400;" value="POST">POST</option>
+                <option style="color: #097BED;" value="PUT">PUT</option>
+                <option style="color: #A359DF;" value="PATCH">PATCH</option>
+                <option style="color: #E05353;" value="DELETE">DELETE</option>
+                <option style="color: #009688;" value="HEAD">HEAD</option>
+                <option style="color: #E15599;" value="OPTIONS">OPTIONS</option>
+              </select>
+            </div>
+
+            <div style="display:flex; flex-direction:column; flex:1;">
+              <label>Endpoints</label>
+              <input type="text" placeholder="e.g. /api/users" [(ngModel)]="api.path">
+            </div>
+
+            <div style="display:flex; flex-direction:column; flex:2;">
+              <label>Description</label>
+              <input type="text" placeholder="Description..." [(ngModel)]="api.desc">
+            </div>
+
+            <button type="button" class="btn-sm" (click)="removeApiRow($index)"
+              style="background: transparent; border: 1px solid var(--border-color); color: var(--danger-color); padding: 0.25rem 0.5rem; font-size: 1rem; cursor: pointer;"
+              title="Remove API">✕</button>
+          </div>
+          <!-- <div style="display: flex; gap: 0.5rem;"> -->
+            <div style="display:flex; flex-direction:column; flex:1; margin-bottom: 0.5rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
+                <label style="margin: 0;">Headers</label>
+                <label style="display: flex; align-items: center; gap: 0.25rem; font-size: 0.85rem; cursor: pointer; color: var(--text-muted);">
+                  <input type="checkbox" [(ngModel)]="api.isHeadersRaw" (change)="toggleHeadersRaw(api)" style="margin: 0;"> Raw
+                </label>
+              </div>
+
+              @if (api.isHeadersRaw) {
+                <textarea placeholder="Headers" [(ngModel)]="api.headers" rows="4"
+                  style="font-family: monospace; resize: vertical; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-card); color: var(--text-main);"></textarea>
+              } @else {
+                <div style="display: flex; flex-direction: column; gap: 0.25rem; background: var(--bg-card); padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px;">
+                  <datalist id="http-header-keys">
+                    <option value="Accept">
+                    <option value="Accept-Encoding">
+                    <option value="Accept-Language">
+                    <option value="Authorization">
+                    <option value="Cache-Control">
+                    <option value="Connection">
+                    <option value="Content-Type">
+                    <option value="Content-Length">
+                    <option value="Cookie">
+                    <option value="Host">
+                    <option value="Origin">
+                    <option value="Proxy-Authorization">
+                    <option value="Referer">
+                    <option value="User-Agent">
+                    <option value="X-Api-Key">
+                    <option value="X-Authorization">
+                    <option value="X-Forwarded-For">
+                    <option value="X-Requested-With">
+                  </datalist>
+                  @for (h of api.parsedHeaders; track $index) {
+                    <div style="display: grid; grid-template-columns: auto 1fr 2fr auto; gap: 0.5rem; align-items: center; width: 100%;">
+                      <input type="checkbox" [(ngModel)]="h.active" (change)="syncParsedHeadersToRaw(api)" style="margin: 0; cursor: pointer;">
+                      <input type="text" list="http-header-keys" placeholder="Header Key" [(ngModel)]="h.key" (change)="syncParsedHeadersToRaw(api)" style="width: 100%; box-sizing: border-box; padding: 0.4rem 0.5rem; font-size: 0.85rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-main); color: var(--text-main); outline: none;">
+                      <input type="text" placeholder="Header Value" [(ngModel)]="h.value" (change)="syncParsedHeadersToRaw(api)" style="width: 100%; box-sizing: border-box; padding: 0.4rem 0.5rem; font-size: 0.85rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-main); color: var(--text-main); outline: none;">
+                      <button type="button" class="btn-sm" (click)="removeParsedHeaderRow(api, $index)" style="background: transparent; color: var(--danger-color); border: none; cursor: pointer; padding: 0 0.25rem; font-size: 1rem;" title="Remove header">✕</button>
+                    </div>
+                  }
+                  <button type="button" class="btn-sm" (click)="addParsedHeaderRow(api)" style="align-self: flex-start; margin-top: 0.25rem; padding: 0.2rem 0.5rem; font-size: 0.8rem; border-radius: 2px; background: transparent; border: 1px dashed var(--border-color); color: var(--text-muted); cursor: pointer;">+ Add Header</button>
+                </div>
+              }
+            </div>
+            <!-- Bottom Row: Payload and Response -->
+            <div style="display: flex; gap: 0.5rem;">
+              <div style="display:flex; flex-direction:column; flex:1;">
+                <label>Payload</label>
+                <textarea placeholder="Payload (JSON)" [(ngModel)]="api.payload" rows="3"
+                  style="font-family: monospace; resize: vertical;"></textarea>
+              </div>
+              <div style="display:flex; flex-direction:column; flex:1;">
+                <label>Response</label>
+                <textarea placeholder="Expected Response (JSON)" [(ngModel)]="api.response" rows="3"
+                  style="font-family: monospace; resize: vertical;"></textarea>
+              </div>
+            </div>
+          </div>
+
+          }
+          @if (repo_apis.length === 0) {
+          <p style="margin: 0 0 0.5rem 0; font-size: 0.85rem; color: var(--text-muted);">No APIs defined yet.</p>
+          }
+          <button type="button" class="btn-sm" (click)="addApiRow()">+ Add API</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <div style="display: flex; justify-content: space-between; align-items: center; height: 32px; margin-bottom: 0.5rem;">
+          <label style="margin: 0;">Database Schema</label>
+          <div style="display: flex; gap: 0.5rem;">
+            <button type="button" class="btn-sm"
+              style="padding: 0.35rem 0.75rem; font-size: 0.8rem; background: var(--primary-color); border: 1px solid var(--primary-color); color: var(--bg-surface); border-radius: 6px; cursor: pointer; font-weight: 500; display: inline-flex; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.1); transition: opacity 0.2s;"
+              onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'" (click)="sqlFileInput.click()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                style="margin-right: 6px;">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"></path>
+              </svg>
+              Import .sql
+            </button>
+            <button type="button" class="btn-sm btn-secondary" (click)="downloadSqlFile()"
+              style="padding: 0.35rem 0.75rem; font-size: 0.8rem; border-radius: 6px; cursor: pointer; font-weight: 500; display: inline-flex; align-items: center; gap: 4px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15v-12"/>
+              </svg>
+              Download .sql
+            </button>
+          </div>
+          <input type="file" #sqlFileInput style="display: none;" accept=".sql" (change)="onSqlFileSelected($event)">
+        </div>
+        <textarea placeholder="e.g. users(id, name, email), orders(id, user_id, total)" [(ngModel)]="repo_schema"
+          rows="4" style="resize: vertical;"></textarea>
+      </div>
+    </div>
+
+    }
+    @if (activeTab === 'env') {
+    <!-- Section: IDP Documentation -->
+    <div class="section-divider">
+      <span>IDP Documentation</span>
+    </div>
+
+    <div class="form-group">
+      <label>Deployment Guide</label>
+      <textarea
+        placeholder="## Development&#10;npm run dev&#10;&#10;## Staging&#10;docker-compose up -d&#10;&#10;## Production&#10;kubectl apply -f k8s/"
+        [(ngModel)]="repo_deployment" rows="5" style="resize: vertical;"></textarea>
+      <span class="field-hint">Deployment steps for Dev / Staging / Production environments</span>
+    </div>
+
+    <div class="form-group" style="width: 100%;">
+      <label>Documentation</label>
+      <div
+        style="background: var(--bg-surface); border-radius: var(--radius-sm); border: 1px solid var(--border-color); width: 100%;">
+        <quill-editor [(ngModel)]="repo_coding_standards" [styles]="{height: '640px', width: '100%', display: 'block'}"
+          style="width: 100%; display: block;"
+          placeholder="Enter comprehensive documentation, guidelines, standards, and notes here..."></quill-editor>
+      </div>
+      <span class="field-hint">General documentation, coding standards, and other important references</span>
+    </div>
+
+    }
+
+    @if (activeTab === 'snippets') {
+      <div style="display: flex; gap: 1.5rem; height: 500px; margin-top: 1rem;">
+        <!-- Left Sidebar: Snippet List -->
+        <div style="width: 250px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); display: flex; flex-direction: column; padding: 0.75rem; box-shadow: var(--shadow-sm);">
+          <button type="button" class="btn-sm" (click)="addSnippet()" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; font-weight: 600; margin-bottom: 0.75rem; background: var(--primary-color); color: #fff; border: none; padding: 0.5rem; border-radius: var(--radius-sm); cursor: pointer;">
+            <span>+ Add Snippet</span>
+          </button>
+          
+          <div style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem; padding-right: 0.25rem;">
+            @for (snippet of repo_code_snippets; track $index) {
+              <div [style.background]="selectedSnippetIndex === $index ? 'rgba(37,99,235,0.08)' : 'transparent'"
+                   [style.border-color]="selectedSnippetIndex === $index ? 'var(--primary-color)' : 'var(--border-color)'"
+                   style="border: 1px solid; border-radius: var(--radius-sm); padding: 0.5rem; display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; cursor: pointer; transition: all 0.2s;"
+                   (click)="selectedSnippetIndex = $index">
+                <input type="text" [(ngModel)]="snippet.title" 
+                       style="background: transparent; border: none; color: var(--text-main); font-weight: 500; font-size: 0.85rem; width: 100%; outline: none;"
+                       (click)="$event.stopPropagation()">
+                <button type="button" (click)="deleteSnippet($index); $event.stopPropagation();" 
+                        style="background: transparent; border: none; color: #ef4444; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 2px;">
+                  ✕
+                </button>
+              </div>
+            } @empty {
+              <div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 2rem 0;">
+                No snippets added.
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Right Panel: Editor -->
+        <div style="flex: 1; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); display: flex; flex-direction: column; overflow: hidden; box-shadow: var(--shadow-sm);">
+          @if (repo_code_snippets.length > 0 && selectedSnippetIndex >= 0 && selectedSnippetIndex < repo_code_snippets.length) {
+            <div style="flex: 1; height: 100%; overflow: hidden;">
+              <ngx-monaco-editor [options]="editorOptions" [ngModel]="getSelectedSnippetCode()" (ngModelChange)="setSelectedSnippetCode($event)" style="height: 100%; display: block;"></ngx-monaco-editor>
+            </div>
+          } @else {
+            <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.5rem; color: var(--text-muted); font-size: 0.95rem; background: var(--bg-main);">
+              <span>No Code Snippet Selected</span>
+              <span style="font-size: 0.8rem; opacity: 0.8;">Click "+ Add Snippet" on the left panel to begin.</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+    @if (activeTab === 'access') {
+    <!-- Section: Team Members Configuration -->
+    <div class="section-divider">
+      <span>Team Members</span>
+    </div>
+    <div>
+      <!-- Maintainer -->
+      <div class="form-row">
+        <div class="form-group" style="width: 100%;">
+          <label>Maintainer</label>
+          <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; padding: 1rem;">
+            <select [(ngModel)]="repo_maintainer" style="width: 100%; max-width: 400px;">
+              <option value="" disabled selected>Select a maintainer...</option>
+              @for (user of allUsers; track user.emp_id) {
+              <option [value]="user.emp_id || user.id">{{ user.emp_name || user.name || 'Unknown User' }}</option>
+              }
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Unified Team Members List -->
+      <div class="form-row" style="margin-top: 1.5rem;">
+        <div class="form-group" style="width: 100%;">
+          <label style="display: flex; align-items: center; gap: 0.5rem;">
+            Configure Collaborators
+            <span style="font-size: 0.78rem; font-weight: 400; color: var(--text-muted); background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 0.1rem 0.55rem;">Manage permissions and roles for admins and developers</span>
+          </label>
+          <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; padding: 1rem;">
+            <!-- Dropdown to add user (all users) -->
+            <select (change)="addAccessUser($event)" style="margin-bottom: 1rem; width: 100%; max-width: 400px;">
+              <option value="" disabled selected>Select a user to add to team...</option>
+              @for (user of availableAccessUsers; track user.emp_id) {
+              <option [value]="user.emp_id || user.id">{{ user.emp_name || user.name || 'Unknown User' }}{{ user.emp_role === 'admin' ? ' (Admin)' : '' }}</option>
+              }
+            </select>
+
+            @if (repo_access.length > 0) {
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+              @for (access of repo_access; track access.emp_id; let i = $index) {
+              <div style="display: flex; align-items: center; gap: 1rem; padding: 0.5rem 0.75rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-surface);">
+                <div style="width: 28px; height: 28px; background: var(--primary-color); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.75rem; flex-shrink: 0;">
+                  {{ (access.name || 'U').charAt(0).toUpperCase() }}
+                </div>
+                <div style="flex-grow: 1; font-weight: 500; font-size: 0.95rem;">
+                  {{ access.name }} <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: normal;">({{ access.emp_role === 'admin' ? 'Admin' : 'Developer' }})</span>
+                </div>
+                
+                <!-- Permission Column -->
+                <div style="display: flex; align-items: center; gap: 0.25rem;">
+                  @if (access.emp_role === 'admin') {
+                    <span style="font-size: 0.85rem; font-weight: 600; color: #16a34a; background: rgba(22,163,74,0.1); border: 1px solid rgba(22,163,74,0.3); border-radius: 4px; padding: 0.25rem 0.6rem; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;">
+                      EDIT (locked)
+                    </span>
+                  } @else {
+                    <select [(ngModel)]="access.permission" style="padding: 0.25rem 0.5rem; width: auto; min-width: 110px;">
+                      <option value="VIEW">View Only</option>
+                      <option value="EDIT">Can Edit</option>
+                    </select>
+                  }
+                </div>
+
+                <!-- Role Column -->
+                <select [(ngModel)]="access.can" style="padding: 0.25rem 0.5rem; width: auto; min-width: 150px; max-width: 250px;">
+                  <option value="">No Role / Permission Only</option>
+                  @for (group of roleOptions; track group.category) {
+                    <optgroup [label]="group.category">
+                      @for (role of group.roles; track role) {
+                        <option [value]="role">{{ role }}</option>
+                      }
+                    </optgroup>
+                  }
+                </select>
+
+                <button type="button" class="btn-sm"
+                  style="background: transparent; color: #ef4444; border-color: #ef4444;"
+                  (click)="removeAccessUser(i)">Remove</button>
+              </div>
+              }
+            </div>
+            } @else {
+            <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">No team members added yet.</p>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+    }
+    @if (activeTab === 'files') {
+    <div style="display: flex; flex-direction: column; gap: 2rem;">
+      <!-- Upload / Stage File Form -->
+      <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 4px; padding: 1.5rem;">
+        <h3 style="margin-top: 0; margin-bottom: 1.5rem; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+          </svg>
+          {{ isEditMode ? 'Upload Document / File' : 'Stage Document / File' }}
+        </h3>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+          <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+              <label style="font-weight: 500; font-size: 0.9rem; color: var(--text-muted);">Choose File</label>
+              <input type="file" id="createRepoFileInput" (change)="onFileSelected($event)"
+                     style="padding: 0.5rem; border: 1px solid var(--border-color); border-radius: var(--radius-sm); background: var(--bg-surface); color: var(--text-main);">
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+              <label style="font-weight: 500; font-size: 0.9rem; color: var(--text-muted);">Display Name</label>
+              <input type="text" [(ngModel)]="newFileName" placeholder="Enter custom display name..."
+                     style="padding: 0.65rem 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-sm); background: var(--bg-surface); color: var(--text-main);">
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <div style="display: flex; flex-direction: column; gap: 0.5rem; height: 100%;">
+              <label style="font-weight: 500; font-size: 0.9rem; color: var(--text-muted);">Description / Purpose</label>
+              <textarea [(ngModel)]="newFileDesc" placeholder="Enter short description of the file..." rows="4"
+                        style="padding: 0.65rem 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-sm); background: var(--bg-surface); color: var(--text-main); height: 100%; resize: none;"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end;">
+          @if (isEditMode) {
+            <button type="button" class="btn-primary" [disabled]="isUploadingFile || !selectedFileToUpload || !newFileName.trim()" (click)="uploadFileDirectly()"
+                    style="padding: 0.65rem 1.5rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.5rem;">
+              <svg *ngIf="isUploadingFile" class="spinner" width="16" height="16" viewBox="0 0 50 50">
+                <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+              </svg>
+              Upload File Directly
+            </button>
+          } @else {
+            <button type="button" class="btn-primary" [disabled]="!selectedFileToUpload || !newFileName.trim()" (click)="stageFile()"
+                    style="padding: 0.65rem 1.5rem; font-weight: 500;">
+              Stage File for Creation
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Existing Files (Edit Mode) or Staged Files (Create Mode) List -->
+      <div>
+        <h3 style="margin-top: 0; margin-bottom: 1.25rem; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+          </svg>
+          {{ isEditMode ? 'Uploaded Files (' + existingFiles.length + ')' : 'Staged Files (' + stagedFiles.length + ')' }}
+        </h3>
+
+        @if (isEditMode) {
+          @if (existingFiles.length > 0) {
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+              @for (file of existingFiles; track file.id) {
+                <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; display: flex; justify-content: space-between; align-items: center; gap: 1.5rem;">
+                  <div style="display: flex; flex-direction: column; gap: 0.35rem; flex: 1;">
+                    <div style="font-weight: 600; font-size: 1.1rem; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
+                      {{ file.file_name }}
+                      <span style="font-weight: normal; font-size: 0.8rem; background: var(--bg-surface); border: 1px solid var(--border-color); padding: 0.1rem 0.4rem; border-radius: 4px; color: var(--text-muted);">
+                        {{ file.original_name }}
+                      </span>
+                    </div>
+                    @if (file.file_description) {
+                      <p style="margin: 0; font-size: 0.95rem; color: var(--text-muted);">{{ file.file_description }}</p>
+                    }
+                    <div style="font-size: 0.8rem; color: var(--text-muted); display: flex; gap: 1.5rem; margin-top: 0.25rem;">
+                      <span><strong>Uploaded By:</strong> {{ file.uploader_name }}</span>
+                    </div>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0;">
+                    <a [href]="file.file_url" target="_blank" class="btn-sm" 
+                       style="background: transparent; color: var(--primary-color); border: 1px solid var(--primary-color); padding: 0.4rem 0.85rem; border-radius: var(--radius-sm); text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;">
+                      Download
+                    </a>
+                    <button type="button" class="btn-sm" (click)="deleteExistingFile(file.id)"
+                            style="background: transparent; color: var(--danger-color); border: 1px solid var(--danger-color); padding: 0.4rem 0.85rem; border-radius: var(--radius-sm); display: inline-flex; align-items: center; gap: 0.35rem;">
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <div style="background: var(--bg-card); border: 1px dashed var(--border-color); border-radius: var(--radius-md); padding: 3rem; text-align: center; color: var(--text-muted);">
+              No files uploaded against this repository yet.
+            </div>
+          }
+        } @else {
+          @if (stagedFiles.length > 0) {
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+              @for (file of stagedFiles; track $index; let i = $index) {
+                <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; display: flex; justify-content: space-between; align-items: center; gap: 1.5rem;">
+                  <div style="display: flex; flex-direction: column; gap: 0.35rem; flex: 1;">
+                    <div style="font-weight: 600; font-size: 1.1rem; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
+                      {{ file.name }}
+                      <span style="font-weight: normal; font-size: 0.8rem; background: var(--bg-surface); border: 1px solid var(--border-color); padding: 0.1rem 0.4rem; border-radius: 4px; color: var(--text-muted);">
+                        {{ file.file.name }}
+                      </span>
+                    </div>
+                    @if (file.desc) {
+                      <p style="margin: 0; font-size: 0.95rem; color: var(--text-muted);">{{ file.desc }}</p>
+                    }
+                  </div>
+                  <div style="display: flex; align-items: center; flex-shrink: 0;">
+                    <button type="button" class="btn-sm" (click)="unstageFile(i)"
+                            style="background: transparent; color: var(--danger-color); border: 1px solid var(--danger-color); padding: 0.4rem 0.85rem; border-radius: var(--radius-sm);">
+                      Remove Staged
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <div style="background: var(--bg-card); border: 1px dashed var(--border-color); border-radius: var(--radius-md); padding: 3rem; text-align: center; color: var(--text-muted);">
+              No files staged for upload yet. Staged files will upload automatically once the repository is created.
+            </div>
+          }
+        }
+      </div>
+    </div>
+    }
+
+    @if (activeTab === 'architecture') {
+    <div style="display: flex; flex-direction: column; gap: 2rem;">
+      <!-- Interactive Excalidraw Whiteboard (Edit Mode Only) -->
+      <div>
+        <h3 style="margin-top: 0; margin-bottom: 1rem; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+          </svg>
+          Interactive Drawboard
+        </h3>
+        
+        @if (isEditMode) {
+          <div *ngIf="whiteboardUrl" 
+               style="width: 100%; height: 65vh; border: 1px solid var(--border-color); border-radius: var(--radius-md); overflow: hidden; background: #121212; box-shadow: var(--shadow-md);">
+            <iframe [src]="whiteboardUrl" style="width: 100%; height: 100%; border: none;"></iframe>
+          </div>
+        } @else {
+          <div style="background: var(--bg-card); border: 1px dashed var(--border-color); border-radius: var(--radius-md); padding: 3rem; text-align: center; color: var(--text-muted);">
+            Interactive whiteboard drawboard is available after the repository is created. You can define the Mermaid.js system flowchart syntax below in the meantime.
+          </div>
+        }
+      </div>
+
+      <!-- Mermaid Flowchart Editor -->
+      <div class="form-group">
+        <h3 style="margin-top: 0; margin-bottom: 0.5rem; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+          System Diagram (Mermaid Syntax)
+        </h3>
+        <textarea style="min-height: 250px; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-sm); background: var(--bg-card); color: var(--text-main); font-family: monospace;"
+          placeholder="graph TD&#10;  A[Client] --> B[API Gateway]&#10;  B --> C[Auth Service]&#10;  B --> D[User Service]&#10;  C --> E[(Database)]&#10;  D --> E"
+          [(ngModel)]="repo_architecture_diagram" rows="6"></textarea>
+        <span class="field-hint">Use <a href='https://mermaid.js.org/syntax/flowchart.html' target='_blank'>Mermaid.js syntax</a> — rendered as a diagram in the repository details view.</span>
+      </div>
+    </div>
+    }
+
+    <div class="form-actions" style="margin-top: 2rem; display: flex; justify-content: flex-start; gap: 15px;">
+      <button type="button" class="btn-secondary" routerLink="/admin/repositories">Cancel</button>
+      <button type="button" class="btn-primary" (click)="submitRepo()" [disabled]="isSubmitting">
+        {{ isSubmitting ? 'Saving...' : (isEditMode ? 'Update Repository' : 'Create Repository') }}
+      </button>
+    </div>
+
+  </div>
+  <!-- Management Modal -->
+  @if (showManageModal) {
+  <div class="modal-backdrop"
+    style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+    <div class="modal-card"
+      style="background: var(--bg-surface); width: 100%; max-width: 600px; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); display: flex; flex-direction: column; max-height: 90vh;">
+
+      <!-- Header -->
+      <div
+        style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="margin: 0; font-size: 1.125rem;">{{ modalTitle }}</h3>
+        <button
+          style="background: transparent; border: none; font-size: 1.25rem; cursor: pointer; color: var(--text-muted);"
+          (click)="closeManageModal()">✕</button>
+      </div>
+
+      <!-- Body: Table of Items -->
+      <div style="padding: 0; overflow-y: auto; flex: 1;">
+        <table style="margin: 0; width: 100%; border-collapse: collapse;">
+          <thead style="background: var(--bg-main); position: sticky; top: 0; z-index: 1;">
+            <tr>
+              <th style="padding: 0.75rem 1.5rem; text-align: left; font-size: 0.8125rem; color: var(--text-muted);">#
+              </th>
+              <th style="padding: 0.75rem 1.5rem; text-align: left; font-size: 0.8125rem; color: var(--text-muted);">
+                Category Name</th>
+              <th style="padding: 0.75rem 1.5rem; text-align: right; font-size: 0.8125rem; color: var(--text-muted);">
+                Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of currentManageItems; track item.id; let i = $index) {
+            <tr style="border-bottom: 1px solid var(--border-color);">
+              <td style="padding: 0.75rem 1.5rem; font-size: 0.875rem;">{{ i + 1 }}</td>
+              <td style="padding: 0.75rem 1.5rem; font-size: 0.875rem; font-weight: 500;">{{ item.name }}</td>
+              <td style="padding: 0.75rem 1.5rem; text-align: right;">
+                <button class="btn-sm"
+                  style="background: transparent; border: 1px solid var(--border-color); color: var(--text-primary); padding: 0.25rem 0.5rem; display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.75rem;"
+                  (click)="confirmDeleteManageItem(item)">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2">
+                    </path>
+                  </svg>
+                  Delete
+                </button>
+              </td>
+            </tr>
+            }
+            @if (currentManageItems.length === 0) {
+            <tr>
+              <td colspan="3" style="padding: 1.5rem; text-align: center; color: var(--text-muted);">No items found.
+              </td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Footer: Add New Item -->
+      <div
+        style="padding: 1.25rem 1.5rem; border-top: 1px solid var(--border-color); background: var(--bg-main); border-bottom-left-radius: var(--radius-lg); border-bottom-right-radius: var(--radius-lg);">
+        <label style="display: block; font-size: 0.8125rem; font-weight: 600; margin-bottom: 0.5rem;">Category Name
+          <span style="color: var(--danger-color);">*</span></label>
+        <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+          <input type="text" placeholder="Enter a category name" [(ngModel)]="newManageItemName"
+            (keyup.enter)="saveManageItem()"
+            style="flex: 1; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: var(--radius-sm);">
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+          <button type="button" class="btn-sm"
+            style="background: transparent; color: var(--text-primary); padding: 0.5rem 1rem; border: 1px solid var(--border-color);"
+            (click)="closeManageModal()">Close</button>
+          <button type="button" class="btn-sm btn-primary" style="padding: 0.5rem 1rem;" (click)="saveManageItem()">✔
+            Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- Delete Confirmation Modal for Manage Items -->
+  @if (itemToDelete) {
+  <div class="modal-backdrop"
+    style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 1060; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+    <div class="modal-card"
+      style="background: var(--bg-surface); width: 100%; max-width: 450px; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); display: flex; flex-direction: column;">
+
+      <!-- Header -->
+      <div
+        style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+        <h3 style="margin: 0; font-size: 1.125rem;">Confirm Deletion</h3>
+        <button
+          style="background: transparent; border: none; font-size: 1.25rem; cursor: pointer; color: var(--text-muted);"
+          (click)="cancelDeleteManageItem()">✕</button>
+      </div>
+
+      <!-- Body -->
+      <div style="padding: 1.5rem;">
+        <p style="margin: 0; color: var(--text-muted); line-height: 1.6;">
+          Are you sure you want to delete <strong style="color: var(--text-main);">{{ itemToDelete.name }}</strong>?
+          This
+          action cannot be undone.
+        </p>
+      </div>
+
+      <!-- Footer -->
+      <div
+        style="padding: 1.25rem 1.5rem; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 1rem; background: var(--bg-main); border-bottom-left-radius: var(--radius-lg); border-bottom-right-radius: var(--radius-lg);">
+        <button type="button"
+          style="background: transparent; border: 1px solid var(--border-color); color: var(--text-main); padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;"
+          (click)="cancelDeleteManageItem()">Cancel</button>
+        <button type="button"
+          style="background: #ef4444; border: 1px solid #ef4444; color: #fff; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-weight: 500;"
+          (click)="executeDeleteManageItem()">Yes, Delete</button>
+      </div>
+
+    </div>
+  </div>
+  }

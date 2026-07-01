@@ -1,0 +1,769 @@
+
+@if (isLoading && !repo) {
+  <div style="padding: 2rem; text-align: center; color: var(--text-muted);">Loading details...</div>
+} @else if (!repo && !isLoading) {
+  <div style="padding: 2rem; text-align: center; color: var(--text-muted);">Repository not found.</div>
+} @else {
+  <!-- Page Header (Back, Repo Name, Edit, Status) -->
+  <div class="repo-details-header">
+    <div style="display: flex; align-items: center; gap: 1rem;">
+      <button (click)="goBack()" class="btn-sm"
+        style="background: transparent; color: var(--text-main); border: 1px solid var(--border-color); padding: 0.25rem 0.75rem; cursor: pointer;">←
+        Back</button>
+      <h2 style="margin: 0; font-size: 1.75rem; font-weight: 600;">{{ repo.repo_name }}</h2>
+      <button [routerLink]="[rolePrefix + '/repositories', repo.id, 'edit']" [queryParams]="{ branch_id: selectedBranchId }" class="btn-sm"
+        style="background: #f59e0b; border-color: #f59e0b; color: #000; padding: 0.25rem 0.75rem;">Edit</button>
+      @if (repo.repo_github_url) {
+        <a [href]="repo.repo_github_url" target="_blank" class="btn-sm"
+           style="background: #24292e; border-color: #24292e; color: #fff; padding: 0.25rem 0.75rem; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; font-weight: 500; font-size: 0.85rem; border-radius: 4px;">
+          View on GitHub
+        </a>
+      }
+    </div>
+    <span class="status-badge" [class.completed]="repo.repo_status === 'completed'">{{ repo.repo_status }}</span>
+  </div>
+
+  <div class="repo-details-container" [class.dev-container]="isDev">
+    <div class="details-sidebar">
+      <button [class.active]="activeTab === 'overview'" (click)="activeTab='overview'">Overview</button>
+      <button [class.active]="activeTab === 'getting-started'" (click)="activeTab='getting-started'">Getting Started</button>
+      <button [class.active]="activeTab === 'architecture'" (click)="onArchitectureTabActive()">Architecture</button>
+      <button [class.active]="activeTab === 'apis'" (click)="activeTab='apis'">APIs</button>
+      <button [class.active]="activeTab === 'code-snippet'" (click)="activeTab='code-snippet'">Code Snippet</button>
+      <button [class.active]="activeTab === 'database'" (click)="activeTab='database'">Database</button>
+      <button [class.active]="activeTab === 'environment'" (click)="activeTab='environment'">Environment</button>
+      <button [class.active]="activeTab === 'deployment'" (click)="activeTab='deployment'">Deployment</button>
+      <button [class.active]="activeTab === 'coding-standards'" (click)="activeTab='coding-standards'">Documentation</button>
+      <button [class.active]="activeTab === 'files'" (click)="activeTab='files'">Docs & Files</button>
+      <button [class.active]="activeTab === 'conversation'" (click)="onConversationTabActive()">Conversation</button>
+      <button [class.active]="activeTab === 'activity'" (click)="onActivityTabActive()">Activity Log</button>
+    </div>
+
+    <div class="details-content" style="padding-top: 0;">
+      <!-- Sticky wrapper to prevent overlap -->
+      <div style="position: sticky; top: 0; z-index: 10; background: var(--bg-surface); padding-top: 1.5rem; padding-bottom: 1.5rem; margin-bottom: 0;">
+        <!-- Branch Selector & Management Header -->
+        <div style="background: var(--bg-card); padding: 0.85rem 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; box-shadow: var(--shadow-sm);">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <span style="font-weight: 600; color: var(--text-main); font-size: 0.95rem;">Branch:</span>
+            <select [ngModel]="selectedBranchId" (ngModelChange)="onBranchChange($event)"
+                  style="background: var(--bg-main); color: var(--text-main); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.35rem 1.5rem 0.35rem 0.5rem; font-weight: 500; cursor: pointer; outline: none; transition: border 0.2s;">
+            @for (branch of repoBranches; track branch.id) {
+              <option [value]="branch.id">
+                {{ branch.repo_branch_name }} {{ repo.active_branch?.id == branch.id ? '★' : '' }}
+              </option>
+            }
+          </select>
+          @if (repo.active_branch?.id != selectedBranchId) {
+            <button class="btn-sm" (click)="makeDefaultBranch()"
+                    style="padding: 0.35rem 0.85rem; font-size: 0.8rem; border-radius: var(--radius-sm); display: inline-flex; align-items: center; gap: 4px; cursor: pointer; background: transparent; color: #f59e0b; border: 1px solid #f59e0b; font-weight: 600; transition: all 0.2s; white-space: nowrap;"
+                    onmouseover="this.style.background='#f59e0b'; this.style.color='#000'"
+                    onmouseout="this.style.background='transparent'; this.style.color='#f59e0b'">
+              ★ Make Default
+            </button>
+          } @else {
+            <span style="font-size: 0.8rem; color: #f59e0b; font-weight: 600; background: rgba(245,158,11,0.15); padding: 0.35rem 0.85rem; border-radius: var(--radius-sm); border: 1px solid rgba(245,158,11,0.3); display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;">
+              ★ Default Branch
+            </span>
+          }
+        </div>
+
+        <!-- Create New Branch Button -->
+        <button class="btn-sm" (click)="openCreateBranchModal()"
+                style="background: var(--primary-color); border-color: var(--primary-color); color: var(--bg-surface); padding: 0.35rem 0.85rem; border-radius: var(--radius-sm); display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          Create Branch
+        </button>
+      </div>
+      </div>
+
+      <div class="tab-content">
+        @if(activeTab === 'overview') {
+        <h3 style="margin-top: 0;">Project Overview</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+          <div><strong>Stack:</strong> {{ getDisplayStack() }}</div>
+          <div><strong>Branch:</strong> {{ getSelectedBranchName() }}</div>
+          <div><strong>Author:</strong> {{ repo.repo_init_author }}</div>
+          <div><strong>Maintainer:</strong> {{ maintainerName }}</div>
+          <div><strong>Init Date:</strong> {{ repo.repo_init_date | date }}</div>
+          <div><strong>Deadline:</strong> {{ repo.repo_deadline | date }}</div>
+          <div><strong>Architecture:</strong> {{ repo.repo_arch }}</div>
+        </div>
+
+        <h4 style="margin-top: 2rem;">Roles</h4>
+        @if (repoRoles && repoRoles.length > 0) {
+        <div style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.75rem;">
+          @for (role of repoRoles; track role.id) {
+          <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              @if (getGitHubUsername(role.emp_id)) {
+                <img [src]="'https://github.com/' + getGitHubUsername(role.emp_id) + '.png'" 
+                     style="width: 28px; height: 28px; border-radius: 50%; object-fit: cover;" 
+                     alt="Avatar">
+              } @else {
+                <div style="width: 28px; height: 28px; background: var(--primary-color); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.75rem; flex-shrink: 0;">
+                  {{ getUserName(role.emp_id).charAt(0).toUpperCase() }}
+                </div>
+              }
+              <div style="font-weight: 600; font-size: 1.1rem; color: var(--text-main);">
+                {{ getUserName(role.emp_id) }} <span style="font-weight: normal; font-size: 0.95rem; color: var(--text-muted);">({{ role.emp_id }})</span>
+              </div>
+            </div>
+            <div style="margin-top: 0.25rem; font-size: 1rem; color: var(--text-main); padding-left: 2.25rem;">
+              <strong>Role:</strong> {{ role.role_name }} <span style="color: var(--text-muted);">({{ role.role_catagory }})</span>
+            </div>
+          </div>
+          }
+        </div>
+        } @else {
+        <p>No roles defined for this repository.</p>
+        }
+
+        <h4 style="margin-top: 2rem; color: white;">Known Issues</h4>
+        <p>{{ repo.repo_issues || 'No issues reported.' }}</p>
+
+        <h4 style="color: white;">Major Commits</h4>
+        <p>{{ repo.repo_major_commits || 'No major commits logged.' }}</p>
+
+        <h4 style="color: white;">Review Log</h4>
+        <p>{{ repo.repo_review_log || 'No review logs available.' }}</p>
+        }
+
+        @if(activeTab === 'getting-started') {
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <h3 style="margin: 0;">Getting Started</h3>
+          @if (repo.repo_getting_started) {
+          <button class="btn-sm"
+            style="background: transparent; color: var(--text-main); border: 1px solid var(--border-color); padding: 0.25rem 0.5rem; display: flex; align-items: center; gap: 0.25rem; cursor: pointer;"
+            (click)="copyToClipboard(repo.repo_getting_started)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            Copy Steps
+          </button>
+          }
+        </div>
+        @if (parsedInstallSteps.length) {
+        <div
+          style="background: var(--bg-main); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); font-family: monospace; line-height: 2;">
+          @for(step of parsedInstallSteps; track $index) {
+          <div><span style="color: #10b981; margin-right: 8px;">❯</span> {{ step }}</div>
+          }
+        </div>
+        } @else {
+        <p>No getting started instructions provided.</p>
+        }
+        }
+
+        @if(activeTab === 'commits') {
+        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem;">
+          <div>
+            <h4 style="margin-top: 0;">Select Branch</h4>
+            <div style="margin-bottom: 1rem;">
+              <select name="branch" id="branch" [(ngModel)]="selectedBranchId" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-main); color: var(--text-main);">
+                <option value="" disabled selected>Select Branch</option>
+                @for (branch of repoBranches; track branch.id) {
+                  <option [value]="branch.id">{{ branch.repo_branch_name }}</option>
+                }
+              </select>
+            </div>
+            <div style="margin-bottom: 1rem;">
+               <select name="branch" id="branch" [(ngModel)]="selectedBranchId" style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-main); color: var(--text-main);">
+                <option value="" disabled selected>Select Branch</option>
+                @for (branch of repoBranches; track branch.id) {
+                  <option [value]="branch.id">{{ branch.repo_branch_name }}</option>
+                }
+              </select>
+            </div>
+          </div>
+          
+          <div>
+            <h4 style="margin-top: 0;">Commit History</h4>
+            @if (repo.repo_major_commits) {
+              <div style="background: var(--bg-main); padding: 1.25rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); white-space: pre-wrap; font-family: monospace; line-height: 1.8;">
+                {{ repo.repo_major_commits }}
+              </div>
+            } @else {
+              <p>No major commits logged yet.</p>
+            }
+          </div>
+        </div>
+        }
+
+        @if(activeTab === 'architecture') {
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <h3 style="margin: 0;">Architecture & Design</h3>
+          <span style="font-size: 0.9rem; color: var(--text-muted);"><strong>Type:</strong> {{ repo.repo_arch || 'Not specified' }}</span>
+        </div>
+
+        <!-- Interactive Excalidraw Whiteboard -->
+        <h4 style="margin-top: 1.5rem; margin-bottom: 1rem; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+          </svg>
+          Interactive Drawboard (Autosaves)
+        </h4>
+        <div *ngIf="whiteboardUrl" 
+             style="width: 100%; height: 70vh; border: 1px solid var(--border-color); border-radius: var(--radius-md); overflow: hidden; background: #121212; box-shadow: var(--shadow-md);">
+          <iframe [src]="whiteboardUrl" style="width: 100%; height: 100%; border: none;"></iframe>
+        </div>
+
+        @if (repo.repo_architecture_diagram) {
+        <h4 style="margin-top: 2.5rem; margin-bottom: 1rem; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+          System Flowchart (Mermaid.js)
+        </h4>
+        <div id="mermaid-diagram"
+          style="background: var(--bg-main); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); display: flex; justify-content: center; min-height: 200px; box-shadow: var(--shadow-sm);">
+          <!-- Mermaid renders here -->
+        </div>
+
+        <details style="margin-top: 1rem;">
+          <summary style="cursor: pointer; color: var(--text-muted); font-size: 0.9rem;">View Raw Syntax</summary>
+          <div
+            style="background: var(--bg-main); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); white-space: pre-wrap; font-family: monospace; line-height: 1.6; margin-top: 0.5rem; font-size: 0.85rem;">
+            {{ repo.repo_architecture_diagram }}
+          </div>
+        </details>
+        }
+        }
+
+        @if(activeTab === 'apis') {
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <h3 style="margin: 0;">API Documentation</h3>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+          @for(api of parsedApis; track $index; let i = $index) {
+          <div style="border: 1px solid var(--border-color); border-radius: var(--radius-md); overflow: hidden; background: var(--bg-surface);">
+            
+            <!-- Card Header (Serial, Method, Endpoint) -->
+            <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: var(--bg-main); border-bottom: 1px solid var(--border-color);">
+              <div style="width: 28px; height: 28px; border: 1px solid var(--border-color); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.85rem; color: black">
+                {{ i + 1 }}
+              </div>
+              <div [style.color]="getMethodColor(api.method || 'GET')" style="font-weight: 700; font-size: 1.1rem; min-width: 80px;">
+                {{ api.method || 'GET' }}
+              </div>
+              <div style="font-family: monospace; font-size: 1.05rem; font-weight: 500; color: var(--text-main); flex: 1; word-break: break-all;">
+                {{ api.path || 'N/A' }}
+              </div>
+              @if (api.path) {
+                <button class="btn-sm" (click)="copyToClipboard(api.path)" style="background: transparent; color: var(--text-muted); border: none; cursor: pointer; display: flex; align-items: center; padding: 4px;" title="Copy URL">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                </button>
+              }
+            </div>
+
+            <!-- Card Body -->
+            <div style="padding: 1rem; display: flex; flex-direction: column; gap: 1rem;">
+              
+              <!-- Description -->
+              <div>
+                <strong style="font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.5px;">Description</strong>
+                <div style="color: var(--text-main);">{{ api.desc || 'No description provided' }}</div>
+              </div>
+
+              <!-- Details Row (Headers, Payload, Response) -->
+              @if (api.payload || api.response || api.headers) {
+              <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 0.5rem; padding-top: 1rem; border-top: 1px dashed var(--border-color);">
+                @if (api.headers) {
+                <div style="flex: 1; min-width: 250px; display: flex; flex-direction: column;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <strong style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Headers</strong>
+                    <button class="btn-sm" (click)="copyToClipboard(api.headers)" style="background: transparent; color: var(--text-muted); border: none; cursor: pointer; display: flex; align-items: center; padding: 2px;" title="Copy Headers">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                      </svg>
+                    </button>
+                  </div>
+                  <pre style="background: var(--bg-main); padding: 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); font-family: monospace; font-size: 0.85rem; margin: 0; color: var(--text-main); overflow: auto; max-height: 300px; word-break: break-all; white-space: pre-wrap;">{{ api.headers }}</pre>
+                </div>
+                }
+                @if (api.payload) {
+                <div style="flex: 1; min-width: 250px; display: flex; flex-direction: column;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <strong style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Payload</strong>
+                    <button class="btn-sm" (click)="copyToClipboard(api.payload)" style="background: transparent; color: var(--text-muted); border: none; cursor: pointer; display: flex; align-items: center; padding: 2px;" title="Copy Payload">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                      </svg>
+                    </button>
+                  </div>
+                  <pre style="background: var(--bg-main); padding: 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); font-family: monospace; font-size: 0.85rem; margin: 0; color: var(--text-main); overflow: auto; max-height: 300px; word-break: break-all; white-space: pre-wrap;">{{ api.payload }}</pre>
+                </div>
+                }
+                @if (api.response) {
+                <div style="flex: 1; min-width: 250px; display: flex; flex-direction: column;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <strong style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Expected Response</strong>
+                    <button class="btn-sm" (click)="copyToClipboard(api.response)" style="background: transparent; color: var(--text-muted); border: none; cursor: pointer; display: flex; align-items: center; padding: 2px;" title="Copy Response">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                      </svg>
+                    </button>
+                  </div>
+                  <pre style="background: var(--bg-main); padding: 0.75rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); font-family: monospace; font-size: 0.85rem; margin: 0; color: var(--text-main); overflow: auto; max-height: 300px; word-break: break-all; white-space: pre-wrap;">{{ api.response }}</pre>
+                </div>
+                }
+              </div>
+              }
+
+            </div>
+          </div>
+          } @empty {
+          <div style="text-align: center; padding: 2rem; background: var(--bg-surface); border: 1px dashed var(--border-color); border-radius: var(--radius-md); color: var(--text-muted);">
+            No APIs documented for this repository.
+          </div>
+          }
+        </div>
+        }
+
+        @if(activeTab === 'code-snippet') {
+        <div style="display: flex; gap: 1.5rem; height: 500px; margin-top: 1rem;">
+          <!-- Left Sidebar: Snippet List -->
+          <div style="width: 250px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); display: flex; flex-direction: column; padding: 0.75rem; box-shadow: var(--shadow-sm);">
+            <h4 style="margin-top: 0; margin-bottom: 0.75rem; font-size: 0.95rem; font-weight: 600; color: var(--text-main); border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">Snippets</h4>
+            <div style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 0.5rem; padding-right: 0.25rem;">
+              @for (snippet of repo.repo_code_snippets; track $index) {
+                <div [style.background]="selectedSnippetIndex === $index ? 'rgba(37,99,235,0.08)' : 'transparent'"
+                     [style.border-color]="selectedSnippetIndex === $index ? 'var(--primary-color)' : 'var(--border-color)'"
+                     style="border: 1px solid; border-radius: var(--radius-sm); padding: 0.6rem; font-weight: 500; font-size: 0.85rem; color: var(--text-main); cursor: pointer; transition: all 0.2s;"
+                     (click)="selectedSnippetIndex = $index">
+                  {{ snippet.title || 'Untitled Snippet' }}
+                </div>
+              } @empty {
+                <div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 2rem 0;">
+                  No snippets.
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Right Panel: Editor -->
+          <div style="flex: 1; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); display: flex; flex-direction: column; overflow: hidden; box-shadow: var(--shadow-sm);">
+            @if (repo.repo_code_snippets && repo.repo_code_snippets.length > 0 && selectedSnippetIndex >= 0 && selectedSnippetIndex < repo.repo_code_snippets.length) {
+              <div style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: var(--bg-surface);">
+                <span style="font-weight: 600; font-size: 0.9rem; color: var(--text-main);">{{ repo.repo_code_snippets[selectedSnippetIndex].title }}</span>
+                <button class="btn-sm"
+                  style="background: transparent; color: var(--text-main); border: 1px solid var(--border-color); padding: 0.25rem 0.5rem; display: flex; align-items: center; gap: 0.25rem; cursor: pointer;"
+                  (click)="copyToClipboard(repo.repo_code_snippets[selectedSnippetIndex].code)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                  </svg>
+                  Copy Code
+                </button>
+              </div>
+              <div style="flex: 1; height: 100%; overflow: hidden;">
+                <ngx-monaco-editor [options]="editorOptions" [ngModel]="repo.repo_code_snippets[selectedSnippetIndex].code" style="height: 100%; display: block;"></ngx-monaco-editor>
+              </div>
+            } @else {
+              <div style="flex: 1; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 0.95rem;">
+                No code snippet provided.
+              </div>
+            }
+          </div>
+        </div>
+        }
+
+        @if(activeTab === 'database') {
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <h3 style="margin: 0;">Database Schema</h3>
+          @if (repo.repo_schema) {
+          <div style="display: flex; gap: 0.5rem;">
+            <button class="btn-sm"
+              style="background: transparent; color: var(--text-main); border: 1px solid var(--border-color); padding: 0.25rem 0.5rem; display: flex; align-items: center; gap: 0.25rem; cursor: pointer;"
+              (click)="copyToClipboard(repo.repo_schema)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Copy Schema
+            </button>
+            <button type="button" class="btn-sm btn-secondary" (click)="downloadSqlFile()"
+              style="padding: 0.25rem 0.5rem; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 4px; background: transparent; color: var(--text-main); border: 1px solid var(--border-color);">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15v-12"/>
+              </svg>
+              Download .sql
+            </button>
+          </div>
+          }
+        </div>
+        <div
+          style="background: var(--bg-main); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); white-space: pre-wrap; font-family: inherit;">
+          {{ repo.repo_schema || 'No database schema provided.' }}
+        </div>
+        }
+
+        @if(activeTab === 'environment') {
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <h3 style="margin: 0;">Environment Variables</h3>
+          @if (repo.repo_env) {
+          <div style="display: flex; gap: 0.5rem;">
+            <button class="btn-sm"
+              style="background: transparent; color: var(--text-main); border: 1px solid var(--border-color); padding: 0.25rem 0.5rem; display: flex; align-items: center; gap: 0.25rem; cursor: pointer;"
+              (click)="copyToClipboard(repo.repo_env)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Copy .env
+            </button>
+            <button type="button" class="btn-sm btn-secondary" (click)="downloadEnvFile()"
+              style="padding: 0.25rem 0.5rem; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15v-12"/>
+              </svg>
+              Download .env
+            </button>
+          </div>
+          }
+        </div>
+        @if (parsedEnvVars.length) {
+        <div
+          style="background: var(--bg-main); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); font-family: monospace;">
+          @for(env of parsedEnvVars; track $index) {
+          <div style="margin-bottom: 0.5rem;">
+            <span style="color: #60a5fa;">{{ env.key }}</span>=<span style="color: #34d399;">{{ env.value }}</span>
+          </div>
+          }
+        </div>
+        } @else {
+        <p>No environment variables configured.</p>
+        }
+        }
+
+        @if(activeTab === 'deployment') {
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <h3 style="margin: 0;">Deployment Guide</h3>
+          @if (repo.repo_deployment) {
+          <button class="btn-sm"
+            style="background: transparent; color: var(--text-main); border: 1px solid var(--border-color); padding: 0.25rem 0.5rem; display: flex; align-items: center; gap: 0.25rem; cursor: pointer;"
+            (click)="copyToClipboard(repo.repo_deployment)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+            </svg>
+            Copy Guide
+          </button>
+          }
+        </div>
+        @if (parsedDeploymentSteps.length) {
+        <div
+          style="background: var(--bg-main); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); font-family: monospace; line-height: 2;">
+          @for(step of parsedDeploymentSteps; track $index) {
+          <div><span style="color: #10b981; margin-right: 8px;">❯</span> {{ step }}</div>
+          }
+        </div>
+        } @else {
+        <p>No deployment guide provided.</p>
+        }
+        }
+
+        @if(activeTab === 'coding-standards') {
+        <h3 style="margin-top: 0;">Coding Standards</h3>
+        @if (repo.repo_coding_standards) {
+        <div
+          style="background: var(--bg-main); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); font-family: inherit; line-height: 1.8;"
+          [innerHTML]="repo.repo_coding_standards">
+        </div>
+        } @else {
+        <p>No documentation provided.</p>
+        }
+        }
+
+        @if(activeTab === 'files') {
+        <div style="display: flex; flex-direction: column; gap: 2rem;">
+          
+          <!-- Upload Form Section -->
+          <div style="background: var(--bg-main); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+            <h3 style="margin-top: 0; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; color: var(--text-main);">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+              </svg>
+              Upload Document / File
+            </h3>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+              <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                  <label style="font-weight: 500; font-size: 0.9rem; color: var(--text-muted);">Choose File</label>
+                  <input type="file" id="repoFileInput" (change)="onFileSelected($event)" 
+                         style="padding: 0.5rem; border: 1px solid var(--border-color); border-radius: var(--radius-sm); background: var(--bg-card); color: var(--text-main);">
+                </div>
+                
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                  <label style="font-weight: 500; font-size: 0.9rem; color: var(--text-muted);">Display Name</label>
+                  <input type="text" [(ngModel)]="newFileName" placeholder="Enter custom display name..." 
+                         style="padding: 0.65rem 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-sm); background: var(--bg-card); color: var(--text-main);">
+                </div>
+              </div>
+              
+              <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <div style="display: flex; flex-direction: column; gap: 0.5rem; height: 100%;">
+                  <label style="font-weight: 500; font-size: 0.9rem; color: var(--text-muted);">Description / Purpose</label>
+                  <textarea [(ngModel)]="newFileDesc" placeholder="Enter short description of the file..." rows="4"
+                            style="padding: 0.65rem 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-sm); background: var(--bg-card); color: var(--text-main); height: 100%; resize: none;"></textarea>
+                </div>
+              </div>
+            </div>
+            
+            <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end;">
+              <button class="btn-primary" [disabled]="isUploadingFile || !selectedFileToUpload || !newFileName.trim()" (click)="uploadFile()"
+                      style="padding: 0.65rem 1.5rem; font-weight: 500; display: inline-flex; align-items: center; gap: 0.5rem;">
+                <svg *ngIf="isUploadingFile" class="spinner" width="16" height="16" viewBox="0 0 50 50">
+                  <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+                </svg>
+                {{ isUploadingFile ? 'Uploading...' : 'Upload File' }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Files List Section -->
+          <div>
+            <h3 style="margin-top: 0; margin-bottom: 1.25rem; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+                <polyline points="10 9 9 9 8 9"/>
+              </svg>
+              Uploaded Files ({{ repoFiles.length }})
+            </h3>
+            
+            @if (repoFiles.length > 0) {
+              <div style="display: grid; grid-template-columns: 1fr; gap: 1rem;">
+                @for (file of repoFiles; track file.id) {
+                  <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; display: flex; justify-content: space-between; align-items: center; gap: 1.5rem;">
+                    <div style="display: flex; flex-direction: column; gap: 0.35rem; flex: 1;">
+                      <div style="font-weight: 600; font-size: 1.1rem; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
+                        {{ file.file_name }}
+                        <span style="font-weight: normal; font-size: 0.8rem; background: var(--bg-main); border: 1px solid var(--border-color); padding: 0.1rem 0.4rem; border-radius: 4px; color: var(--text-muted);">
+                          {{ file.original_name }}
+                        </span>
+                      </div>
+                      
+                      @if (file.file_description) {
+                        <p style="margin: 0; font-size: 0.95rem; color: var(--text-muted);">{{ file.file_description }}</p>
+                      }
+                      
+                      <div style="font-size: 0.8rem; color: var(--text-muted); display: flex; gap: 1.5rem; margin-top: 0.25rem;">
+                        <span><strong>Uploaded By:</strong> {{ file.uploader_name }}</span>
+                        <span><strong>Date:</strong> {{ file.uploaded_at | date:'medium' }}</span>
+                      </div>
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; gap: 0.75rem; flex-shrink: 0;">
+                      <a [href]="file.file_url" target="_blank" class="btn-sm" 
+                         style="background: transparent; color: var(--primary-color); border: 1px solid var(--primary-color); padding: 0.4rem 0.85rem; border-radius: var(--radius-sm); text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+                        </svg>
+                        Download
+                      </a>
+                      <button class="btn-sm" (click)="deleteFile(file.id)"
+                              style="background: transparent; color: var(--danger-color); border: 1px solid var(--danger-color); padding: 0.4rem 0.85rem; border-radius: var(--radius-sm); display: inline-flex; align-items: center; gap: 0.35rem;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <polyline points="3 6 5 6 21 6"/>
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        </svg>
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 3rem; text-align: center; color: var(--text-muted);">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom: 1rem; opacity: 0.5;">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                </svg>
+                <p style="margin: 0; font-size: 1rem;">No files uploaded against this repository yet.</p>
+              </div>
+            }
+          </div>
+        </div>
+        }
+
+        @if(activeTab === 'conversation') {
+        <div style="display: flex; flex-direction: column; height: 60vh;">
+          <h3 style="margin-top: 0; margin-bottom: 1rem; color: var(--text-main);">Repository Chat & Events</h3>
+          
+          <!-- Messages Box -->
+          <div style="flex-grow: 1; overflow-y: auto; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1rem;">
+            @if (chatMessages.length === 0) {
+              <div style="text-align: center; color: var(--text-muted); margin-top: auto; margin-bottom: auto;">
+                No messages yet. Start the conversation!
+              </div>
+            } @else {
+              @for (msg of chatMessages; track msg.id) {
+                <!-- System Alerts (WhatsApp Style) -->
+                @if (msg.type === 'system') {
+                  <div style="display: flex; justify-content: center; margin: 0.5rem 0;">
+                    <span style="background: rgba(0,0,0,0.15); color: var(--text-muted); font-size: 0.85rem; padding: 0.35rem 0.85rem; border-radius: 20px; border: 1px solid var(--border-color); text-align: center;">
+                      {{ msg.message }}
+                    </span>
+                  </div>
+                } @else {
+                  <!-- Chat Message -->
+                  <div [style.display]="'flex'" 
+                       [style.justify-content]="msg.user_id == getLoggedEmpId() ? 'flex-end' : 'flex-start'">
+                    <div [style.background]="msg.user_id == getLoggedEmpId() ? 'var(--primary-color)' : 'var(--bg-main)'"
+                         [style.color]="msg.user_id == getLoggedEmpId() ? 'var(--bg-surface)' : 'var(--text-main)'"
+                         style="max-width: 70%; padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); position: relative; box-shadow: var(--shadow-sm);">
+                      
+                      @if (msg.user_id != getLoggedEmpId()) {
+                        <div style="font-weight: 600; font-size: 0.85rem; margin-bottom: 0.25rem; color: #10b981;">
+                          {{ msg.user_name || 'Unknown' }}
+                        </div>
+                      }
+                      
+                      <div style="font-size: 0.95rem; line-height: 1.4; white-space: pre-wrap;">{{ msg.message }}</div>
+                      
+                      <div style="text-align: right; font-size: 0.7rem; margin-top: 0.35rem; opacity: 0.75;"
+                           [style.color]="msg.user_id == getLoggedEmpId() ? 'var(--bg-surface)' : 'var(--text-muted)'">
+                        {{ msg.created_at | date:'shortTime' }}
+                      </div>
+                    </div>
+                  </div>
+                }
+              }
+            }
+          </div>
+
+          <!-- Message Input Bar -->
+          <form (submit)="sendChatMessage(); $event.preventDefault();" style="display: flex; gap: 0.75rem; position: relative;">
+            @if (showMentions) {
+              <div style="position: absolute; bottom: 100%; left: 0; margin-bottom: 0.5rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); box-shadow: var(--shadow-lg); width: 300px; max-height: 200px; overflow-y: auto; z-index: 100;">
+                @if (filteredMentionOptions.length === 0) {
+                  <div style="padding: 0.75rem 1rem; color: var(--text-muted); font-size: 0.85rem; text-align: center;">No matches found</div>
+                } @else {
+                  @for (option of filteredMentionOptions; track $index) {
+                    <div (click)="selectMention(option)" style="padding: 0.5rem 1rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; border-bottom: 1px solid var(--border-color);" onmouseover="this.style.background='var(--bg-main)'" onmouseout="this.style.background='transparent'">
+                      <span [style.background]="option.type === 'User' ? 'rgba(59,130,246,0.1)' : 'rgba(16,185,129,0.1)'" [style.color]="option.type === 'User' ? '#3b82f6' : '#10b981'" style="font-size: 0.7rem; font-weight: 600; padding: 0.15rem 0.4rem; border-radius: 4px;">{{ option.type }}</span>
+                      <span style="color: var(--text-main); font-size: 0.9rem;">{{ option.name }}</span>
+                    </div>
+                  }
+                }
+              </div>
+            }
+            <input type="text" [(ngModel)]="newChatMessage" name="newChatMessage" placeholder="Type a message..."
+                   (input)="onChatInput($event)" (click)="onChatInput($event)" (keyup)="onChatInput($event)" autocomplete="off"
+                   style="flex-grow: 1; background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.75rem 1rem; outline: none; transition: border 0.2s;"
+                   onfocus="this.style.border='1px solid var(--primary-color)'" onblur="this.style.border='1px solid var(--border-color)'">
+            <button type="submit" class="btn-primary" 
+                    style="background: var(--primary-color); border-color: var(--primary-color); color: var(--bg-surface); padding: 0.75rem 1.5rem; border-radius: var(--radius-sm); font-weight: 600; cursor: pointer;">
+              Send
+            </button>
+          </form>
+        </div>
+        }
+
+        @if(activeTab === 'activity') {
+        <div style="display: flex; flex-direction: column; gap: 1.5rem; margin-top: 1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <h3 style="margin: 0; font-size: 1.25rem; font-weight: 600; color: var(--text-main);">Activity Log</h3>
+            <button class="btn-sm btn-secondary" (click)="fetchActivityLogs()"
+              style="padding: 0.35rem 0.75rem; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; background: transparent; color: var(--text-main); border: 1px solid var(--border-color);">
+              Refresh Logs
+            </button>
+          </div>
+
+          <div style="display: flex; flex-direction: column; position: relative; padding-left: 2rem; border-left: 2px solid var(--border-color); margin-left: 1rem; gap: 2rem;">
+            @for (log of activityLogs; track log.id) {
+              <div style="position: relative;">
+                <!-- Timeline Dot -->
+                <div style="position: absolute; left: -2.5rem; top: 0.25rem; width: 14px; height: 14px; border-radius: 50%; background: var(--primary-color); border: 3px solid var(--bg-surface); z-index: 2;"></div>
+
+                <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem; box-shadow: var(--shadow-sm); display: flex; gap: 1rem; align-items: flex-start;">
+                  
+                  <!-- Actor Avatar -->
+                  @if (getGitHubUsername(log.emp_id)) {
+                    <img [src]="'https://github.com/' + getGitHubUsername(log.emp_id) + '.png'" 
+                         style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; flex-shrink: 0;" 
+                         alt="Avatar">
+                  } @else {
+                    <div style="width: 36px; height: 36px; background: var(--primary-color); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; flex-shrink: 0;">
+                      {{ log.emp_name ? log.emp_name.charAt(0).toUpperCase() : 'S' }}
+                    </div>
+                  }
+
+                  <!-- Log Content -->
+                  <div style="flex-grow: 1;">
+                    <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.25rem;">
+                      <span style="font-weight: 600; color: var(--text-main); font-size: 0.95rem;">{{ log.emp_name }}</span>
+                      <span style="font-size: 0.8rem; color: var(--text-muted);">{{ log.created_at | date:'medium' }}</span>
+                    </div>
+                    <div style="font-size: 0.9rem; color: var(--text-main); line-height: 1.4;">
+                      {{ log.details }}
+                    </div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.4rem; font-family: monospace; background: var(--bg-main); padding: 0.15rem 0.4rem; border-radius: 4px; display: inline-block;">
+                      {{ log.action }}
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            } @empty {
+              <div style="text-align: center; padding: 3rem; color: var(--text-muted); background: var(--bg-card); border: 1px dashed var(--border-color); border-radius: var(--radius-md);">
+                No activity logs available for this repository yet.
+              </div>
+            }
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Branch Modal -->
+  @if (showCreateBranchModal) {
+    <div style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 1100; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+      <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); width: 90%; max-width: 500px; padding: 2rem; box-shadow: var(--shadow-lg);">
+        <h3 style="margin-top: 0; margin-bottom: 1.5rem; color: var(--text-main);">Create New Branch</h3>
+        
+        <div class="form-group" style="margin-bottom: 1.25rem;">
+          <label style="display: block; font-weight: 500; margin-bottom: 0.5rem; color: var(--text-main);">Branch Name *</label>
+          <input type="text" [(ngModel)]="newBranchName" placeholder="e.g. feature/auth-fix" 
+                 style="width: 100%; padding: 0.65rem 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-sm); background: var(--bg-card); color: var(--text-main); outline: none;">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+          <label style="display: block; font-weight: 500; margin-bottom: 0.5rem; color: var(--text-main);">Description</label>
+          <textarea [(ngModel)]="newBranchDesc" placeholder="Describe the purpose of this branch..." rows="3"
+                    style="width: 100%; padding: 0.65rem 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-sm); background: var(--bg-card); color: var(--text-main); outline: none;"></textarea>
+        </div>
+
+        <div style="background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); padding: 0.75rem 1rem; border-radius: var(--radius-sm); margin-bottom: 1.5rem; font-size: 0.85rem; color: #10b981; line-height: 1.4;">
+          <strong>Info:</strong> Creating this branch will automatically clone all database schemas, environment variables, APIs, and documentation files from the current default branch.
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+          <button type="button" class="btn-secondary" (click)="closeCreateBranchModal()"
+                  style="padding: 0.5rem 1rem; border-radius: var(--radius-sm); background: transparent; color: var(--text-main); border: 1px solid var(--border-color); cursor: pointer;">
+            Cancel
+          </button>
+          <button type="button" class="btn-primary" (click)="submitCreateBranch()"
+                  style="padding: 0.5rem 1.25rem; border-radius: var(--radius-sm); background: var(--primary-color); border-color: var(--primary-color); color: var(--bg-surface); font-weight: 600; cursor: pointer;">
+            Create Branch
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+}

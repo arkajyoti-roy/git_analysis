@@ -1,0 +1,71 @@
+
+<div class="settings-container">
+  <div class="settings-header" style="display: flex; flex-direction: column; gap: 1rem;">
+    <div style="display: flex; align-items: center; gap: 1rem;">
+      <button (click)="goBack()" class="btn-sm" style="background: transparent; color: var(--text-main); border: 1px solid var(--border-color); padding: 0.25rem 0.75rem; cursor: pointer; border-radius: var(--radius-sm);">← Back</button>
+      <h2 style="margin: 0;">Account Settings</h2>
+    </div>
+    <p class="subtitle" style="margin: 0;">Manage your account security and preferences</p>
+  </div>
+
+  <div class="settings-grid">
+    <!-- Change Email Card -->
+    <div class="settings-card">
+      <div class="card-header">
+        <h3>Change Email Address</h3>
+        <p>Update the email address associated with your account.</p>
+      </div>
+      <div class="card-body">
+        <form *ngIf="emailStep === 'input'" (ngSubmit)="sendEmailOtp()">
+          <div class="form-group">
+            <label>New Email Address</label>
+            <input type="email" [(ngModel)]="newEmail" name="newEmail" placeholder="Enter new email" required>
+          </div>
+          <button type="submit" class="btn-primary" [disabled]="isEmailLoading">
+            {{ isEmailLoading ? 'Sending OTP...' : 'Send OTP' }}
+          </button>
+        </form>
+
+        <form *ngIf="emailStep === 'otp'" (ngSubmit)="changeEmail()">
+          <div class="form-group">
+            <label>Enter OTP (sent to both current and new emails)</label>
+            <input type="text" [(ngModel)]="otp" name="otp" placeholder="123456" maxlength="6" required>
+          </div>
+          <div class="button-group">
+            <button type="submit" class="btn-primary" [disabled]="isEmailLoading">
+              {{ isEmailLoading ? 'Updating...' : 'Update Email' }}
+            </button>
+            <button type="button" class="btn-secondary" (click)="emailStep = 'input'">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Change Password Card -->
+    <div class="settings-card">
+      <div class="card-header">
+        <h3>Change Password</h3>
+        <p>Ensure your account is using a long, random password to stay secure.</p>
+      </div>
+      <div class="card-body">
+        <form (ngSubmit)="changePassword()">
+          <div class="form-group">
+            <label>Current Password</label>
+            <input type="password" [(ngModel)]="currentPassword" name="currentPassword" placeholder="Enter current password" required>
+          </div>
+          <div class="form-group">
+            <label>New Password</label>
+            <input type="password" [(ngModel)]="newPassword" name="newPassword" placeholder="Enter new password (min 8 chars)" required>
+          </div>
+          <div class="form-group">
+            <label>Confirm New Password</label>
+            <input type="password" [(ngModel)]="confirmPassword" name="confirmPassword" placeholder="Confirm new password" required>
+          </div>
+          <button type="submit" class="btn-primary" [disabled]="isPasswordLoading">
+            {{ isPasswordLoading ? 'Updating...' : 'Change Password' }}
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

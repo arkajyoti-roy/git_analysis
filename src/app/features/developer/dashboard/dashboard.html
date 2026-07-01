@@ -1,0 +1,77 @@
+
+<div class="dev-dashboard-container">
+  <div class="header-section" style="display: flex; justify-content: space-between; align-items: center;">
+    <div>
+      <h2>Welcome, {{ userName }}</h2>
+      <p class="role-badge" [class.sr-badge]="isSrDev">{{ isSrDev ? 'Senior Developer' : 'Developer' }}</p>
+    </div>
+    <div style="display: flex; gap: 1rem;">
+      <button routerLink="/developer/repositories/create" class="btn-primary" style="display: flex; align-items: center; gap: 0.5rem; border-radius: var(--radius-md); padding: 0.5rem 1rem; border: none; font-weight: 500; cursor: pointer; transition: 0.2s;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Create Repository
+      </button>
+    </div>
+  </div>
+
+  <div class="dashboard-grid">
+    
+    <!-- COMMON WIDGET: Assigned Issues -->
+    <!-- <div class="dashboard-card">
+      <h3>My Assigned Issues</h3>
+      <div class="list-group">
+        @for(issue of assignedIssues; track issue.id) {
+          <a [routerLink]="['/developer/repositories', issue.repo_id || issue.id.split('-')[1]]" class="list-item clickable">
+            <span class="item-title">{{ issue.id }}: {{ issue.title }} <small>({{ issue.repo }})</small></span>
+            <span class="badge" [class.high-priority]="issue.priority === 'High'">{{ issue.priority }}</span>
+          </a>
+        } @empty {
+          <p class="empty-state">No issues assigned.</p>
+        }
+      </div>
+    </div> -->
+
+    <!-- COMMON WIDGET: Active Repositories -->
+    <div class="dashboard-card">
+      <h3>Active Repositories</h3>
+      <div class="list-group">
+        @for(repo of activeRepos; track repo.id) {
+          <a [routerLink]="['/developer/repositories', repo.id]" class="list-item clickable">
+            <span class="item-title">{{ repo.name }}</span>
+            <span class="text-muted">Branch: {{ repo.branch }} • Status: {{ repo.status }}</span>
+          </a>
+        } @empty {
+          <p class="empty-state">No active repositories.</p>
+        }
+      </div>
+    </div>
+  
+    <!-- SENIOR ONLY WIDGETS -->
+    @if (isSrDev) {
+      <!-- <div class="dashboard-card sr-exclusive">
+        <h3>Pending Code Reviews</h3>
+        <div class="list-group">
+          @for(review of pendingReviews; track review.pr) {
+            <a [routerLink]="['/developer/repositories', review.repo_id || review.pr.split('-')[1]]" class="list-item clickable">
+              <span class="item-title">{{ review.pr }}: {{ review.title }} <small>by {{ review.author }}</small></span>
+              <button class="review-btn">Review</button>
+            </a>
+          } @empty {
+            <p class="empty-state">No pending reviews.</p>
+          }
+        </div>
+      </div> -->
+
+      <!-- <div class="dashboard-card sr-exclusive alert-card">
+        <h3>System Alerts</h3>
+        <div class="list-group">
+          @for(alert of systemAlerts; track alert.message) {
+            <div class="list-item alert-item">
+              <strong>{{ alert.type }}:</strong> {{ alert.message }}
+            </div>
+          }
+        </div>
+      </div> -->
+    }
+
+  </div>
+</div>

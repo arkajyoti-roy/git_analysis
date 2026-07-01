@@ -1,0 +1,101 @@
+<div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+  <h2 style="margin: 0; font-size: 1.5rem; font-weight: 600;">Manage Repositories</h2>
+  <div style="display: flex; gap: 1rem; align-items: center;">
+    <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="currentPage = 1" placeholder="Search repositories..." style="padding: 0.5rem; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-surface); color: var(--text-main); min-width: 250px;">
+    <button [routerLink]="rolePrefix + '/repositories/create'" style="padding: 0.5rem 1rem; white-space: nowrap;">Add Repository</button>
+  </div>
+</div>
+ 
+@if (isLoading && repositories.length === 0) {
+  <p>Loading repositories...</p>
+} @else {
+  <table>
+    <thead>
+      <tr>
+        <th style="text-align: center;">SL No.</th>
+        <th style="text-align: center;">Name</th>
+        <th style="text-align: center;">Stack</th>
+        <th style="text-align: center;">Maintainer</th>
+        <th style="text-align: center;">Default Branch</th>
+        <th style="text-align: center;">Status</th>
+        <th style="text-align: center;">Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (repo of paginatedRepos; track repo.id; let i = $index) {
+        <tr>
+          <!-- Auto serial number -->
+          <td style="text-align: center;">{{ ((currentPage - 1) * itemsPerPage) + i + 1 }}</td>
+          <td style="text-align: center;">{{ repo.repo_name }}</td>
+          <td style="text-align: center;">{{ getDisplayStack(repo.repo_stack) }}</td>
+          <td style="text-align: center; font-weight: 500;">{{ repo.maintainer?.emp_name || 'Not Assigned' }}</td>
+          <td style="text-align: center;">
+            <span style="background: rgba(245,158,11,0.1); color: #f59e0b; font-weight: 600; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; border: 1px solid rgba(245,158,11,0.25); display: inline-flex; align-items: center; gap: 4px;">
+              ★ {{ repo.repo_branch || 'None' }}
+            </span>
+          </td>
+          <td style="text-align: center;">
+            <span class="status-badge" [class.completed]="repo.repo_status === 'completed'">
+              {{ repo.repo_status }}
+            </span>
+          </td>
+          <td>
+            <div style="display: flex; justify-content: center; gap: 1rem;">
+              <button [routerLink]="[rolePrefix + '/repositories', repo.id]" class="btn-sm"
+                style="background: transparent; border: 1px solid #2563eb; color: #2563eb;">View</button>
+              <button [routerLink]="[rolePrefix + '/repositories', repo.id, 'edit']" class="btn-sm"
+                style="background: transparent; border: 1px solid #d97706; color: #d97706;">Edit</button>
+              <button (click)="confirmDelete(repo)" class="btn-sm"
+                style="background: #ef4444; border-color: #ef4444; color: white;">Delete</button>
+            </div>
+          </td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="7" style="text-align: center; color: var(--text-muted);">
+            No repositories found. Create one!
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+
+  <!-- Pagination Controls -->
+  @if (totalPages > 1) {
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; padding: 0.5rem 0;">
+    <span style="color: var(--text-muted); font-size: 0.85rem;">Showing {{ ((currentPage - 1) * itemsPerPage) + 1 }} to {{ Math.min(currentPage * itemsPerPage, filteredRepos.length) }} of {{ filteredRepos.length }} entries</span>
+    <div style="display: flex; gap: 0.5rem;">
+      <button (click)="prevPage()" [disabled]="currentPage === 1" style="padding: 0.25rem 0.75rem; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-surface); color: var(--text-main); cursor: pointer;" [style.opacity]="currentPage === 1 ? '0.5' : '1'">Previous</button>
+      <span style="padding: 0.25rem 0.5rem; font-weight: 500;">Page {{ currentPage }} of {{ totalPages }}</span>
+      <button (click)="nextPage()" [disabled]="currentPage === totalPages" style="padding: 0.25rem 0.75rem; border-radius: 4px; border: 1px solid var(--border-color); background: var(--bg-surface); color: var(--text-main); cursor: pointer;" [style.opacity]="currentPage === totalPages ? '0.5' : '1'">Next</button>
+    </div>
+  </div>
+  }
+}
+
+@if (repoToDelete) {
+<div class="modal-backdrop" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 1000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+  <div class="modal-card" style="background: var(--bg-surface); width: 100%; max-width: 450px; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); display: flex; flex-direction: column;">
+    
+    <!-- Header -->
+    <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+      <h3 style="margin: 0; font-size: 1.125rem;">Confirm Deletion</h3>
+      <button style="background: transparent; border: none; font-size: 1.25rem; cursor: pointer; color: var(--text-muted);" (click)="cancelDelete()">✕</button>
+    </div>
+
+    <!-- Body -->
+    <div style="padding: 1.5rem;">
+      <p style="margin: 0; color: var(--text-muted); line-height: 1.6;">
+        Are you sure you want to delete <strong style="color: var(--text-main);">{{ repoToDelete.repo_name }}</strong>? This action cannot be undone.
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <div style="padding: 1.25rem 1.5rem; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 1rem; background: var(--bg-main); border-bottom-left-radius: var(--radius-lg); border-bottom-right-radius: var(--radius-lg);">
+      <button type="button" style="background: transparent; border: 1px solid var(--border-color); color: var(--text-main); padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;" (click)="cancelDelete()">Cancel</button>
+      <button type="button" style="background: #ef4444; border: 1px solid #ef4444; color: #fff; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-weight: 500;" (click)="executeDelete()">Delete Repository</button>
+    </div>
+
+  </div>
+</div>
+}
