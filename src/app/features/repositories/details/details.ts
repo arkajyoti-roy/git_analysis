@@ -89,6 +89,9 @@ export class Details implements OnInit, OnDestroy {
     padding: { top: 16 }
   };
   selectedSnippetIndex: number = 0;
+  isFullscreenView: boolean = false;
+  isFullscreenWhiteboard: boolean = false;
+  isFullscreenMermaid: boolean = false;
 
   @ViewChild('mermaidContainer') mermaidContainer!: ElementRef;
 

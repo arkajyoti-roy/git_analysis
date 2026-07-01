@@ -80,9 +80,34 @@
       </div>
       </div>
 
-      <div class="tab-content">
+      <ng-template #fullScreenBtn>
+  <button class="btn-sm"
+    style="background: transparent; color: var(--text-main); border: 1px solid var(--border-color); padding: 0.25rem 0.5rem; display: flex; align-items: center; gap: 0.25rem; cursor: pointer; height: fit-content;"
+    (click)="isFullscreenView = !isFullscreenView">
+    <svg *ngIf="!isFullscreenView" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+    </svg>
+    <svg *ngIf="isFullscreenView" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path>
+    </svg>
+    {{ isFullscreenView ? 'Exit Full Screen' : 'Full Screen' }}
+  </button>
+</ng-template>
+
+      <div class="tab-content"
+           [style.position]="isFullscreenView ? 'fixed' : 'relative'"
+           [style.top]="isFullscreenView ? '0' : 'auto'"
+           [style.left]="isFullscreenView ? '0' : 'auto'"
+           [style.width]="isFullscreenView ? '100vw' : 'auto'"
+           [style.height]="isFullscreenView ? '100vh' : 'auto'"
+           [style.z-index]="isFullscreenView ? '9999' : 'auto'"
+           [style.background]="isFullscreenView ? 'var(--bg-surface)' : 'transparent'"
+           [style.padding]="isFullscreenView ? '2rem' : '0'"
+           [style.overflow-y]="isFullscreenView ? 'auto' : 'visible'"
+           [style.display]="isFullscreenView ? 'flex' : 'block'"
+           [style.flex-direction]="isFullscreenView ? 'column' : 'initial'">
         @if(activeTab === 'overview') {
-        <h3 style="margin-top: 0;">Project Overview</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;"><h3 style="margin-top: 0; margin-bottom: 0;">Project Overview</h3><ng-container *ngTemplateOutlet="fullScreenBtn"></ng-container></div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
           <div><strong>Stack:</strong> {{ getDisplayStack() }}</div>
           <div><strong>Branch:</strong> {{ getSelectedBranchName() }}</div>
@@ -135,7 +160,9 @@
         @if(activeTab === 'getting-started') {
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
           <h3 style="margin: 0;">Getting Started</h3>
-          @if (repo.repo_getting_started) {
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <ng-container *ngTemplateOutlet="fullScreenBtn"></ng-container>
+            @if (repo.repo_getting_started) {
           <button class="btn-sm"
             style="background: transparent; color: var(--text-main); border: 1px solid var(--border-color); padding: 0.25rem 0.5rem; display: flex; align-items: center; gap: 0.25rem; cursor: pointer;"
             (click)="copyToClipboard(repo.repo_getting_started)">
@@ -146,6 +173,7 @@
             Copy Steps
           </button>
           }
+          </div>
         </div>
         @if (parsedInstallSteps.length) {
         <div
@@ -160,6 +188,7 @@
         }
 
         @if(activeTab === 'commits') {
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 1rem;"><ng-container *ngTemplateOutlet="fullScreenBtn"></ng-container></div>
         <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem;">
           <div>
             <h4 style="margin-top: 0;">Select Branch</h4>
@@ -197,31 +226,83 @@
         @if(activeTab === 'architecture') {
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
           <h3 style="margin: 0;">Architecture & Design</h3>
-          <span style="font-size: 0.9rem; color: var(--text-muted);"><strong>Type:</strong> {{ repo.repo_arch || 'Not specified' }}</span>
+          <div style="display: flex; gap: 1rem; align-items: center;">
+            <span style="font-size: 0.9rem; color: var(--text-muted);"><strong>Type:</strong> {{ repo.repo_arch || 'Not specified' }}</span>
+          </div>
         </div>
 
         <!-- Interactive Excalidraw Whiteboard -->
-        <h4 style="margin-top: 1.5rem; margin-bottom: 1rem; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
-          </svg>
-          Interactive Drawboard (Autosaves)
-        </h4>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; margin-bottom: 1rem;">
+          <h4 style="margin: 0; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+            </svg>
+            Interactive Drawboard (Autosaves)
+          </h4>
+          <button class="btn-sm"
+            style="background: transparent; color: var(--text-main); border: 1px solid var(--border-color); padding: 0.25rem 0.5rem; display: flex; align-items: center; gap: 0.25rem; cursor: pointer;"
+            (click)="isFullscreenWhiteboard = !isFullscreenWhiteboard">
+            <svg *ngIf="!isFullscreenWhiteboard" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
+            <svg *ngIf="isFullscreenWhiteboard" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path></svg>
+            {{ isFullscreenWhiteboard ? 'Exit Full Screen' : 'Full Screen' }}
+          </button>
+        </div>
         <div *ngIf="whiteboardUrl" 
-             style="width: 100%; height: 70vh; border: 1px solid var(--border-color); border-radius: var(--radius-md); overflow: hidden; background: #121212; box-shadow: var(--shadow-md);">
+             [style.position]="isFullscreenWhiteboard ? 'fixed' : 'relative'"
+             [style.top]="isFullscreenWhiteboard ? '0' : 'auto'"
+             [style.left]="isFullscreenWhiteboard ? '0' : 'auto'"
+             [style.width]="isFullscreenWhiteboard ? '100vw' : '100%'"
+             [style.height]="isFullscreenWhiteboard ? '100vh' : '70vh'"
+             [style.z-index]="isFullscreenWhiteboard ? '999999' : 'auto'"
+             style="border: 1px solid var(--border-color); border-radius: var(--radius-md); overflow: hidden; background: #121212; box-shadow: var(--shadow-md);">
+          <button class="btn-sm" 
+                  [style.display]="isFullscreenWhiteboard ? 'flex' : 'none'"
+                  style="position: fixed; top: 1rem; right: 2rem; background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border-color); padding: 0.5rem 1rem; align-items: center; gap: 0.5rem; cursor: pointer; z-index: 9999999; box-shadow: var(--shadow-md); border-radius: 4px;"
+                  (click)="isFullscreenWhiteboard = false">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path>
+            </svg>
+            Exit Full Screen
+          </button>
           <iframe [src]="whiteboardUrl" style="width: 100%; height: 100%; border: none;"></iframe>
         </div>
 
         @if (repo.repo_architecture_diagram) {
-        <h4 style="margin-top: 2.5rem; margin-bottom: 1rem; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-          </svg>
-          System Flowchart (Mermaid.js)
-        </h4>
-        <div id="mermaid-diagram"
-          style="background: var(--bg-main); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); display: flex; justify-content: center; min-height: 200px; box-shadow: var(--shadow-sm);">
-          <!-- Mermaid renders here -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 2.5rem; margin-bottom: 1rem;">
+          <h4 style="margin: 0; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+            </svg>
+            System Flowchart (Mermaid.js)
+          </h4>
+          <button class="btn-sm"
+            style="background: transparent; color: var(--text-main); border: 1px solid var(--border-color); padding: 0.25rem 0.5rem; display: flex; align-items: center; gap: 0.25rem; cursor: pointer;"
+            (click)="isFullscreenMermaid = !isFullscreenMermaid">
+            <svg *ngIf="!isFullscreenMermaid" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
+            <svg *ngIf="isFullscreenMermaid" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path></svg>
+            {{ isFullscreenMermaid ? 'Exit Full Screen' : 'Full Screen' }}
+          </button>
+        </div>
+        <div [style.position]="isFullscreenMermaid ? 'fixed' : 'relative'"
+             [style.top]="isFullscreenMermaid ? '0' : 'auto'"
+             [style.left]="isFullscreenMermaid ? '0' : 'auto'"
+             [style.width]="isFullscreenMermaid ? '100vw' : '100%'"
+             [style.height]="isFullscreenMermaid ? '100vh' : 'auto'"
+             [style.z-index]="isFullscreenMermaid ? '999999' : 'auto'"
+             [style.padding]="isFullscreenMermaid ? '2rem' : '1.5rem'"
+             style="background: var(--bg-main); border-radius: var(--radius-md); border: 1px solid var(--border-color); display: flex; flex-direction: column; align-items: center; min-height: 200px; box-shadow: var(--shadow-sm); overflow: auto;">
+          <button class="btn-sm" 
+                  [style.display]="isFullscreenMermaid ? 'flex' : 'none'"
+                  style="position: fixed; top: 1rem; right: 2rem; background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border-color); padding: 0.5rem 1rem; align-items: center; gap: 0.5rem; cursor: pointer; z-index: 9999999; box-shadow: var(--shadow-md); border-radius: 4px;"
+                  (click)="isFullscreenMermaid = false">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path>
+            </svg>
+            Exit Full Screen
+          </button>
+          <div id="mermaid-diagram" style="width: 100%; display: flex; justify-content: center;">
+            <!-- Mermaid renders here -->
+          </div>
         </div>
 
         <details style="margin-top: 1rem;">
@@ -237,6 +318,7 @@
         @if(activeTab === 'apis') {
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
           <h3 style="margin: 0;">API Documentation</h3>
+          <ng-container *ngTemplateOutlet="fullScreenBtn"></ng-container>
         </div>
         <div style="display: flex; flex-direction: column; gap: 1.5rem;">
           @for(api of parsedApis; track $index; let i = $index) {
@@ -331,7 +413,8 @@
         }
 
         @if(activeTab === 'code-snippet') {
-        <div style="display: flex; gap: 1.5rem; height: 500px; margin-top: 1rem;">
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 1rem;"><ng-container *ngTemplateOutlet="fullScreenBtn"></ng-container></div>
+        <div style="display: flex; gap: 1.5rem; height: 500px; flex: 1;">
           <!-- Left Sidebar: Snippet List -->
           <div style="width: 250px; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); display: flex; flex-direction: column; padding: 0.75rem; box-shadow: var(--shadow-sm);">
             <h4 style="margin-top: 0; margin-bottom: 0.75rem; font-size: 0.95rem; font-weight: 600; color: var(--text-main); border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">Snippets</h4>
@@ -356,15 +439,18 @@
             @if (repo.repo_code_snippets && repo.repo_code_snippets.length > 0 && selectedSnippetIndex >= 0 && selectedSnippetIndex < repo.repo_code_snippets.length) {
               <div style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: var(--bg-surface);">
                 <span style="font-weight: 600; font-size: 0.9rem; color: var(--text-main);">{{ repo.repo_code_snippets[selectedSnippetIndex].title }}</span>
-                <button class="btn-sm"
-                  style="background: transparent; color: var(--text-main); border: 1px solid var(--border-color); padding: 0.25rem 0.5rem; display: flex; align-items: center; gap: 0.25rem; cursor: pointer;"
-                  (click)="copyToClipboard(repo.repo_code_snippets[selectedSnippetIndex].code)">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                  </svg>
-                  Copy Code
-                </button>
+                <div style="display: flex; gap: 0.5rem;">
+
+                  <button class="btn-sm"
+                    style="background: transparent; color: var(--text-main); border: 1px solid var(--border-color); padding: 0.25rem 0.5rem; display: flex; align-items: center; gap: 0.25rem; cursor: pointer;"
+                    (click)="copyToClipboard(repo.repo_code_snippets[selectedSnippetIndex].code)">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                    Copy Code
+                  </button>
+                </div>
               </div>
               <div style="flex: 1; height: 100%; overflow: hidden;">
                 <ngx-monaco-editor [options]="editorOptions" [ngModel]="repo.repo_code_snippets[selectedSnippetIndex].code" style="height: 100%; display: block;"></ngx-monaco-editor>
@@ -381,8 +467,9 @@
         @if(activeTab === 'database') {
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
           <h3 style="margin: 0;">Database Schema</h3>
-          @if (repo.repo_schema) {
-          <div style="display: flex; gap: 0.5rem;">
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <ng-container *ngTemplateOutlet="fullScreenBtn"></ng-container>
+            @if (repo.repo_schema) {
             <button class="btn-sm"
               style="background: transparent; color: var(--text-main); border: 1px solid var(--border-color); padding: 0.25rem 0.5rem; display: flex; align-items: center; gap: 0.25rem; cursor: pointer;"
               (click)="copyToClipboard(repo.repo_schema)">
@@ -399,8 +486,8 @@
               </svg>
               Download .sql
             </button>
+            }
           </div>
-          }
         </div>
         <div
           style="background: var(--bg-main); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); white-space: pre-wrap; font-family: inherit;">
@@ -411,8 +498,9 @@
         @if(activeTab === 'environment') {
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
           <h3 style="margin: 0;">Environment Variables</h3>
-          @if (repo.repo_env) {
-          <div style="display: flex; gap: 0.5rem;">
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <ng-container *ngTemplateOutlet="fullScreenBtn"></ng-container>
+            @if (repo.repo_env) {
             <button class="btn-sm"
               style="background: transparent; color: var(--text-main); border: 1px solid var(--border-color); padding: 0.25rem 0.5rem; display: flex; align-items: center; gap: 0.25rem; cursor: pointer;"
               (click)="copyToClipboard(repo.repo_env)">
@@ -429,8 +517,8 @@
               </svg>
               Download .env
             </button>
+            }
           </div>
-          }
         </div>
         @if (parsedEnvVars.length) {
         <div
@@ -449,8 +537,10 @@
         @if(activeTab === 'deployment') {
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
           <h3 style="margin: 0;">Deployment Guide</h3>
-          @if (repo.repo_deployment) {
-          <button class="btn-sm"
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <ng-container *ngTemplateOutlet="fullScreenBtn"></ng-container>
+            @if (repo.repo_deployment) {
+            <button class="btn-sm"
             style="background: transparent; color: var(--text-main); border: 1px solid var(--border-color); padding: 0.25rem 0.5rem; display: flex; align-items: center; gap: 0.25rem; cursor: pointer;"
             (click)="copyToClipboard(repo.repo_deployment)">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -460,6 +550,7 @@
             Copy Guide
           </button>
           }
+          </div>
         </div>
         @if (parsedDeploymentSteps.length) {
         <div
@@ -474,7 +565,7 @@
         }
 
         @if(activeTab === 'coding-standards') {
-        <h3 style="margin-top: 0;">Coding Standards</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;"><h3 style="margin-top: 0; margin-bottom: 0;">Coding Standards</h3><ng-container *ngTemplateOutlet="fullScreenBtn"></ng-container></div>
         @if (repo.repo_coding_standards) {
         <div
           style="background: var(--bg-main); padding: 1.5rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); font-family: inherit; line-height: 1.8;"
@@ -486,6 +577,7 @@
         }
 
         @if(activeTab === 'files') {
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 1rem;"><ng-container *ngTemplateOutlet="fullScreenBtn"></ng-container></div>
         <div style="display: flex; flex-direction: column; gap: 2rem;">
           
           <!-- Upload Form Section -->
@@ -601,8 +693,11 @@
         }
 
         @if(activeTab === 'conversation') {
-        <div style="display: flex; flex-direction: column; height: 60vh;">
-          <h3 style="margin-top: 0; margin-bottom: 1rem; color: var(--text-main);">Repository Chat & Events</h3>
+        <div style="display: flex; flex-direction: column; height: 100%; min-height: 60vh;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 style="margin-top: 0; margin-bottom: 0; color: var(--text-main);">Repository Chat & Events</h3>
+            <ng-container *ngTemplateOutlet="fullScreenBtn"></ng-container>
+          </div>
           
           <!-- Messages Box -->
           <div style="flex-grow: 1; overflow-y: auto; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1rem;">
