@@ -30,7 +30,7 @@
       <button [class.active]="activeTab === 'architecture'" (click)="onArchitectureTabActive()">Architecture</button>
       <button [class.active]="activeTab === 'apis'" (click)="activeTab='apis'">APIs</button>
       <button [class.active]="activeTab === 'code-snippet'" (click)="activeTab='code-snippet'">Code Snippet</button>
-      <button [class.active]="activeTab === 'database'" (click)="activeTab='database'">Database</button>
+      <button [class.active]="activeTab === 'database'" (click)="onDatabaseTabActive()">Database</button>
       <button [class.active]="activeTab === 'environment'" (click)="activeTab='environment'">Environment</button>
       <button [class.active]="activeTab === 'deployment'" (click)="activeTab='deployment'">Deployment</button>
       <button [class.active]="activeTab === 'coding-standards'" (click)="activeTab='coding-standards'">Documentation</button>
@@ -470,6 +470,18 @@
           <div style="display: flex; gap: 0.5rem; align-items: center;">
             <ng-container *ngTemplateOutlet="fullScreenBtn"></ng-container>
             @if (repo.repo_schema) {
+            <button type="button" class="btn-sm" (click)="showRawSql = !showRawSql"
+              style="padding: 0.25rem 0.5rem; font-size: 0.8rem; background: var(--secondary-color, #1e293b); color: #fff; border: 1px solid var(--secondary-color, #1e293b); border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: opacity 0.2s;"
+              onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+              </svg>
+              {{ showRawSql ? 'Hide Raw SQL' : 'Show Raw SQL' }}
+            </button>
             <button class="btn-sm"
               style="background: transparent; color: var(--text-main); border: 1px solid var(--border-color); padding: 0.25rem 0.5rem; display: flex; align-items: center; gap: 0.25rem; cursor: pointer;"
               (click)="copyToClipboard(repo.repo_schema)">
@@ -489,10 +501,24 @@
             }
           </div>
         </div>
-        <div
-          style="background: var(--bg-main); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); white-space: pre-wrap; font-family: inherit;">
-          {{ repo.repo_schema || 'No database schema provided.' }}
-        </div>
+
+        @if (showDbDiagram) {
+          <div style="margin-bottom: 1rem; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1rem; background: var(--bg-surface);">
+            <div [innerHTML]="dbDiagramSvg" style="display: flex; justify-content: center; overflow-x: auto; min-height: 200px; max-height: 600px;"></div>
+          </div>
+        }
+
+        @if (showRawSql || (!showDbDiagram && repo.repo_schema)) {
+          <div
+            style="background: var(--bg-main); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); white-space: pre-wrap; font-family: inherit;">
+            {{ repo.repo_schema }}
+          </div>
+        } @else if (!repo.repo_schema) {
+          <div
+            style="background: var(--bg-main); padding: 1rem; border-radius: var(--radius-md); border: 1px solid var(--border-color); white-space: pre-wrap; font-family: inherit; color: var(--text-muted);">
+            No database schema provided.
+          </div>
+        }
         }
 
         @if(activeTab === 'environment') {

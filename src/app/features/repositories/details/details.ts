@@ -1,5 +1,5 @@
 import { Component, OnInit, AfterViewChecked, ElementRef, ViewChild, OnDestroy } from '@angular/core';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { DomSanitizer, SafeResourceUrl, SafeHtml } from '@angular/platform-browser';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CommonModule, DatePipe, Location } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -113,6 +113,113 @@ export class Details implements OnInit, OnDestroy {
         return { key: (key || '').trim(), value: val.join('=').trim() };
       })
       .filter((e: any) => e.key);
+  }
+
+  // DB Diagram state
+  dbDiagramSvg: SafeHtml | null = null;
+  showDbDiagram = false;
+  showRawSql = false;
+  
+  parseSqlToMermaid(sql: string): string {
+    let mermaidStr = 'erDiagram\n';
+    
+    // Remove comments, backticks, quotes, and IF NOT EXISTS
+    let cleanSql = sql
+      .replace(/--.*$/gm, '')
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/IF NOT EXISTS/gi, '')
+      .replace(/[`'"]/g, '');
+    
+    // Split by CREATE TABLE
+    const chunks = cleanSql.split(/CREATE\s+TABLE/i);
+    let hasTables = false;
+    const relationships: string[] = [];
+
+    for (let i = 1; i < chunks.length; i++) {
+      const chunk = chunks[i].trim();
+      
+      const tableNameMatch = chunk.match(/^([a-zA-Z0-9_]+)/);
+      if (!tableNameMatch) continue;
+      let tableName = tableNameMatch[1];
+      if (/^[0-9]/.test(tableName)) tableName = 't_' + tableName;
+      
+      const openIdx = chunk.indexOf('(');
+      const closeIdx = chunk.lastIndexOf(')');
+      if (openIdx === -1 || closeIdx === -1 || closeIdx < openIdx) continue;
+      
+      let body = chunk.substring(openIdx + 1, closeIdx);
+      hasTables = true;
+      
+      body = body.replace(/\([^)]+\)/g, (m) => m.replace(/,/g, ' '));
+      const lines = body.split(',').map(l => l.trim()).filter(l => l);
+      mermaidStr += `  ${tableName} {\n`;
+      
+      lines.forEach(line => {
+        const fkMatch = line.match(/FOREIGN\s+KEY\s*\([^)]+\)\s*REFERENCES\s+([a-zA-Z0-9_]+)/i);
+        if (fkMatch) {
+          let refTable = fkMatch[1];
+          if (/^[0-9]/.test(refTable)) refTable = 't_' + refTable;
+          relationships.push(`${tableName} }o--|| ${refTable} : "references"`);
+          return;
+        }
+
+        if (line.match(/^(PRIMARY|UNIQUE|KEY|CONSTRAINT|FULLTEXT|INDEX)/i)) return;
+
+        const parts = line.split(/\s+/);
+        if (parts.length >= 2) {
+          let colName = parts[0].replace(/[^a-zA-Z0-9_]/g, '');
+          let colType = parts[1].replace(/[^a-zA-Z0-9_]/g, ''); 
+          
+          if (!colName || !colType) return;
+          if (/^[0-9]/.test(colName)) colName = 'c_' + colName;
+          if (/^[0-9]/.test(colType)) colType = 't_' + colType;
+
+          const inlineFk = line.match(/REFERENCES\s+([a-zA-Z0-9_]+)/i);
+          if (inlineFk) {
+            let refTable = inlineFk[1];
+            if (/^[0-9]/.test(refTable)) refTable = 't_' + refTable;
+            relationships.push(`${tableName} }o--|| ${refTable} : "references"`);
+          }
+
+          let keyMarker = '';
+          if (line.match(/PRIMARY\s+KEY/i)) keyMarker = 'PK';
+          else if (inlineFk) keyMarker = 'FK';
+
+          mermaidStr += `    ${colType} ${colName} ${keyMarker}\n`;
+        }
+      });
+      mermaidStr += `  }\n`;
+    }
+
+    if (!hasTables) return '';
+    relationships.forEach(rel => { mermaidStr += `  ${rel}\n`; });
+    return mermaidStr;
+  }
+
+  async previewDbDiagram() {
+    if (!this.repo?.repo_schema) {
+      this.showDbDiagram = false;
+      return;
+    }
+    
+    const mermaidSyntax = this.parseSqlToMermaid(this.repo.repo_schema);
+    if (!mermaidSyntax) {
+      this.showDbDiagram = false;
+      return;
+    }
+
+    try {
+      // re-initialize with current theme just in case
+      mermaid.initialize({ startOnLoad: false, theme: this.themeService.isDarkMode ? 'dark' : 'default', securityLevel: 'loose' });
+      const id = 'mermaid-db-diagram-' + Date.now();
+      const { svg } = await mermaid.render(id, mermaidSyntax);
+      this.dbDiagramSvg = this.sanitizer.bypassSecurityTrustHtml(svg);
+      this.showDbDiagram = true;
+    } catch (err: any) {
+      console.error('Mermaid render error:', err);
+      console.error('Generated syntax:', mermaidSyntax);
+      this.showDbDiagram = false;
+    }
   }
 
   get parsedApis(): any[] {
@@ -325,6 +432,14 @@ export class Details implements OnInit, OnDestroy {
     // Render mermaid after tab switch with a small delay for DOM
     this.mermaidRendered = false;
     setTimeout(() => this.renderMermaid(), 100);
+  }
+
+  onDatabaseTabActive() {
+    this.activeTab = 'database';
+    // We only preview if we haven't already or if we want to ensure it renders immediately
+    setTimeout(() => {
+      this.previewDbDiagram();
+    }, 100);
   }
 
   async renderMermaid() {

@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { DomSanitizer, SafeResourceUrl, SafeHtml } from '@angular/platform-browser';
+import mermaid from 'mermaid';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
@@ -92,6 +93,124 @@ getMethodColor(method: string): string {
   // Whiteboard property
   whiteboardUrl: SafeResourceUrl | null = null;
   selectedBranchId: number | null = null;
+
+  // DB Diagram state
+  dbDiagramSvg: SafeHtml | null = null;
+  showDbDiagram = false;
+  
+  parseSqlToMermaid(sql: string): string {
+    let mermaid = 'erDiagram\n';
+    
+    // Remove comments, backticks, quotes, and IF NOT EXISTS
+    let cleanSql = sql
+      .replace(/--.*$/gm, '')
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/IF NOT EXISTS/gi, '')
+      .replace(/[`'"]/g, '');
+    
+    // Split by CREATE TABLE
+    const chunks = cleanSql.split(/CREATE\s+TABLE/i);
+    let hasTables = false;
+    const relationships: string[] = [];
+
+    for (let i = 1; i < chunks.length; i++) {
+      const chunk = chunks[i].trim();
+      
+      // Extract table name
+      const tableNameMatch = chunk.match(/^([a-zA-Z0-9_]+)/);
+      if (!tableNameMatch) continue;
+      let tableName = tableNameMatch[1];
+      if (/^[0-9]/.test(tableName)) tableName = 't_' + tableName;
+      
+      const openIdx = chunk.indexOf('(');
+      const closeIdx = chunk.lastIndexOf(')');
+      if (openIdx === -1 || closeIdx === -1 || closeIdx < openIdx) continue;
+      
+      let body = chunk.substring(openIdx + 1, closeIdx);
+      hasTables = true;
+      
+      // Protect commas inside parentheses like DECIMAL(10, 2)
+      body = body.replace(/\([^)]+\)/g, (m) => m.replace(/,/g, ' '));
+      
+      const lines = body.split(',').map(l => l.trim()).filter(l => l);
+      mermaid += `  ${tableName} {\n`;
+      
+      lines.forEach(line => {
+        // Match explicit foreign keys: FOREIGN KEY (user_id) REFERENCES users(id)
+        const fkMatch = line.match(/FOREIGN\s+KEY\s*\([^)]+\)\s*REFERENCES\s+([a-zA-Z0-9_]+)/i);
+        if (fkMatch) {
+          let refTable = fkMatch[1];
+          if (/^[0-9]/.test(refTable)) refTable = 't_' + refTable;
+          relationships.push(`${tableName} }o--|| ${refTable} : "references"`);
+          return;
+        }
+
+        // Skip table-level constraints
+        if (line.match(/^(PRIMARY|UNIQUE|KEY|CONSTRAINT|FULLTEXT|INDEX)/i)) {
+          return;
+        }
+
+        const parts = line.split(/\s+/);
+        if (parts.length >= 2) {
+          let colName = parts[0].replace(/[^a-zA-Z0-9_]/g, '');
+          let colType = parts[1].replace(/[^a-zA-Z0-9_]/g, ''); 
+          
+          if (!colName || !colType) return;
+          if (/^[0-9]/.test(colName)) colName = 'c_' + colName;
+          if (/^[0-9]/.test(colType)) colType = 't_' + colType;
+
+          const inlineFk = line.match(/REFERENCES\s+([a-zA-Z0-9_]+)/i);
+          if (inlineFk) {
+            let refTable = inlineFk[1];
+            if (/^[0-9]/.test(refTable)) refTable = 't_' + refTable;
+            relationships.push(`${tableName} }o--|| ${refTable} : "references"`);
+          }
+
+          let keyMarker = '';
+          if (line.match(/PRIMARY\s+KEY/i)) keyMarker = 'PK';
+          else if (inlineFk) keyMarker = 'FK';
+
+          mermaid += `    ${colType} ${colName} ${keyMarker}\n`;
+        }
+      });
+      mermaid += `  }\n`;
+    }
+
+    if (!hasTables) {
+      return '';
+    }
+
+    relationships.forEach(rel => {
+      mermaid += `  ${rel}\n`;
+    });
+    
+    return mermaid;
+  }
+
+  async previewDbDiagram() {
+    if (!this.repo_schema) {
+      this.toast.error('No schema available to visualize.');
+      return;
+    }
+    
+    const mermaidSyntax = this.parseSqlToMermaid(this.repo_schema);
+    if (!mermaidSyntax) {
+      this.toast.error('No CREATE TABLE statements found to visualize.');
+      return;
+    }
+
+    try {
+      mermaid.initialize({ startOnLoad: false, theme: this.themeService.isDarkMode ? 'dark' : 'default' });
+      const id = 'mermaid-db-diagram-' + Date.now();
+      const { svg } = await mermaid.render(id, mermaidSyntax);
+      this.dbDiagramSvg = this.sanitizer.bypassSecurityTrustHtml(svg);
+      this.showDbDiagram = true;
+    } catch (err: any) {
+      console.error('Mermaid render error:', err);
+      console.error('Generated syntax:', mermaidSyntax);
+      this.toast.error('Failed to generate diagram from SQL: ' + (err.message || 'Syntax error'));
+    }
+  }
 
   // Dynamic options tracking (will come from DB)
   stackOptions: { id: number | string, name: string }[] = [];
@@ -343,6 +462,104 @@ getMethodColor(method: string): string {
     };
     reader.onerror = () => {
       this.toast.error('Failed to read the .sql file');
+    };
+    reader.readAsText(file);
+    
+    // Clear the input so the same file can be selected again if needed
+    const target = event.target as HTMLInputElement;
+    if (target) target.value = '';
+  }
+
+  onPostmanFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (!file.name.endsWith('.json')) {
+      this.toast.error('Only .json files are allowed');
+      event.target.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      try {
+        const content = JSON.parse(e.target.result);
+        if (!content.item || !Array.isArray(content.item)) {
+          this.toast.error('Invalid Postman Collection format (missing items)');
+          return;
+        }
+
+        const apis: any[] = [];
+        
+        const extractRequests = (items: any[]) => {
+          for (const item of items) {
+            if (item.item && Array.isArray(item.item)) {
+              extractRequests(item.item);
+            } else if (item.request) {
+              const req = item.request;
+              let path = '';
+              if (typeof req.url === 'string') {
+                path = req.url;
+              } else if (req.url && req.url.raw) {
+                path = req.url.raw;
+              } else if (req.url && req.url.path) {
+                path = '/' + req.url.path.join('/');
+              }
+              
+              let desc = item.name || '';
+              if (req.description) desc += ' - ' + req.description;
+              
+              let payload = '';
+              if (req.body && req.body.raw) {
+                payload = req.body.raw;
+              }
+              
+              let parsedHeaders: any[] = [];
+              let isHeadersRaw = false;
+              if (req.header && Array.isArray(req.header)) {
+                parsedHeaders = req.header.map((h: any) => ({
+                  active: !h.disabled,
+                  key: h.key || '',
+                  value: h.value || ''
+                }));
+              }
+              
+              const newApi = {
+                method: req.method || 'GET',
+                path: path,
+                desc: desc,
+                payload: payload,
+                response: '',
+                headers: '',
+                isHeadersRaw: isHeadersRaw,
+                parsedHeaders: parsedHeaders.length > 0 ? parsedHeaders : [{ active: true, key: '', value: '' }]
+              };
+              this.syncParsedHeadersToRaw(newApi);
+              apis.push(newApi);
+            }
+          }
+        };
+
+        extractRequests(content.item);
+
+        if (apis.length > 0) {
+          // If the list has only one empty API item, replace it instead of appending
+          if (this.repo_apis.length === 1 && !this.repo_apis[0].path && !this.repo_apis[0].desc) {
+            this.repo_apis = apis;
+          } else {
+            this.repo_apis = [...this.repo_apis, ...apis];
+          }
+          this.toast.success(`Imported ${apis.length} APIs successfully`);
+        } else {
+          this.toast.warning('No APIs found in the collection');
+        }
+
+      } catch (err) {
+        this.toast.error('Failed to parse the JSON file');
+      }
+    };
+    reader.onerror = () => {
+      this.toast.error('Failed to read the JSON file');
     };
     reader.readAsText(file);
     
