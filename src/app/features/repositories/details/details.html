@@ -306,7 +306,7 @@
                (mousemove)="onMouseMove($event, archContainer)"
                (mouseup)="onMouseUp()"
                (mouseleave)="onMouseUp()"
-               [style.cursor]="isFullscreenMermaid ? (isDragging ? 'grabbing' : 'grab') : 'default'"
+               [style.cursor]="isDragging ? 'grabbing' : 'grab'"
                style="width: 100%; display: flex; justify-content: center; user-select: none; overflow: hidden;">
             <!-- Mermaid renders here -->
           </div>
@@ -517,8 +517,8 @@
                  (mousemove)="onMouseMove($event, dbContainer)"
                  (mouseup)="onMouseUp()"
                  (mouseleave)="onMouseUp()"
-                 [style.cursor]="isFullscreenView ? (isDragging ? 'grabbing' : 'grab') : 'default'"
-                 style="display: flex; justify-content: center; overflow: hidden; min-height: 200px; max-height: 100vh; user-select: none;"></div>
+                 [style.cursor]="isDragging ? 'grabbing' : 'grab'"
+                 style="display: flex; justify-content: center; overflow: hidden; min-height: 500px; height: 60vh; max-height: 100vh; user-select: none; align-items: center;"></div>
           </div>
         }
 

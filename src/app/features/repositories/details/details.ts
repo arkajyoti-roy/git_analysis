@@ -135,9 +135,6 @@ export class Details implements OnInit, OnDestroy {
   }
 
   onWheel(event: WheelEvent, container: HTMLElement) {
-    const isFullscreen = this.isFullscreenMermaid || this.isFullscreenView;
-    if (!isFullscreen) return;
-
     event.preventDefault();
     const zoomDelta = event.deltaY < 0 ? 0.1 : -0.1;
     this.zoomScale = Math.max(0.2, Math.min(5, this.zoomScale + zoomDelta));
@@ -145,8 +142,6 @@ export class Details implements OnInit, OnDestroy {
   }
 
   onMouseDown(event: MouseEvent) {
-    const isFullscreen = this.isFullscreenMermaid || this.isFullscreenView;
-    if (!isFullscreen) return;
     this.isDragging = true;
     this.startX = event.clientX - this.panX;
     this.startY = event.clientY - this.panY;
