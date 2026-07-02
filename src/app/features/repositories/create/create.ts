@@ -99,7 +99,7 @@ getMethodColor(method: string): string {
   showDbDiagram = false;
   
   parseSqlToMermaid(sql: string): string {
-    let mermaid = 'erDiagram\n';
+    let mermaidStr = 'erDiagram\n';
     
     // Remove comments, backticks, quotes, and IF NOT EXISTS
     let cleanSql = sql
@@ -107,11 +107,23 @@ getMethodColor(method: string): string {
       .replace(/\/\*[\s\S]*?\*\//g, '')
       .replace(/IF NOT EXISTS/gi, '')
       .replace(/[`'"]/g, '');
+      
+    const relationships: string[] = [];
+
+    // Extract ALTER TABLE foreign keys
+    const alterTableRegex = /ALTER\s+TABLE\s+([a-zA-Z0-9_]+)\s+ADD\s+(?:CONSTRAINT\s+[a-zA-Z0-9_]+\s+)?FOREIGN\s+KEY\s*\([^)]+\)\s*REFERENCES\s+([a-zA-Z0-9_]+)/gi;
+    let match;
+    while ((match = alterTableRegex.exec(cleanSql)) !== null) {
+      let srcTable = match[1];
+      let refTable = match[2];
+      if (/^[0-9]/.test(srcTable)) srcTable = 't_' + srcTable;
+      if (/^[0-9]/.test(refTable)) refTable = 't_' + refTable;
+      relationships.push(`${srcTable} }o--|| ${refTable} : "references"`);
+    }
     
     // Split by CREATE TABLE
     const chunks = cleanSql.split(/CREATE\s+TABLE/i);
     let hasTables = false;
-    const relationships: string[] = [];
 
     for (let i = 1; i < chunks.length; i++) {
       const chunk = chunks[i].trim();
@@ -133,7 +145,7 @@ getMethodColor(method: string): string {
       body = body.replace(/\([^)]+\)/g, (m) => m.replace(/,/g, ' '));
       
       const lines = body.split(',').map(l => l.trim()).filter(l => l);
-      mermaid += `  ${tableName} {\n`;
+      mermaidStr += `  ${tableName} {\n`;
       
       lines.forEach(line => {
         // Match explicit foreign keys: FOREIGN KEY (user_id) REFERENCES users(id)
@@ -170,10 +182,10 @@ getMethodColor(method: string): string {
           if (line.match(/PRIMARY\s+KEY/i)) keyMarker = 'PK';
           else if (inlineFk) keyMarker = 'FK';
 
-          mermaid += `    ${colType} ${colName} ${keyMarker}\n`;
+          mermaidStr += `    ${colType} ${colName} ${keyMarker}\n`;
         }
       });
-      mermaid += `  }\n`;
+      mermaidStr += `  }\n`;
     }
 
     if (!hasTables) {
@@ -181,10 +193,10 @@ getMethodColor(method: string): string {
     }
 
     relationships.forEach(rel => {
-      mermaid += `  ${rel}\n`;
+      mermaidStr += `  ${rel}\n`;
     });
     
-    return mermaid;
+    return mermaidStr;
   }
 
   async previewDbDiagram() {

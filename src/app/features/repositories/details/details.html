@@ -83,7 +83,7 @@
       <ng-template #fullScreenBtn>
   <button class="btn-sm"
     style="background: transparent; color: var(--text-main); border: 1px solid var(--border-color); padding: 0.25rem 0.5rem; display: flex; align-items: center; gap: 0.25rem; cursor: pointer; height: fit-content;"
-    (click)="isFullscreenView = !isFullscreenView">
+    (click)="isFullscreenView = !isFullscreenView; resetPanZoom()">
     <svg *ngIf="!isFullscreenView" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
     </svg>
@@ -277,7 +277,7 @@
           </h4>
           <button class="btn-sm"
             style="background: transparent; color: var(--text-main); border: 1px solid var(--border-color); padding: 0.25rem 0.5rem; display: flex; align-items: center; gap: 0.25rem; cursor: pointer;"
-            (click)="isFullscreenMermaid = !isFullscreenMermaid">
+            (click)="isFullscreenMermaid = !isFullscreenMermaid; resetPanZoom()">
             <svg *ngIf="!isFullscreenMermaid" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path></svg>
             <svg *ngIf="isFullscreenMermaid" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path></svg>
             {{ isFullscreenMermaid ? 'Exit Full Screen' : 'Full Screen' }}
@@ -294,13 +294,20 @@
           <button class="btn-sm" 
                   [style.display]="isFullscreenMermaid ? 'flex' : 'none'"
                   style="position: fixed; top: 1rem; right: 2rem; background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border-color); padding: 0.5rem 1rem; align-items: center; gap: 0.5rem; cursor: pointer; z-index: 9999999; box-shadow: var(--shadow-md); border-radius: 4px;"
-                  (click)="isFullscreenMermaid = false">
+                  (click)="isFullscreenMermaid = false; resetPanZoom()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path>
             </svg>
             Exit Full Screen
           </button>
-          <div id="mermaid-diagram" style="width: 100%; display: flex; justify-content: center;">
+          <div id="mermaid-diagram" #archContainer 
+               (wheel)="onWheel($event, archContainer)"
+               (mousedown)="onMouseDown($event)"
+               (mousemove)="onMouseMove($event, archContainer)"
+               (mouseup)="onMouseUp()"
+               (mouseleave)="onMouseUp()"
+               [style.cursor]="isFullscreenMermaid ? (isDragging ? 'grabbing' : 'grab') : 'default'"
+               style="width: 100%; display: flex; justify-content: center; user-select: none; overflow: hidden;">
             <!-- Mermaid renders here -->
           </div>
         </div>
@@ -504,7 +511,14 @@
 
         @if (showDbDiagram) {
           <div style="margin-bottom: 1rem; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1rem; background: var(--bg-surface);">
-            <div [innerHTML]="dbDiagramSvg" style="display: flex; justify-content: center; overflow-x: auto; min-height: 200px; max-height: 600px;"></div>
+            <div [innerHTML]="dbDiagramSvg" #dbContainer 
+                 (wheel)="onWheel($event, dbContainer)"
+                 (mousedown)="onMouseDown($event)"
+                 (mousemove)="onMouseMove($event, dbContainer)"
+                 (mouseup)="onMouseUp()"
+                 (mouseleave)="onMouseUp()"
+                 [style.cursor]="isFullscreenView ? (isDragging ? 'grabbing' : 'grab') : 'default'"
+                 style="display: flex; justify-content: center; overflow: hidden; min-height: 200px; max-height: 100vh; user-select: none;"></div>
           </div>
         }
 

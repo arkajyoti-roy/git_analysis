@@ -119,47 +119,119 @@ export class Details implements OnInit, OnDestroy {
   dbDiagramSvg: SafeHtml | null = null;
   showDbDiagram = false;
   showRawSql = false;
+
+  // Pan and Zoom state for Diagrams
+  zoomScale = 1;
+  panX = 0;
+  panY = 0;
+  isDragging = false;
+  startX = 0;
+  startY = 0;
+
+  resetPanZoom() {
+    this.zoomScale = 1;
+    this.panX = 0;
+    this.panY = 0;
+  }
+
+  onWheel(event: WheelEvent, container: HTMLElement) {
+    const isFullscreen = this.isFullscreenMermaid || this.isFullscreenView;
+    if (!isFullscreen) return;
+
+    event.preventDefault();
+    const zoomDelta = event.deltaY < 0 ? 0.1 : -0.1;
+    this.zoomScale = Math.max(0.2, Math.min(5, this.zoomScale + zoomDelta));
+    this.updateTransform(container);
+  }
+
+  onMouseDown(event: MouseEvent) {
+    const isFullscreen = this.isFullscreenMermaid || this.isFullscreenView;
+    if (!isFullscreen) return;
+    this.isDragging = true;
+    this.startX = event.clientX - this.panX;
+    this.startY = event.clientY - this.panY;
+  }
+
+  onMouseMove(event: MouseEvent, container: HTMLElement) {
+    if (!this.isDragging) return;
+    this.panX = event.clientX - this.startX;
+    this.panY = event.clientY - this.startY;
+    this.updateTransform(container);
+  }
+
+  onMouseUp() {
+    this.isDragging = false;
+  }
+
+  updateTransform(container: HTMLElement) {
+    const svg = container.querySelector('svg');
+    if (svg) {
+      // Ensuring the SVG can be moved freely without clipping
+      svg.style.overflow = 'visible';
+      svg.style.transform = `translate(${this.panX}px, ${this.panY}px) scale(${this.zoomScale})`;
+      svg.style.transformOrigin = 'center center';
+      svg.style.transition = this.isDragging ? 'none' : 'transform 0.1s ease';
+    }
+  }
+
   
   parseSqlToMermaid(sql: string): string {
     let mermaidStr = 'erDiagram\n';
     
-    // Remove comments, backticks, quotes, and IF NOT EXISTS
     let cleanSql = sql
       .replace(/--.*$/gm, '')
       .replace(/\/\*[\s\S]*?\*\//g, '')
       .replace(/IF NOT EXISTS/gi, '')
       .replace(/[`'"]/g, '');
-    
-    // Split by CREATE TABLE
-    const chunks = cleanSql.split(/CREATE\s+TABLE/i);
-    let hasTables = false;
-    const relationships: string[] = [];
+      
+    const relationships = new Set<string>();
+    const tableNameMap = new Map<string, string>();
+    const tableData: any[] = [];
 
+    const alterTableRegex = /ALTER\s+TABLE\s+([a-zA-Z0-9_]+)\s+ADD\s+(?:CONSTRAINT\s+[a-zA-Z0-9_]+\s+)?FOREIGN\s+KEY\s*\([^)]+\)\s*REFERENCES\s+([a-zA-Z0-9_]+)/gi;
+    let match;
+    while ((match = alterTableRegex.exec(cleanSql)) !== null) {
+      let srcTable = match[1];
+      let refTable = match[2];
+      if (/^[0-9]/.test(srcTable)) srcTable = 't_' + srcTable;
+      if (/^[0-9]/.test(refTable)) refTable = 't_' + refTable;
+      relationships.add(`${srcTable} }o--|| ${refTable} : "references"`);
+    }
+    
+    const chunks = cleanSql.split(/CREATE\s+TABLE/i);
+    
     for (let i = 1; i < chunks.length; i++) {
       const chunk = chunks[i].trim();
-      
       const tableNameMatch = chunk.match(/^([a-zA-Z0-9_]+)/);
       if (!tableNameMatch) continue;
       let tableName = tableNameMatch[1];
-      if (/^[0-9]/.test(tableName)) tableName = 't_' + tableName;
+      tableNameMap.set(tableName.toLowerCase(), tableName);
       
       const openIdx = chunk.indexOf('(');
       const closeIdx = chunk.lastIndexOf(')');
       if (openIdx === -1 || closeIdx === -1 || closeIdx < openIdx) continue;
       
       let body = chunk.substring(openIdx + 1, closeIdx);
-      hasTables = true;
-      
       body = body.replace(/\([^)]+\)/g, (m) => m.replace(/,/g, ' '));
-      const lines = body.split(',').map(l => l.trim()).filter(l => l);
-      mermaidStr += `  ${tableName} {\n`;
       
-      lines.forEach(line => {
+      tableData.push({ originalName: tableName, body });
+    }
+
+    if (tableData.length === 0) return '';
+
+    tableData.forEach(table => {
+      let tableName = table.originalName;
+      if (/^[0-9]/.test(tableName)) tableName = 't_' + tableName;
+      
+      mermaidStr += `  ${tableName} {\n`;
+      const lines = table.body.split(',').map((l: string) => l.trim()).filter((l: string) => l);
+      
+      lines.forEach((line: string) => {
         const fkMatch = line.match(/FOREIGN\s+KEY\s*\([^)]+\)\s*REFERENCES\s+([a-zA-Z0-9_]+)/i);
         if (fkMatch) {
           let refTable = fkMatch[1];
           if (/^[0-9]/.test(refTable)) refTable = 't_' + refTable;
-          relationships.push(`${tableName} }o--|| ${refTable} : "references"`);
+          relationships.add(`${tableName} }o--|| ${refTable} : "references"`);
           return;
         }
 
@@ -169,30 +241,50 @@ export class Details implements OnInit, OnDestroy {
         if (parts.length >= 2) {
           let colName = parts[0].replace(/[^a-zA-Z0-9_]/g, '');
           let colType = parts[1].replace(/[^a-zA-Z0-9_]/g, ''); 
-          
           if (!colName || !colType) return;
+          
+          const originalColName = colName;
+          
           if (/^[0-9]/.test(colName)) colName = 'c_' + colName;
           if (/^[0-9]/.test(colType)) colType = 't_' + colType;
+
+          let keyMarker = '';
+          if (line.match(/PRIMARY\s+KEY/i)) keyMarker = 'PK';
 
           const inlineFk = line.match(/REFERENCES\s+([a-zA-Z0-9_]+)/i);
           if (inlineFk) {
             let refTable = inlineFk[1];
             if (/^[0-9]/.test(refTable)) refTable = 't_' + refTable;
-            relationships.push(`${tableName} }o--|| ${refTable} : "references"`);
+            relationships.add(`${tableName} }o--|| ${refTable} : "references"`);
+            keyMarker = 'FK';
+          } else if (originalColName.toLowerCase().endsWith('_id')) {
+            const possibleRef1 = originalColName.toLowerCase().slice(0, -3);
+            const possibleRef2 = possibleRef1 + 's';
+            const possibleRef3 = possibleRef1 + 'es';
+            
+            let foundRef = null;
+            if (tableNameMap.has(possibleRef1)) foundRef = tableNameMap.get(possibleRef1);
+            else if (tableNameMap.has(possibleRef2)) foundRef = tableNameMap.get(possibleRef2);
+            else if (tableNameMap.has(possibleRef3)) foundRef = tableNameMap.get(possibleRef3);
+            
+            if (foundRef && foundRef.toLowerCase() !== table.originalName.toLowerCase()) {
+               let refTable = foundRef;
+               if (/^[0-9]/.test(refTable)) refTable = 't_' + refTable;
+               relationships.add(`${tableName} }o--|| ${refTable} : "inferred"`);
+               if (!keyMarker) keyMarker = 'FK';
+            }
           }
-
-          let keyMarker = '';
-          if (line.match(/PRIMARY\s+KEY/i)) keyMarker = 'PK';
-          else if (inlineFk) keyMarker = 'FK';
 
           mermaidStr += `    ${colType} ${colName} ${keyMarker}\n`;
         }
       });
       mermaidStr += `  }\n`;
-    }
+    });
 
-    if (!hasTables) return '';
-    relationships.forEach(rel => { mermaidStr += `  ${rel}\n`; });
+    relationships.forEach(rel => {
+      mermaidStr += `  ${rel}\n`;
+    });
+
     return mermaidStr;
   }
 
