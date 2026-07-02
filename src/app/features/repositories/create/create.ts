@@ -98,6 +98,191 @@ getMethodColor(method: string): string {
   dbDiagramSvg: SafeHtml | null = null;
   showDbDiagram = false;
   
+  isFetchingGithub = false;
+
+  async fetchFromGithub() {
+    if (!this.repo_github_url) {
+      this.toast.error('Please enter a GitHub URL first');
+      return;
+    }
+
+    let urlStr = this.repo_github_url.trim();
+    if (urlStr.endsWith('/')) urlStr = urlStr.slice(0, -1);
+    const match = urlStr.match(/github\.com\/([^\/]+)\/([^\/]+)/i);
+    
+    if (!match) {
+      this.toast.error('Invalid GitHub URL format. Please use https://github.com/owner/repo');
+      return;
+    }
+
+    const owner = match[1];
+    const repo = match[2].replace(/\.git$/, ''); 
+    
+    this.isFetchingGithub = true;
+    
+    try {
+      const response = await fetch(`https://api.github.com/repos/${owner}/${repo}`);
+      if (response.status === 403) {
+        throw new Error('GitHub API rate limit exceeded (60 requests/hr) or repository is private. Please try again later.');
+      } else if (!response.ok) {
+        throw new Error('Repository not found or private');
+      }
+      
+      const data = await response.json();
+      
+      if (!this.repo_name) this.repo_name = data.name;
+      this.repo_status = data.archived ? 'Archived' : 'Active';
+      this.repo_branch = data.default_branch || 'main';
+      this.toast.success('Successfully fetched repository details from GitHub!');
+      
+      // Attempt to fetch architecture diagram
+      try {
+        const archResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/architecture.mmd?ref=${data.default_branch}`, {
+          headers: { 'Accept': 'application/vnd.github.v3.raw' }
+        });
+        if (archResponse.ok) {
+          this.repo_architecture_diagram = await archResponse.text();
+          this.toast.success('Architecture diagram auto-filled!');
+        }
+      } catch(e) {}
+
+      const sanitizeText = (text: string) => {
+        if (!text) return '';
+        // Remove 4-byte emojis which crash MySQL utf8
+        let safe = text.replace(/[\u{10000}-\u{10FFFF}]/gu, '');
+        // Truncate to ~60KB to fit in standard TEXT columns
+        if (safe.length > 60000) safe = safe.substring(0, 60000) + '\n\n... [Truncated]';
+        return safe;
+      };
+
+      try {
+        const contentsResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents?ref=${data.default_branch}`);
+        if (contentsResponse.ok) {
+          const contents = await contentsResponse.json();
+          if (Array.isArray(contents)) {
+            // Find ANY .sql file
+            const sqlFile = contents.find((f: any) => f.name.endsWith('.sql') && f.type === 'file');
+            if (sqlFile) {
+              const schemaResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${sqlFile.path}?ref=${data.default_branch}`, {
+                headers: { 'Accept': 'application/vnd.github.v3.raw' }
+              });
+              if (schemaResponse.ok) {
+                this.repo_schema = sanitizeText(await schemaResponse.text());
+                this.toast.success(`Database schema auto-filled from ${sqlFile.name}!`);
+                if (this.showDbDiagram) {
+                  this.previewDbDiagram();
+                }
+              }
+            }
+            
+            // Find ANY .env file (.env, .env.example, env.sample, etc.)
+            const envFile = contents.find((f: any) => f.type === 'file' && (f.name.includes('.env') || f.name.startsWith('env.')));
+            if (envFile) {
+              const envResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${envFile.path}?ref=${data.default_branch}`, {
+                headers: { 'Accept': 'application/vnd.github.v3.raw' }
+              });
+              if (envResponse.ok) {
+                this.repo_env = sanitizeText(await envResponse.text());
+                this.toast.success(`Environment variables auto-filled from ${envFile.name}!`);
+              }
+            }
+          }
+        }
+      } catch(e) {}
+
+      // Attempt to fetch languages for tech stack
+      let detectedLanguages: string[] = [];
+      try {
+        const langResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/languages`);
+        if (langResponse.ok) {
+          const langData = await langResponse.json();
+          detectedLanguages = Object.keys(langData);
+          let addedCount = 0;
+          detectedLanguages.forEach(lang => {
+            // Only add if it doesn't exist to avoid duplicates
+            if (!this.repo_stack.includes(lang)) {
+              this.repo_stack.push(lang);
+              addedCount++;
+            }
+          });
+          if (addedCount > 0) this.toast.success(`Auto-filled ${addedCount} technologies to the stack!`);
+        }
+      } catch(e) {}
+
+      // Attempt to fetch README for Documentation, Getting Started, and Deployment
+      try {
+        const readmeResponse = await fetch(`https://api.github.com/repos/${owner}/${repo}/readme`, {
+          headers: { 'Accept': 'application/vnd.github.v3.raw' }
+        });
+        
+        const generateFallback = (type: 'install' | 'deploy', langs: string[]) => {
+          let content = '';
+          const lowerLangs = langs.map(l => l.toLowerCase());
+          
+          if (lowerLangs.includes('typescript') || lowerLangs.includes('javascript')) {
+            if (type === 'install') content += "### Node.js Setup\n1. Ensure Node.js is installed.\n2. Run `npm install` to install dependencies.\n3. Run `npm start` or `npm run dev` to start the application.\n\n";
+            else content += "### Node.js Deployment\n1. Run `npm run build` to create a production bundle.\n2. Start the server using `npm start` or deploy the static files to a web host.\n\n";
+          }
+          if (lowerLangs.includes('python')) {
+            if (type === 'install') content += "### Python Setup\n1. Create a virtual environment: `python -m venv venv`\n2. Activate the environment.\n3. Run `pip install -r requirements.txt`.\n4. Run the main application file (e.g., `python main.py`).\n\n";
+            else content += "### Python Deployment\n1. Setup a production WSGI server like Gunicorn or uWSGI.\n2. Configure a reverse proxy like Nginx to route traffic to the WSGI server.\n\n";
+          }
+          if (lowerLangs.includes('java')) {
+            if (type === 'install') content += "### Java Setup\n1. Ensure JDK is installed.\n2. Run `mvn clean install` or `./gradlew build` depending on the build tool.\n\n";
+            else content += "### Java Deployment\n1. Build the executable JAR/WAR file.\n2. Deploy to a Java Application Server (like Tomcat) or run `java -jar app.jar`.\n\n";
+          }
+          if (lowerLangs.includes('go')) {
+            if (type === 'install') content += "### Go Setup\n1. Run `go mod tidy` to download dependencies.\n2. Run `go run main.go` to start the application.\n\n";
+            else content += "### Go Deployment\n1. Build the binary using `go build -o app`.\n2. Execute the compiled binary on your production server.\n\n";
+          }
+          
+          if (!content && langs.length > 0) {
+            if (type === 'install') content = "### General Setup\n1. Clone the repository.\n2. Install the necessary language runtimes for: " + langs.join(', ') + ".\n3. Execute the standard build command for your framework.\n";
+            if (type === 'deploy') content = "### General Deployment\n1. Build the production artifacts for: " + langs.join(', ') + ".\n2. Deploy to your preferred hosting provider.\n";
+          }
+          
+          return content || (type === 'install' ? 'No specific setup instructions could be determined.' : 'No specific deployment instructions could be determined.');
+        };
+
+        if (readmeResponse.ok) {
+          const readmeText = await readmeResponse.text();
+          this.repo_coding_standards = sanitizeText(readmeText);
+          
+          const extractSection = (text: string, regex: RegExp) => {
+             const match = text.match(regex);
+             if (!match) return '';
+             const headingLevel = match[1].length;
+             const contentStartIndex = match.index! + match[0].length;
+             const remainingText = text.substring(contentStartIndex);
+             const nextHeadingRegex = new RegExp(`^#{1,${headingLevel}}\\s`, 'm');
+             const nextHeadingMatch = remainingText.match(nextHeadingRegex);
+             if (nextHeadingMatch) return remainingText.substring(0, nextHeadingMatch.index).trim();
+             return remainingText.trim();
+          };
+
+          const installRegex = /^(#+)\s*(?:getting started|installation|setup|quick start|how to install)/im;
+          const installContent = extractSection(readmeText, installRegex);
+          this.repo_getting_started = sanitizeText(installContent || generateFallback('install', detectedLanguages));
+
+          const deployRegex = /^(#+)\s*(?:deployment|deploying|production|hosting)/im;
+          const deployContent = extractSection(readmeText, deployRegex);
+          this.repo_deployment = sanitizeText(deployContent || generateFallback('deploy', detectedLanguages));
+
+          this.toast.success('README parsed! Auto-filled Documentation and Guides.');
+        } else {
+          // If no README exists, just use the fallback generator
+          this.repo_getting_started = sanitizeText(generateFallback('install', detectedLanguages));
+          this.repo_deployment = sanitizeText(generateFallback('deploy', detectedLanguages));
+        }
+      } catch(e) {}
+
+    } catch (err: any) {
+      this.toast.error(err.message || 'Failed to fetch from GitHub. Please check the URL.');
+    } finally {
+      this.isFetchingGithub = false;
+    }
+  }
+
   parseSqlToMermaid(sql: string): string {
     let mermaidStr = 'erDiagram\n';
     
